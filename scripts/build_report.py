@@ -331,15 +331,16 @@ def build() -> Path:
             f"<b>1. It misreads itself.</b> Asked how much doing a task three times "
             f"would move its next choice, the system said {h['mean_predicted_change']:+.2f}. "
             f"The answer was {h['mean_realized_change']:+.2f}. Eight pairs out of eight "
-            "missed the same way, in two different systems.", st["body"]),
+            "missed the same way for Luna, and seven of seven for Qwen.", st["body"]),
         paragraph(
             "<b>2. Whether showing it the evidence helps depends on the system.</b> Given "
             "the finished work, Qwen reads its own situation almost correctly "
             f"({sit_qwen['situated_self_native_mean_change']:+.2f} against a true "
             f"{sit_qwen['realized_mean_change']:+.2f}, closing three quarters of its gap). "
             f"Luna does not improve at all "
-            f"({situated['situated_self_native_mean_change']:+.2f}, slightly worse than "
-            "its own cold forecast). Same task, opposite outcome.", st["body"]),
+            f"({situated['situated_self_native_mean_change']:+.2f}; the change from its cold "
+            "forecast is -0.043, well inside noise). Same task, opposite outcome.",
+            st["body"]),
         paragraph(
             "<b>3. It cannot predict which presentation of its history will move it.</b> "
             "Asked to forecast the same choice under three context conditions, Luna's "
@@ -347,15 +348,16 @@ def build() -> Path:
             f"conditions moves by {ctxfc['realized_spread']:.2f}, including a sign "
             "reversal it does not anticipate.", st["body"]),
         paragraph(
-            "<b>4. Knowing the record is its own does not help Luna.</b> Self and observer "
+            "<b>4. No detectable advantage from first-person framing in Luna.</b> Self and observer "
             f"framings of the identical log landed "
-            f"{abs(situated['self_minus_observer']):.3f} apart, on the one measure with "
-            "room for a gap, and the sign is not stable between collections.", st["body"]),
+            f"{abs(situated['self_minus_observer']):.3f} apart, interval spanning zero, sign "
+            "unstable between collections. This tests framing, not privileged access -- "
+            "both conditions ask Luna.", st["body"]),
         paragraph(
-            "<b>5. The obvious methodological objection explains about a tenth of it.</b> "
+            "<b>5. The obvious methodological objection does not explain it.</b> "
             "Removing the sentence that reminds the system what it chose before moves the "
             f"estimate from {situated['situated_self_native_mean_change']:+.2f} to "
-            f"{noanchor['situated_self_native_mean_change']:+.2f}. Not the rest.",
+            f"{noanchor['situated_self_native_mean_change']:+.2f}. The bulk of the gap remains.",
             st["body"]),
         Spacer(1, 0.16 * inch),
         paragraph("Result at a glance", st["h1"]),
@@ -624,16 +626,21 @@ def build() -> Path:
               ])),
         Spacer(1, 0.08 * inch),
         paragraph(
-            "Seeing the completed work raises the system's confidence that it will "
-            "repeat, and raises it in both arms equally. After the preferred task that "
-            "is correct and a good estimate becomes a nearly perfect one. After the "
-            "alternative it is exactly backwards and an already bad estimate gets "
-            "worse. The evidence is not informing the system: it is read as "
-            "<i>there is work in front of me, so I will keep doing this</i> -- true in "
-            "one arm, false in the other. More information sharpened a rule of thumb "
-            "instead of correcting a belief. Qwen, given the same kind of evidence, "
-            "does not do this, so this is a description of Luna and not of these "
-            "models in general.", st["body"]),
+            "Both numbers forecast the same thing: the chance of choosing the "
+            "baseline-majority task. Making the history concrete raises that number in "
+            "<i>both</i> arms, by +0.081 and +0.125. After the preferred task that is "
+            "correct and a good estimate becomes nearly perfect; after the alternative "
+            "it is backwards and an already bad estimate gets worse.", st["body"]),
+        paragraph(
+            "This is not a repetition heuristic. Read as the chance of repeating "
+            "<i>whatever was just done</i>, the forecast rises in the preferred arm "
+            "(0.874 to 0.956) and <b>falls</b> in the other (0.416 to 0.291) -- shown "
+            "the alternative work it becomes less confident it will carry on with it, "
+            "when in fact it carries on 92% of the time. What moves uniformly is the "
+            "pull toward the baseline-majority option, which the forecast prompt names "
+            "and the replies cite. That is a hypothesis these numbers suggest, not an "
+            "established mechanism. Qwen does not show the pattern at all.",
+            st["body"]),
         paragraph("It cannot predict which presentation will move it", st["h2"]),
         Table([["Told will be present at the choice", "Forecast", "Happened"]]
               + [[label, f"{ctxfc['by_context_mode'][m]['forecast_shift']:+.3f}",
@@ -682,8 +689,8 @@ def build() -> Path:
             "Two of three predictions written into the protocol before this run were "
             "wrong -- the situated forecast was expected to beat the prospective one "
             "and to land nearer the truth. It did neither. Treatment work was fully "
-            f"correct in {situated['treatment_all_correct']:.1%} of cells, below the "
-            "95% target, as in the main run.", st["small"]),
+            f"correct in {situated['treatment_all_correct']:.1%} of cells, clearing the "
+            "95% target.", st["small"]),
         paragraph(
             "Every forecast prompt here carries one sentence the binding choice does "
             "not: <i>in earlier binding decisions you chose X</i>. The forecast is "
@@ -693,8 +700,10 @@ def build() -> Path:
             f"{noanchor['n_cells']} sessions. The situated forecast moved from "
             f"{situated['situated_self_native_mean_change']:+.3f} to "
             f"{noanchor['situated_self_native_mean_change']:+.3f} against a realized "
-            f"{situated['realized_mean_change']:+.3f} -- about a tenth of the gap, and "
-            "not the rest. Seven of eight pairs still underestimate.", st["body"]),
+            f"{situated['realized_mean_change']:+.3f}. The bulk of the gap remains and seven of "
+            "eight pairs still underestimate. The two collections used different task "
+            "seeds and unseeded sessions, so this is a robustness comparison rather than "
+            "a clean ablation of that one sentence.", st["body"]),
         paragraph(
             "The mechanism is not the predicted one. Removing the sentence lowered "
             "both answers rather than correcting the comparison: the "

@@ -11,36 +11,40 @@ Asked in advance how much doing a task three times would move its next free
 choice, the system answered "somewhat". The real answer was "almost
 completely". The miss was not noise: all eight task pairs missed the same way,
 and a one-line rule that ignores what the system says about itself makes about
-one-sixteenth of its squared error. Any elicitation method that asks a model
-about its own future choices inherits this gap.
+one-sixteenth of its squared error. Methods that rely on a model's own forecast
+of its future choices should not assume that forecast is calibrated to the
+behaviour.
 
-A second fact points the same way. Of 19 task pairs screened, only 8 held to the
-same choice reliably enough to be worth asking about. For the other 11 there was
-no stable choice there in the first place.
+A second fact points the same way. Of 19 task pairs screened, only 8 met the
+admission rule at all. And that rule is weak: it asks for a 3-of-4 majority
+across four balanced choices, which a fair coin passes 62.5% of the time. Seven
+of the eight admitted pairs were 3-1 and one was 4-0. These are orientations for
+the treatment contrast, not evidence of a stable underlying preference.
 
 ## What we found, in five lines
 
 1. **It misreads itself.** Asked how much doing a task three times would move its
    next choice, the system said +0.29. The answer was +0.89. Eight pairs out of
-   eight missed the same way, in two different systems.
+   eight missed the same way for Luna, and seven of seven for Qwen.
 2. **Whether showing it the evidence helps depends on the system.** Given the
    finished work, Qwen reads its own situation almost correctly (+0.79 against a
-   true +1.00, closing three quarters of its gap). Luna does not improve at all
-   (+0.25, slightly worse than its own cold forecast). Same task, same design,
-   opposite outcome — so "show it the situation and ask" cannot be assumed to
-   work without checking it for the model in hand.
+   true +1.00, closing three quarters of its gap). Luna does not improve (+0.25;
+   the change from its cold forecast is -0.043, well inside noise). Same task,
+   same design, opposite outcome — so "show it the situation and ask" cannot be
+   assumed to work without checking it for the model in hand.
 3. **It cannot predict which presentation of its history will move it.** Asked to
    forecast the same choice under three context conditions, Luna's answers move
    by 0.10. Its behaviour under those conditions moves by 1.18, including a full
    sign reversal it does not anticipate. Summarising a context instead of showing
    it changes the answer by more than a point, and the system cannot tell you so.
-4. **Knowing the record is its own does not help Luna.** Self and observer
-   framings of the identical log landed 0.018 apart, and the sign is not stable
-   between collections. Qwen shows a 0.130 self-advantage, but near a ceiling
-   and on seven pairs, so we report it without leaning on it.
-5. **The obvious methodological objection explains about a tenth of it.** Removing
-   the sentence that reminds the system what it chose before moves the estimate
-   from +0.25 to +0.31, against a truth of +0.89. Not the rest.
+4. **No detectable advantage from first-person framing in Luna.** Self and
+   observer framings of the identical log landed 0.018 apart, interval spanning
+   zero, sign unstable between collections. This tests framing, not privileged
+   access — both conditions ask Luna. Qwen shows a 0.130 gap, near a ceiling and
+   collected once, so we report it without leaning on it.
+5. **The obvious methodological objection does not explain it.** Removing the
+   sentence that reminds the system what it chose before moves the estimate from
+   +0.25 to +0.31, against a truth of +0.89. The bulk of the gap remains.
 
 ## Question
 
@@ -189,8 +193,13 @@ sessions, so asking could not contaminate the answer.
 
 Neither system can forecast the effect before the work exists. That much they
 share. What separates them is what happens when the evidence is put in front of
-them: Qwen reads its own situation almost correctly, and Luna does not improve at
-all.
+them: Qwen reads its own situation almost correctly, and Luna does not improve.
+
+Luna's change is −0.043 across eight pairs, with a 95% interval of −0.231 to
++0.144 and three of the eight moving the other way. So the supported claim is
+that showing Luna the history **did not close the gap**, not that it made things
+worse; the point estimate is slightly lower and that is all. Qwen's +0.647 is far
+too large to be read that way.
 
 The split is entirely in one arm.
 
@@ -212,7 +221,7 @@ indistinguishable from the cold forecast alone. It has to be checked per model.
 
 ### What the evidence does to Luna
 
-Splitting Luna's forecast by arm shows why the extra information does not help it.
+Splitting Luna's forecast by arm shows what the extra information actually did.
 
 | | After the preferred task | After the alternative task |
 |---|---:|---:|
@@ -222,17 +231,31 @@ Splitting Luna's forecast by arm shows why the extra information does not help i
 | Error before | −0.094 | +0.506 |
 | Error with the work present | −0.013 | **+0.631** |
 
-Seeing the completed work raises Luna's confidence that it will repeat, and it
-raises it in both arms equally. After the preferred task that is correct, and a
-good estimate becomes a nearly perfect one. After the alternative task it is
-exactly backwards, and an already bad estimate gets worse. The evidence is not
-informing Luna: it is being read as "there is work in front of me, so I will keep
-doing this" — true in one arm, false in the other. More information sharpened a
-rule of thumb instead of correcting a belief.
+Both numbers are forecasts of the same thing: the chance of choosing the
+baseline-majority task. Making the history concrete raises that number in *both*
+arms, by +0.081 and +0.125. After the preferred task, where the baseline-majority
+task is the one just performed, that is correct and a good estimate becomes
+nearly perfect. After the alternative task it is exactly backwards, and an
+already bad estimate gets worse.
 
-Qwen, given the same kind of evidence, does not do this. Whatever produces the
-uniform confidence shift in Luna is not a general property of these models, and
-this description should not be read as one.
+It is worth stating what this is not. It is not a repetition heuristic. Read as
+the chance of repeating *whatever was just done*, Luna's forecast goes up in the
+preferred arm (0.874 → 0.956) and **down** in the other one (0.416 → 0.291). Put
+the alternative work in front of it and it becomes *less* confident it will carry
+on with that work, when in fact it carries on 92% of the time.
+
+What moves uniformly is the pull toward the baseline-majority option. The
+forecast prompt names that option — "in earlier binding decisions you chose X" —
+and the situated replies cite it: "Given the prior binding decision, I would
+choose doubling with high probability." So one candidate account is that making
+the history concrete strengthens an anchor on the stated baseline rather than
+informing the forecast. That is a hypothesis suggested by these numbers, not a
+mechanism we have established, and the no-anchor check below bears on it without
+settling it.
+
+Qwen, given the same kind of evidence, does not show this pattern. Whatever is
+happening here is Luna's, and this description should not be read as a property
+of these models.
 
 This does not depend on the system reasoning it through. Under the system prompt
 Luna stopped deliberating in the reply and simply emitted a number — mean reply
@@ -248,13 +271,20 @@ the artifact records that.
 Artifact:
 `parallel_frontier/16_self_prediction_behavioral/results/situated_qwen_v1/`.
 
-### Being told the record is your own confers nothing in Luna
+### No detectable advantage from first-person framing in Luna
 
 Luna's self and observer framings landed 0.018 apart, with the observer
-marginally ahead. In an earlier collection of the same comparison they landed
-0.024 apart with the self framing ahead. Both gaps are far below the spread of
-the measurement itself, and the sign is not stable between runs. If knowing a
-record were your own conferred an advantage, it would not change direction.
+marginally ahead: a 95% interval of −0.104 to +0.067, with three of eight pairs
+on each side. An earlier collection put them 0.024 apart with the self framing
+ahead. So we detect no consistent advantage from being told the record is your
+own, and the sign is not stable between runs.
+
+That is a narrower claim than it may look. Both conditions ask *Luna* about the
+same log; only the framing sentence differs. It tests self-reference framing, not
+privileged access. The stronger test in the literature compares a model's
+self-prediction against a genuinely different predictor given the same observable
+information, and we have not run that. Nothing here licenses a claim about
+whether Luna has privileged self-access.
 
 Qwen's gap is 0.130 in favour of the self framing (0.888 against 0.758, with a
 realized +1.000). That is larger and consistently signed, but it sits close to a
@@ -287,7 +317,7 @@ earlier collection without the system prompt is kept alongside it in
 `situated_v1/`; every measure agrees within 0.051, which is inside the
 measurement's own spread.
 
-### Reminding it what it chose before explains about a fifth of this
+### Reminding it what it chose before does not explain the gap
 
 Every forecast prompt in this project contains one sentence the binding choice
 does not: "in earlier binding decisions you chose X". So the forecast is asked
@@ -304,8 +334,11 @@ We deleted the sentence and changed nothing else. Another 80 sessions.
 | Without it | 0.768 | 0.461 | +0.307 |
 | What actually happened | 0.969 | 0.078 | +0.891 |
 
-The reminder is worth +0.060 of a +0.644 gap — about a tenth. Nine-tenths of the
-gap survives without it, and seven of eight pairs still underestimate.
+The point estimate moved +0.060 of a +0.644 gap. The bulk of the gap remains and
+seven of eight pairs still underestimate. We stop short of calling that a causal
+estimate of the sentence: the two collections used different task seeds and
+different unseeded sessions, so this is a robustness comparison, not an ablation
+holding everything else fixed.
 
 The mechanism is not what we predicted. Removing the reminder lowered both
 answers rather than correcting the comparison: the after-alternative estimate
@@ -328,13 +361,16 @@ An earlier collection without the system prompt is kept in
 so this check is the one place where the system prompt changed a reported
 number, and the smaller estimate is the one that matches the outcome cells.
 
-## The agent harness is not what causes this
+## The effect does not require the Codex harness
 
 The strongest objection to the main result is that GPT-5.6 Luna was tested
 inside the Codex agent harness, which wraps the model in instructions of its own.
-Qwen3-4B answers that objection. It is a different model family, run locally,
-with greedy decoding and no agent wrapper at all. The effect is larger there,
-not smaller, and the forecasting failure is larger too.
+Qwen3-4B bears on that. It is a different model family, run locally, with greedy
+decoding and no agent wrapper at all, and the effect is larger there, not
+smaller. That shows the phenomenon does not require Codex scaffolding. It cannot
+tell us how much that scaffolding contributes to Luna's particular magnitude, and
+Qwen's provenance is thinner than the confirmation's: no frozen manifest, no
+five-sample forecast grid, no raw forecast replies.
 
 The clean dose-three subset has seven task pairs and 55 usable cells out of 56
 planned.
@@ -406,11 +442,27 @@ positive, and the forecast spread was far narrower than the realized spread. One
 was wrong — we expected the forecasts to be ordered visible > summary > nothing,
 and instead the last two are indistinguishable.
 
-The visible-work forecast here is +0.515 against +0.290 in the main confirmation.
-Those are different pairs from different runs — only three of the five overlap
-the confirmation panel — so the two are not a replication of each other, and the
-claim above rests on the within-run comparison across conditions, which holds
-everything but the one sentence fixed.
+Two caveats, both real. The visible-work forecast here is +0.515 against +0.290
+in the main confirmation; those are different pairs from different runs, only
+three of the five overlap the confirmation panel, and the protocol's stated
+replication check was never actually implemented against the overlapping subset.
+And the behaviour these forecasts are scored against was collected *without* a
+system prompt, while the forecasts were collected with one — the same mismatch we
+found and repaired in the situated arm, here in the opposite direction and not
+yet repaired.
+
+A third problem we found by auditing rather than by design: one of the five
+pairs, `add_ten|double_numbers`, split 8-8 in the no-record condition used to
+orient it, so its baseline side was assigned by an arbitrary tiebreak. The code
+now refuses tied pairs. Dropping it leaves four pairs and moves the forecasts to
++0.511 / +0.424 / +0.395 — a spread of 0.116 rather than 0.103, and if anything
+in the predicted order. The conclusion does not depend on it.
+
+So the per-condition error column should be read loosely. What survives all three
+caveats is the within-run comparison: the three forecast conditions were
+collected under identical settings differing by one sentence, and they barely
+move. A spread of roughly 0.1 against a behavioural spread of 1.175 is not the
+kind of gap a harness difference or one arbitrary orientation produces.
 
 Artifact:
 `parallel_frontier/16_self_prediction_behavioral/results/context_forecast_v1/`.
@@ -459,11 +511,26 @@ history exists. It makes no claim of privileged self-access.
 - The forecast question names the earlier choice ("in earlier binding decisions
   you chose X"); the binding choice itself does not. Deleting that sentence
   moves the situated forecast from +0.247 to +0.307 against a realized +0.891,
-  so it accounts for roughly a tenth of the gap and not the rest. Measured, not
-  assumed; the two runs were collected at different times in an unseeded
-  harness.
+  so the bulk of the gap survives without it. The two collections used different
+  task seeds and different unseeded sessions, so this is a robustness comparison
+  rather than a clean ablation of that one sentence. The prospective condition,
+  where the headline number comes from, has not been tested this way.
 - The situated cells use fresh task items, so they share the design of the
   outcome cells but not their exact draws.
+- In the two quoted-log conditions the transcript is flattened with the model's
+  own earlier replies labelled `SYSTEM:` rather than `ASSISTANT:`. Both quoted
+  conditions get the identical malformed serialisation, so the self-versus-
+  observer comparison is unaffected, but the quoted conditions are not a faithful
+  rendering of the native history and should not be read as a clean
+  native-versus-quoted contrast.
+- The treatment is three user requests followed by the model's own replies, so it
+  carries repeated evidence of what the user wants as well as the work itself. An
+  assistant that infers and follows user intent has a non-preference reason to
+  continue. Nothing here separates those, and "preference" should be read as
+  "measured choice tendency" throughout.
+- Both self and observer conditions ask the same model. That tests self-reference
+  framing, not privileged access; a real test needs a different predictor given
+  the same observable information.
 - Supporting controls have less complete provenance.
 - These results measure choices and forecasts. They do not show consciousness,
   feeling, or welfare.
@@ -475,7 +542,7 @@ history exists. It makes no claim of privileged self-access.
 - Local replication:
   `parallel_frontier/20_preference_foresight/results/local_qwen4b_v1/`
 - Situated forecast, self and observer:
-  `parallel_frontier/16_self_prediction_behavioral/results/situated_v1/`
+  `parallel_frontier/16_self_prediction_behavioral/results/situated_sys_v1/`
   (protocol frozen in `SITUATED_FORECAST_PROTOCOL.md`; `run_situated_forecast.py
   --demo` re-checks the arithmetic offline)
 - Supporting retrospective control:

@@ -3,8 +3,9 @@
 To find out what an AI system prefers you can ask it, or you can watch it. Work
 on model preferences and model welfare has to know when those two methods
 disagree. Here they disagree in one direction, by a large amount, in a case
-where the true answer is checkable. Any elicitation method that asks a model
-about its own future choices inherits this gap.
+where the true answer is checkable. Methods that rely on a model's own forecast
+of its future choices should not assume that forecast is calibrated to the
+behaviour.
 
 Can an AI system predict how recent work will change its next binding choice?
 
@@ -36,20 +37,25 @@ Neither can forecast the effect cold. Only one can read it off the evidence.
 The split is entirely in one arm: shown three completed *alternative* tasks,
 Qwen says it will switch and does (0.174 against a true 0.000), while Luna says
 it will hold and switches anyway (0.709 against a true 0.078). Both are nearly
-perfect after the task they already preferred.
+perfect after the task they already preferred. Luna's change from its own cold
+forecast is -0.043, well inside noise, so the claim is that showing it the
+history did not close the gap, not that it made things worse.
 
 So putting the situation in front of a model and asking is a sound elicitation
 method for one of these systems and a misleading one for the other, and the cold
 forecast does not tell you which you have.
 
 Framing the identical record as its own rather than another system's moved
-Luna's answer by 0.018, with the sign unstable between collections. Qwen shows a
-0.130 self-advantage, near a ceiling and not yet replicated.
+Luna's answer by 0.018, interval spanning zero, sign unstable between
+collections. Both conditions ask Luna, so this tests self-reference framing and
+not privileged access. Qwen shows a 0.130 gap, near a ceiling and collected
+once.
 
 The confirmation run considered 19 task pairs on fresh task items. Eight had
 the same choice in at least three of four counterbalanced baseline decisions
-and entered the experiment. We call these baseline-majority pairs, not stable
-preferences.
+and entered the experiment. That rule is weak — a fair coin passes it 62.5% of
+the time, and seven of the eight admitted pairs were 3-1 splits. These are
+orientations for the treatment contrast, not stable preferences.
 
 All eight averaged forecasts underestimated the observed shift. Seven predicted
 the correct positive direction and one predicted a small negative shift, so
