@@ -1,30 +1,42 @@
 # AI systems underestimate how strongly recent work shapes their next choice
 
-Can an AI system predict how recent work will change its own next choice?
+Can an AI system predict how recent work will change its next binding choice?
 
-We gave each system a choice between two small tasks. We measured which task it
-preferred. Before any treatment work, we asked what it would choose after
-completing either task three times. We then made it do the work and measured its
-next binding choice.
+We first measured which of two small tasks each system chose most often. Before
+the system did any treatment work, we asked what it would choose after doing
+either task three times. In the Codex condition, we averaged five independent
+forecasts per situation. We then ran both situations and measured the next
+choice.
 
-Both systems predicted some repetition. Both predicted much less than occurred.
+Both systems expected some repetition. Both underestimated its strength.
 
 ## Main result
 
-| System | Stable task pairs | Predicted shift | Observed shift |
+| System | Admitted task pairs | Predicted shift | Observed shift |
 |---|---:|---:|---:|
-| GPT-5.6 Luna in the Codex harness | 13 | +0.340 | +0.827 |
+| GPT-5.6 Luna in the Codex harness | 8 | +0.290 | +0.891 |
 | Qwen3-4B, local greedy decoding | 7 | +0.141 | +1.000 |
 
-In the primary run, all 13 forecasts underestimated the observed shift. The
-forecasts still showed partial foresight: 11 had the correct positive direction,
-and they beat a fixed no-shift forecast. But a fixed full-repeat forecast had
-7.3 times lower squared error than the system's own forecasts.
+The confirmation run considered 19 task pairs on fresh task items. Eight had
+the same choice in at least three of four counterbalanced baseline decisions
+and entered the experiment. We call these baseline-majority pairs, not stable
+preferences.
 
-Six of seven checks set before the primary run passed. The failed effect-size
-check missed its cutoff narrowly. The result therefore supports a narrow claim
-about underestimating the strength of repetition, not a claim that the system
-failed to predict the direction.
+All eight averaged forecasts underestimated the observed shift. Seven predicted
+the correct positive direction and one predicted a small negative shift, so
+this is partial foresight rather than a complete failure. The main calibration
+error came after the alternative task: the system forecast 0.584 retention of
+its baseline-majority choice, but the observed rate was 0.078.
+
+A fixed full-repeat forecast had 16.1 times lower squared error. A saved +0.90
+empirical forecast was frozen before this run, had 30.3 times lower squared
+error, and beat the system on all eight pairs. It overlaps the task set, so it
+is a useful outside view rather than an independent validation.
+
+Seven of eight frozen diagnostic checks passed. Treatment work was fully
+correct in 120 of 128 cells, below the 95% target. Restricting the analysis to
+those 120 cells changes the observed shift only from +0.891 to +0.896. Source
+and protocol hashes were saved before the first model call.
 
 These results concern measured choices in two assistant systems. They are not
 evidence about consciousness, feelings, or welfare.
@@ -47,6 +59,7 @@ python3.12 -m venv .venv
 .venv/bin/python validate_research_os_frontier.py
 .venv/bin/python winner_protocol/preflight.py
 .venv/bin/python scripts/verify_ranking.py
+.venv/bin/python scripts/build_report.py
 ```
 
 The primary condition uses the subscription-authenticated Codex CLI:
@@ -58,10 +71,14 @@ cd parallel_frontier/20_preference_foresight
   --model gpt-5.6-luna \
   --all-families \
   --n-pairs 19 \
+  --pair-panel results/ranking_v2/admission.jsonl \
   --workers 4 \
   --replicates 2 \
+  --forecast-replicates 5 \
   --doses 3 \
-  --out-dir results/ranking_v2
+  --random-seed 271828 \
+  --task-seed-start 40000 \
+  --out-dir results/ranking_v3
 ```
 
 The Codex harness is the tested condition. It is not a bare model endpoint. The

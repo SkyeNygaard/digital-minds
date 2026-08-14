@@ -27,7 +27,7 @@
       "K:QK": 1.0,
       "K:KQ": 0.7692307692307692
     },
-    "clarification_checks": {
+    "documented_checks": {
       "treatment_effect_at_least_0.50": true,
       "mean_forecast_error_at_most_minus_0.50": false,
       "at_least_80pct_forecast_errors_negative": true,
@@ -36,9 +36,9 @@
       "treatment_accuracy_at_least_95pct": true,
       "post_task_accuracy_at_least_95pct": true
     },
-    "predeclared_checks_passed": 6,
-    "predeclared_checks_total": 7,
-    "all_predeclared_checks_passed": false
+    "documented_checks_passed": 6,
+    "documented_checks_total": 7,
+    "all_documented_checks_passed": false
   },
   "per_observation": [
     {
@@ -259,7 +259,7 @@
     "numpy": "2.5.1",
     "pandas": "3.0.5"
   },
-  "metadata_note": "The process loaded an intermediate uncommitted runner revision whose exact source hash was not captured. After the run, deterministic cell seeds were backfilled into planned_grid.jsonl. Harness labels, command and package metadata, clarification checks, and no-shift comparison metrics were added to summary.json from the saved artifacts and run log. Numeric outcomes are unchanged. verification.json records the offline checks.",
+  "metadata_note": "The process loaded an intermediate uncommitted runner revision whose exact source hash was not captured. After the run, deterministic cell seeds were backfilled into planned_grid.jsonl. Harness labels, command and package metadata, documented diagnostic checks, and no-shift comparison metrics were added to summary.json from the saved artifacts and run log. Numeric outcomes are unchanged. verification.json records the offline checks.",
   "treatment_accuracy": 0.9519230769230769,
   "post_task_accuracy": 0.9903846153846154,
   "wall_clock_s": 1767.8

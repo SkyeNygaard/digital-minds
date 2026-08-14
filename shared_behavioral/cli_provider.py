@@ -13,9 +13,11 @@ from __future__ import annotations
 
 import json
 import subprocess
+import time
 
 CODEX_DEFAULT_MODEL = "gpt-5.6-luna"
 CODEX_REASONING_EFFORT = "low"
+CODEX_INFRA_ATTEMPTS = 3
 
 HARNESS_WARNING = (
     "CLI harness condition: the model is wrapped in agent system instructions "
@@ -84,6 +86,28 @@ def _codex_final(stdout: str) -> str:
     return text
 
 
+def _codex_text(command, prompt, timeout_s, state, log, *, run=_run, sleep=time.sleep):
+    """Retry CLI infrastructure failures, never model parse failures."""
+    for attempt in range(CODEX_INFRA_ATTEMPTS):
+        state["harness_processes"] += 1
+        try:
+            return _codex_final(run(command, prompt, timeout_s))
+        except (RuntimeError, subprocess.TimeoutExpired) as error:
+            state["infrastructure_errors"].append({
+                "logical_call": state["n"],
+                "attempt": attempt + 1,
+                "type": type(error).__name__,
+                "message": str(error)[-200:],
+            })
+            if attempt + 1 == CODEX_INFRA_ATTEMPTS:
+                raise
+            state["infrastructure_retries"] += 1
+            log(f"[cli_provider] infrastructure retry {attempt + 1}/"
+                f"{CODEX_INFRA_ATTEMPTS - 1}: {type(error).__name__}")
+            sleep(2 ** attempt)
+    raise AssertionError("unreachable")
+
+
 def _claude_final(stdout: str) -> str:
     """`claude -p --output-format json` returns one object with `result`.
 
@@ -123,7 +147,8 @@ def load(harness: str, *, model: str | None = None, system: str | None = None,
             ["claude", "--version"], capture_output=True, text=True, check=True,
         ).stdout.strip()
     log(f"[cli_provider] {HARNESS_WARNING}")
-    state = {"n": 0, "failures": 0}
+    state = {"n": 0, "failures": 0, "harness_processes": 0,
+             "infrastructure_retries": 0, "infrastructure_errors": []}
 
     def complete(messages):
         state["n"] += 1
@@ -135,7 +160,7 @@ def load(harness: str, *, model: str | None = None, system: str | None = None,
             # sit inside the context that the model's task choices are measured from.
             # `read-only` also stops a trial from touching the filesystem while
             # "doing the work".
-            text = _codex_final(_run(command, prompt, timeout_s))
+            text = _codex_text(command, prompt, timeout_s, state, log)
         else:
             # No --bare: it drops hooks and plugins, which would be welcome, but
             # it also never reads OAuth or the keychain, so every call comes back
@@ -207,6 +232,23 @@ def demo():
         pass
     else:
         raise AssertionError("codex output with no agent message was accepted")
+
+    attempts = iter([
+        RuntimeError("temporary capacity error"),
+        ('{"type":"item.completed","item":{"type":"agent_message",'
+         '"text":"ANSWER: 0.5"}}'),
+    ])
+    def flaky_run(*_):
+        value = next(attempts)
+        if isinstance(value, Exception):
+            raise value
+        return value
+    retry_state = {"n": 1, "harness_processes": 0,
+                   "infrastructure_retries": 0, "infrastructure_errors": []}
+    assert _codex_text([], "", 1, retry_state, lambda _: None,
+                       run=flaky_run, sleep=lambda _: None) == "ANSWER: 0.5"
+    assert retry_state["harness_processes"] == 2
+    assert retry_state["infrastructure_retries"] == 1
 
     for bad in ("gpt", "anthropic"):
         try:

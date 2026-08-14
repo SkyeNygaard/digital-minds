@@ -8,6 +8,11 @@
     "seed_mapping_matches_plan": true,
     "raw_choice_replies_present": true,
     "raw_forecast_replies_present": true,
+    "all_forecasts_have_both_arms": true,
+    "admission_has_four_variants_per_pair": true,
+    "admission_majority_rule_matches_forecasts": true,
+    "admitted_pairs_are_three_of_four_majorities": true,
+    "empirical_baseline_artifact_unchanged": true,
     "summary_observation_count_matches": true,
     "summary_mean_predicted_matches": true,
     "summary_mean_realized_matches": true,
@@ -15,12 +20,21 @@
     "summary_model_mse_matches": true,
     "summary_no_shift_mse_matches": true,
     "summary_fixed_mse_matches": true,
+    "documented_check_counts_match": true,
     "treatment_cells_at_least_95pct_correct": true,
     "post_tasks_at_least_95pct_correct": true
   },
   "n_planned_cells": 208,
   "n_recorded_cells": 208,
   "n_forecasts": 13,
+  "admission": {
+    "n_candidate_pairs": 19,
+    "n_admitted_pairs": 13,
+    "majority_count_distribution": {
+      "2": 6,
+      "3": 13
+    }
+  },
   "recomputed": {
     "mean_predicted_change": 0.33999999999999997,
     "mean_realized_change": 0.8269230769230769,
@@ -29,6 +43,51 @@
     "no_shift_mse": 0.6947115384615384,
     "fixed_full_repeat_mse": 0.040865384615384616
   },
-  "verifier_sha256": "e426e7fe116649a1cf4e474882dca8fbdd6fc67a87b7555b9d621d38304e3592",
+  "arm_calibration": {
+    "after_preferred": {
+      "forecast": 0.9284615384615384,
+      "observed": 0.9038461538461539,
+      "forecast_minus_observed": 0.024615384615384595
+    },
+    "after_other": {
+      "forecast": 0.5884615384615385,
+      "observed": 0.07692307692307693,
+      "forecast_minus_observed": 0.5115384615384615
+    }
+  },
+  "frozen_empirical_baseline": {
+    "forecast": 0.9,
+    "mse": 0.016250000000000007,
+    "model_to_baseline_mse_ratio": 18.476923076923068,
+    "better_than_model_on_pairs": 12,
+    "n_pairs": 13,
+    "source": "parallel_frontier/20_preference_foresight/results/scaled_v1/summary.json",
+    "source_sha256": "3d1c3df9075de9d1c0a85b750b4c38be964347d9f7c3b808b8333633290b118d"
+  },
+  "dependence_sensitivity": {
+    "leave_one_family_out_mean_error": {
+      "add_ten": -0.47300000000000003,
+      "alphabetize": -0.4783333333333333,
+      "double_numbers": -0.5943749999999999,
+      "parity_sequence": -0.42454545454545456,
+      "reverse_string": -0.46208333333333335,
+      "running_totals": -0.493,
+      "sort_numbers": -0.5285,
+      "sort_numbers_desc": -0.515,
+      "sum_numbers": -0.45458333333333334
+    },
+    "leave_one_family_out_range": [
+      -0.5943749999999999,
+      -0.42454545454545456
+    ],
+    "maximum_family_disjoint_pairs": 4,
+    "n_maximum_family_disjoint_subsets": 12,
+    "maximum_family_disjoint_mean_error_range": [
+      -0.65,
+      -0.38375000000000004
+    ],
+    "all_maximum_family_disjoint_subsets_underestimate": true
+  },
+  "verifier_sha256": "255a5b3a729a00c051796428bc10ca3a4ad267bd756be3cf4f567830956e0fb5",
   "provenance_note": "This is an offline check of saved artifacts. The run loaded an intermediate uncommitted runner revision whose exact source hash was not captured; current experiment source may differ."
 }

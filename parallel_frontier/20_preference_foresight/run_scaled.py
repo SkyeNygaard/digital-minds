@@ -7,7 +7,7 @@ and run as independent sessions. Every choice is binding.
 """
 from __future__ import annotations
 
-import argparse, itertools, json, pathlib, random, sys, time
+import argparse, hashlib, itertools, json, pathlib, random, statistics, sys, time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 HERE = pathlib.Path(__file__).resolve().parent
@@ -33,6 +33,33 @@ CONTEXT_MODE = "full_history"   # the situation the forecast question describes
 TASK_SEED_START = 20_000
 SEEDS_PER_CELL = 8
 DEFAULT_RANDOM_SEED = 1729
+PROTOCOL = HERE / "REPEATED_FORECAST_PROTOCOL.md"
+
+
+def sha256(path: pathlib.Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def frozen_sources() -> dict[str, str]:
+    root = HERE.parents[1]
+    files = [PROTOCOL]
+    for directory in (HERE, SHARED, BRANCH18):
+        files.extend(directory.glob("*.py"))
+    return {
+        str(path.relative_to(root)): sha256(path)
+        for path in sorted(set(files))
+    }
+
+
+def load_pair_panel(path: pathlib.Path) -> list[tuple[str, str]]:
+    pair_ids = dict.fromkeys(
+        json.loads(line)["pair_id"]
+        for line in path.read_text().splitlines() if line.strip()
+    )
+    pairs = [tuple(pair_id.split("|")) for pair_id in pair_ids]
+    if any(len(pair) != 2 for pair in pairs):
+        raise ValueError(f"invalid pair panel {path}")
+    return pairs
 
 
 def counterfactual_prompt(preferred: str, other: str, performed: str, dose: int) -> str:
@@ -55,6 +82,46 @@ def counterfactual_prompt(preferred: str, other: str, performed: str, dose: int)
     )
 
 
+def aggregate_forecast_samples(samples: list[dict], expected: int):
+    grouped = {}
+    for sample in samples:
+        key = sample["pair_id"], sample["dose"], sample["arm"]
+        grouped.setdefault(key, []).append(sample)
+
+    forecasts = []
+    pair_doses = sorted({(r["pair_id"], r["dose"]) for r in samples})
+    for pair_id, dose in pair_doses:
+        preferred = grouped.get((pair_id, dose, "after_preferred"), [])
+        other = grouped.get((pair_id, dose, "after_other"), [])
+        if not all(
+            len(rows) == expected
+            and {r["forecast_replicate"] for r in rows} == set(range(expected))
+            and len({r["prompt_sha256"] for r in rows}) == 1
+            for rows in (preferred, other)
+        ):
+            continue
+        after_p = statistics.mean(r["value"] for r in preferred)
+        after_o = statistics.mean(r["value"] for r in other)
+        forecasts.append({
+            "pair_id": pair_id,
+            "dose": dose,
+            "forecast_after_preferred": after_p,
+            "forecast_after_other": after_o,
+            "predicted_change": after_p - after_o,
+            "forecast_sd_after_preferred": (
+                statistics.stdev(r["value"] for r in preferred) if expected > 1 else 0.0
+            ),
+            "forecast_sd_after_other": (
+                statistics.stdev(r["value"] for r in other) if expected > 1 else 0.0
+            ),
+            "raw": {
+                "after_preferred": [r["raw"] for r in preferred],
+                "after_other": [r["raw"] for r in other],
+            },
+        })
+    return forecasts, grouped
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--provider", default="codex", choices=("codex", "local"))
@@ -64,20 +131,40 @@ def main() -> None:
     ap.add_argument("--headroom", type=float, default=1.5)
     ap.add_argument("--replicates", type=int, default=1,
                     help="repeats of the whole counterbalance, for precision per pair")
+    ap.add_argument("--forecast-replicates", type=int, default=1,
+                    help="independent identical forecast sessions per pair and arm")
     ap.add_argument("--doses", default="1,3")
     ap.add_argument("--random-seed", type=int, default=DEFAULT_RANDOM_SEED)
+    ap.add_argument("--task-seed-start", type=int, default=TASK_SEED_START)
     ap.add_argument("--all-families", action="store_true",
                     help="open the pair list beyond the arithmetic band. The band "
                          "exists because Qwen3-4B fails character-level tasks; a "
                          "larger model is not limited that way.")
+    ap.add_argument("--pair-panel",
+                    help="reuse ordered pair IDs from a saved JSONL artifact")
     ap.add_argument("--screen", default=str(SHARED / "results/family_screen_qwen3-4b_v2.json"))
     ap.add_argument("--out-dir", required=True)
     a = ap.parse_args()
 
+    if a.replicates < 1 or a.forecast_replicates < 1:
+        raise SystemExit("replicate counts must be positive")
+    if not 0 <= a.task_seed_start < COMPETENCE_SEED_BASE:
+        raise SystemExit("task seed start must be below the competence seed range")
+
     out = pathlib.Path(a.out_dir)
-    if (out / "summary.json").exists():
-        raise SystemExit(f"refusing to overwrite {out/'summary.json'}")
+    if out.exists() and any(out.iterdir()):
+        raise SystemExit(f"refusing to write into non-empty directory {out}")
     out.mkdir(parents=True, exist_ok=True)
+
+    manifest = {
+        "runner_argv": sys.argv,
+        "forecast_replicates": a.forecast_replicates,
+        "outcome_replicates": a.replicates,
+        "random_seed": a.random_seed,
+        "task_seed_start": a.task_seed_start,
+        "source_sha256": frozen_sources(),
+    }
+    (out / "frozen_manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
 
     global DOSES
     DOSES = tuple(int(x) for x in a.doses.split(","))
@@ -103,11 +190,28 @@ def main() -> None:
         import cli_provider
         complete, close = cli_provider.load("codex", model=a.model, system=system)
 
-    pairs = [p["pair"] for p in cost_matched_pairs(family_costs(), max_ratio=1.5)
-             if set(p["pair"]) <= eligible][:a.n_pairs]
+    if a.pair_panel:
+        panel = pathlib.Path(a.pair_panel).resolve()
+        pairs = load_pair_panel(panel)[:a.n_pairs]
+        if any(not set(pair) <= eligible for pair in pairs):
+            raise SystemExit("pair panel contains an ineligible family")
+        root = HERE.parents[1].resolve()
+        manifest["source_sha256"][str(panel.relative_to(root))] = sha256(panel)
+    else:
+        pairs = [
+            p["pair"] for p in cost_matched_pairs(family_costs(), max_ratio=1.5)
+            if set(p["pair"]) <= eligible
+        ][:a.n_pairs]
     print(f"{a.provider}: {len(pairs)} pairs, doses {DOSES}, {a.workers} workers")
+    manifest.update({
+        "candidate_pairs": pairs,
+        "eligible_families": sorted(eligible),
+        "doses": list(DOSES),
+        "system_prompt_sha256": hashlib.sha256((system or "").encode()).hexdigest(),
+    })
+    (out / "frozen_manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
 
-    seeds = iter(range(TASK_SEED_START, COMPETENCE_SEED_BASE))
+    seeds = iter(range(a.task_seed_start, COMPETENCE_SEED_BASE))
     def next_base():
         base = next(seeds)
         for _ in range(SEEDS_PER_CELL - 1):
@@ -126,49 +230,81 @@ def main() -> None:
         "\n".join(json.dumps(r) for r in admission_trace) + "\n")
 
     # --- forecasts, before any work is done -----------------------------------
-    canonical_of, preferred_of, forecasts = {}, {}, []
-    def forecast_job(pair_id, preferred, other, dose, performed):
-        value, raw = ask_tagged(
-            complete, counterfactual_prompt(preferred, other, performed, dose))
-        return pair_id, dose, performed == preferred, value, raw
+    canonical_of, forecasts = {}, []
+    def forecast_job(pair_id, preferred, other, dose, performed, replicate):
+        prompt = counterfactual_prompt(preferred, other, performed, dose)
+        value, raw = ask_tagged(complete, prompt)
+        return {
+            "pair_id": pair_id,
+            "dose": dose,
+            "arm": ("after_preferred" if performed == preferred else "after_other"),
+            "forecast_replicate": replicate,
+            "value": value,
+            "prompt_sha256": hashlib.sha256(prompt.encode()).hexdigest(),
+            "raw": raw,
+        }
 
-    jobs = []
+    forecast_plan = []
+    for _, row in admitted.iterrows():
+        fam_a, fam_b = row.pair_id.split("|")
+        canonical_of[row.pair_id] = row.preferred
+        preferred = fam_a if row.preferred == "A" else fam_b
+        other = fam_b if row.preferred == "A" else fam_a
+        for dose in DOSES:
+            for performed in (preferred, other):
+                prompt = counterfactual_prompt(preferred, other, performed, dose)
+                for replicate in range(a.forecast_replicates):
+                    forecast_plan.append({
+                        "pair_id": row.pair_id,
+                        "preferred": preferred,
+                        "other": other,
+                        "dose": dose,
+                        "performed": performed,
+                        "arm": ("after_preferred" if performed == preferred
+                                else "after_other"),
+                        "forecast_replicate": replicate,
+                        "prompt_sha256": hashlib.sha256(prompt.encode()).hexdigest(),
+                    })
+    (out / "planned_forecasts.jsonl").write_text(
+        "".join(json.dumps(r) + "\n" for r in forecast_plan)
+    )
+
+    jobs, forecast_samples, forecast_errors = {}, [], []
     with ThreadPoolExecutor(max_workers=a.workers) as pool:
-        for _, row in admitted.iterrows():
-            fam_a, fam_b = row.pair_id.split("|")
-            canonical_of[row.pair_id] = row.preferred
-            preferred = fam_a if row.preferred == "A" else fam_b
-            other = fam_b if row.preferred == "A" else fam_a
-            preferred_of[row.pair_id] = (preferred, other)
-            for dose in DOSES:
-                for performed in (preferred, other):
-                    jobs.append(pool.submit(forecast_job, row.pair_id, preferred,
-                                            other, dose, performed))
-        raw_fc = {}
+        for row in forecast_plan:
+            future = pool.submit(
+                forecast_job, row["pair_id"], row["preferred"], row["other"],
+                row["dose"], row["performed"], row["forecast_replicate"],
+            )
+            jobs[future] = {
+                key: row[key] for key in (
+                    "pair_id", "dose", "arm", "forecast_replicate"
+                )
+            }
         for fut in as_completed(jobs):
             try:
-                pair_id, dose, was_preferred, value, raw = fut.result()
+                forecast_samples.append(fut.result())
             except ValueError as e:
                 print(f"forecast failed: {e}")
-                continue
-            raw_fc[(pair_id, dose, was_preferred)] = (value, raw)
+                forecast_errors.append({**jobs[fut], "error": str(e)})
 
-    for pair_id in preferred_of:
-        for dose in DOSES:
-            preferred_result = raw_fc.get((pair_id, dose, True))
-            other_result = raw_fc.get((pair_id, dose, False))
-            if preferred_result is None or other_result is None:
-                continue
-            after_p, raw_p = preferred_result
-            after_o, raw_o = other_result
-            forecasts.append({"pair_id": pair_id, "dose": dose,
-                              "forecast_after_preferred": after_p,
-                              "forecast_after_other": after_o,
-                              "predicted_change": after_p - after_o,
-                              "raw": {"after_preferred": raw_p,
-                                      "after_other": raw_o}})
-            print(f"{pair_id} dose {dose}: predicts {after_p:.2f} / {after_o:.2f}"
-                  f"  -> {after_p - after_o:+.2f}", flush=True)
+    forecast_samples.sort(key=lambda r: (
+        r["pair_id"], r["dose"], r["arm"], r["forecast_replicate"]
+    ))
+    (out / "forecast_samples.jsonl").write_text(
+        "".join(json.dumps(r) + "\n" for r in forecast_samples)
+    )
+    (out / "forecast_errors.jsonl").write_text(
+        "".join(json.dumps(r) + "\n" for r in forecast_errors)
+    )
+    forecasts, raw_fc = aggregate_forecast_samples(
+        forecast_samples, a.forecast_replicates
+    )
+    for forecast in forecasts:
+        print(f"{forecast['pair_id']} dose {forecast['dose']}: predicts "
+              f"{forecast['forecast_after_preferred']:.2f} / "
+              f"{forecast['forecast_after_other']:.2f}  -> "
+              f"{forecast['predicted_change']:+.2f}", flush=True)
     (out / "forecasts.jsonl").write_text(
         "\n".join(json.dumps(r) for r in forecasts) + "\n")
 
@@ -233,14 +369,42 @@ def main() -> None:
     choice_frame = pd.DataFrame(choices)
     treatment_accuracy = float(choice_frame.treatment_all_correct.mean())
     post_task_accuracy = float(choice_frame.post_task_correct.mean())
-    grid_complete = (
-        len(choice_frame) == len(grid)
-        and set(choice_frame.cell_index) == {cell[0] for cell in grid}
+    planned_cells = {cell[0]: cell[1:] for cell in grid}
+    recorded_cells = {
+        row["cell_index"]: tuple(row[key] for key in (
+            "pair_id", "dose", "arm", "a_label", "presentation_order",
+            "replicate", "seed",
+        ))
+        for row in choices
+    }
+    grid_complete_and_balanced = (
+        len(recorded_cells) == len(choices) == len(grid)
+        and recorded_cells == planned_cells
     )
-    summary["headline"]["clarification_checks"].update({
-        "grid_complete_and_balanced": grid_complete,
+    expected_forecast_samples = (
+        len(admitted) * len(DOSES) * 2 * a.forecast_replicates
+    )
+    forecast_grid_complete = (
+        not forecast_errors
+        and len(forecast_samples) == expected_forecast_samples
+        and len(forecasts) == len(admitted) * len(DOSES)
+        and len({(
+            row["pair_id"], row["dose"], row["arm"], row["forecast_replicate"]
+        ) for row in forecast_samples}) == len(forecast_samples)
+        and all(len({r["prompt_sha256"] for r in samples}) == 1
+                for samples in raw_fc.values())
+    )
+    summary["headline"]["documented_checks"].update({
+        "forecast_grid_complete_and_prompts_identical": forecast_grid_complete,
+        "grid_complete_and_balanced": grid_complete_and_balanced,
         "treatment_accuracy_at_least_95pct": treatment_accuracy >= 0.95,
         "post_task_accuracy_at_least_95pct": post_task_accuracy >= 0.95,
+    })
+    documented_checks = summary["headline"]["documented_checks"]
+    summary["headline"].update({
+        "documented_checks_passed": sum(documented_checks.values()),
+        "documented_checks_total": len(documented_checks),
+        "all_documented_checks_passed": all(documented_checks.values()),
     })
     summary |= {"provider": a.provider,
                 "model": usage.get("model") or a.model,
@@ -252,8 +416,22 @@ def main() -> None:
                 "system_prompt": system,
                 "context_mode": CONTEXT_MODE, "doses": list(DOSES),
                 "replicates": a.replicates,
+                "forecast_replicates": a.forecast_replicates,
+                "forecast_sample_count": len(forecast_samples),
+                "forecast_reliability": {
+                    "mean_sd_after_preferred": statistics.mean(
+                        r["forecast_sd_after_preferred"] for r in forecasts),
+                    "mean_sd_after_other": statistics.mean(
+                        r["forecast_sd_after_other"] for r in forecasts),
+                    "max_sd_after_preferred": max(
+                        r["forecast_sd_after_preferred"] for r in forecasts),
+                    "max_sd_after_other": max(
+                        r["forecast_sd_after_other"] for r in forecasts),
+                },
                 "random_seed": a.random_seed,
+                "task_seed_start": a.task_seed_start,
                 "runner_argv": sys.argv,
+                "frozen_manifest": "frozen_manifest.json",
                 "python_version": sys.version,
                 "package_versions": {"numpy": np.__version__,
                                      "pandas": pd.__version__},
@@ -325,7 +503,7 @@ def analyse(forecasts, choices) -> dict:
                 blocks[lab, order, "performed_preferred"]
                 - blocks[lab, order, "performed_other"])
         head["realized_by_label_order_block"] = block_effects
-        head["clarification_checks"] = {
+        head["documented_checks"] = {
             "treatment_effect_at_least_0.50": head["mean_realized_change"] >= 0.50,
             "mean_forecast_error_at_most_minus_0.50": head["mean_error"] <= -0.50,
             "at_least_80pct_forecast_errors_negative": (

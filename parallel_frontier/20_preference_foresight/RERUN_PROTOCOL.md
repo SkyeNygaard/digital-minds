@@ -1,7 +1,7 @@
-# Clarification run
+# Primary run protocol and outcome
 
-This run checks the main result with a shuffled treatment order and complete
-provenance. It changes no prompts or outcome definitions.
+This run checks the main result with a shuffled treatment order. It changes no
+prompts or outcome definitions.
 
 ## Command
 
@@ -20,11 +20,12 @@ python run_scaled.py \
 The provider requests low reasoning effort because this model does not accept
 the minimal setting. The output records the model, CLI version, reasoning
 setting, isolation flags, system prompt, random seed, raw replies, and cell
-seeds.
+seeds. The process used an intermediate runner revision whose exact source hash
+was not captured. The offline verifier checks the saved grid and metrics.
 
-## Checks set before the run
+## Documented diagnostic checks
 
-The result keeps the main interpretation only if all of these checks pass:
+The saved protocol lists these checks:
 
 - The shuffled grid is complete and balanced.
 - At least 95% of treatment cells have all three tasks correct, and at least 95%
@@ -37,6 +38,10 @@ The result keeps the main interpretation only if all of these checks pass:
 The analysis also reports Pearson correlation and a two-sided permutation test.
 This is an exploratory ranking check. Shared task families make the pairs
 dependent, so the correlation is not evidence of independence.
+
+The protocol and outcome are versioned together. The repository does not
+independently timestamp these thresholds before the outcomes, so they are not
+described as preregistered.
 
 ## Outcome
 

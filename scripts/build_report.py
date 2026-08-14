@@ -22,10 +22,12 @@ from reportlab.platypus import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-PRIMARY = ROOT / "parallel_frontier/20_preference_foresight/results/ranking_v2/summary.json"
+PRIMARY = ROOT / "parallel_frontier/20_preference_foresight/results/ranking_v3/summary.json"
 QWEN = ROOT / "parallel_frontier/20_preference_foresight/results/local_qwen4b_v1/summary.json"
 CONTROL = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/self_vs_observer_v1/summary.json"
-VERIFY = ROOT / "parallel_frontier/20_preference_foresight/results/ranking_v2/verification.json"
+CTX_LUNA = ROOT / "parallel_frontier/18_preference_path_dependence/results/ctx_scaled_v1/summary.json"
+CTX_QWEN = ROOT / "parallel_frontier/18_preference_path_dependence/results/ctx_local_qwen_v1/summary.json"
+VERIFY = ROOT / "parallel_frontier/20_preference_foresight/results/ranking_v3/verification.json"
 OUT = ROOT / "output/pdf/digital_minds_report.pdf"
 
 NAVY = colors.HexColor("#17324D")
@@ -103,7 +105,7 @@ def result_table(primary: dict, qwen_rows: list[dict], st: dict) -> Table:
     q_real = sum(r["realized_change"] for r in qwen_rows) / len(qwen_rows)
     data = [
         [paragraph("System", st["table_head"]),
-         paragraph("Task pairs", st["table_head"]),
+         paragraph("Admitted pairs", st["table_head"]),
          paragraph("Predicted shift", st["table_head"]),
          paragraph("Observed shift", st["table_head"])],
         [paragraph("GPT-5.6 Luna in Codex", st["table"]), str(h["n_observations"]),
@@ -124,6 +126,38 @@ def result_table(primary: dict, qwen_rows: list[dict], st: dict) -> Table:
         ("GRID", (0, 0), (-1, -1), 0.5, RULE),
         ("LEFTPADDING", (0, 0), (-1, -1), 8),
         ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+    ]))
+    return table
+
+
+def context_table(luna: dict, qwen: dict, st: dict) -> Table:
+    def effect(result, mode):
+        return result["by_context_mode"][mode]["effect"]
+
+    data = [
+        [paragraph("System", st["table_head"]),
+         paragraph("Full transcript", st["table_head"]),
+         paragraph("Short summary", st["table_head"]),
+         paragraph("No transcript", st["table_head"])],
+        [paragraph("GPT-5.6 Luna in Codex", st["table"]),
+         f"{effect(luna, 'full_history'):+.3f}",
+         f"{effect(luna, 'summary_only'):+.3f}",
+         f"{effect(luna, 'blank_reset'):+.3f}"],
+        [paragraph("Qwen3-4B, local", st["table"]),
+         f"{effect(qwen, 'full_history'):+.3f}",
+         f"{effect(qwen, 'summary_only'):+.3f}",
+         f"{effect(qwen, 'blank_reset'):+.3f}"],
+    ]
+    table = Table(data, colWidths=[2.25 * inch, 1.25 * inch, 1.25 * inch,
+                                   1.25 * inch], rowHeights=[0.35 * inch] * 3)
+    table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), NAVY),
+        ("FONTNAME", (1, 1), (-1, -1), "Helvetica-Bold"),
+        ("FONTSIZE", (1, 1), (-1, -1), 8.5),
+        ("ALIGN", (1, 0), (-1, -1), "CENTER"),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, PALE]),
+        ("GRID", (0, 0), (-1, -1), 0.5, RULE),
     ]))
     return table
 
@@ -172,11 +206,24 @@ def pair_chart(rows: list[dict]) -> Drawing:
     drawing.add(Line(x(0), bottom, x(0), height - top, strokeColor=MUTED,
                      strokeWidth=1.1))
 
+    short = {
+        "add_ten": "add 10",
+        "alphabetize": "alphabetize",
+        "double_numbers": "double",
+        "interleave_strings": "interleave",
+        "parity_sequence": "parity",
+        "reverse_string": "reverse",
+        "running_totals": "running sum",
+        "sort_numbers": "sort asc.",
+        "sort_numbers_desc": "sort desc.",
+        "sum_numbers": "sum",
+    }
     ordered = sorted(rows, key=lambda r: r["realized_change"])
     step = (height - top - bottom) / len(ordered)
     for i, row in enumerate(ordered):
         y = bottom + (i + 0.5) * step
-        label = row["pair_id"].replace("_", " ").replace("|", " / ")
+        a, b = row["pair_id"].split("|")
+        label = f"{short[a]} / {short[b]}"
         xp, xo = x(row["predicted_change"]), x(row["realized_change"])
         drawing.add(String(left - 7, y - 2.5, label, textAnchor="end",
                            fontName="Helvetica", fontSize=6.7, fillColor=INK))
@@ -215,12 +262,20 @@ def build() -> Path:
     primary = read_json(PRIMARY)
     qwen = read_json(QWEN)
     control = read_json(CONTROL)
+    ctx_luna = read_json(CTX_LUNA)
+    ctx_qwen = read_json(CTX_QWEN)
     verification = read_json(VERIFY)
     if not verification["passed"]:
-        raise SystemExit("ranking_v2 verification did not pass")
+        raise SystemExit("ranking_v3 artifact verification did not pass")
     qwen_rows = [r for r in qwen["per_observation"] if r["dose"] == 3]
     h = primary["headline"]
     n_under = round(h["fraction_forecast_errors_negative"] * h["n_observations"])
+    arm = verification["arm_calibration"]
+    empirical = verification["frozen_empirical_baseline"]
+    dependence = verification["dependence_sensitivity"]
+    reliability = verification["forecast_reliability"]
+    envelope = verification["forecast_sample_envelope"]
+    robustness = verification["treatment_correctness_robustness"]
     st = styles()
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
@@ -229,6 +284,7 @@ def build() -> Path:
         rightMargin=0.67 * inch, topMargin=0.62 * inch, bottomMargin=0.58 * inch,
         title="AI Systems Underestimate How Strongly Recent Work Shapes Their Next Choice",
         author="Skye Nygaard",
+        invariant=1,
     )
     story = []
 
@@ -262,7 +318,9 @@ def build() -> Path:
             "The primary result uses a shuffled, balanced grid. The local Qwen3-4B "
             "replication uses seven nearly complete dose-three task pairs. Every "
             "reported pair in both systems shifted toward recent work, and every "
-            "forecast was smaller than the observed shift.", st["body"]),
+            "averaged forecast was smaller than the observed shift. The confirmation "
+            "admitted 8 of 19 candidate pairs using a three-of-four baseline majority.",
+            st["body"]),
         paragraph(
             "These are measurements of choices and forecasts. They are not evidence "
             "about consciousness, feelings, or welfare.", st["small"]),
@@ -277,15 +335,23 @@ def build() -> Path:
             "before the system completes the work, so the answer cannot be copied from "
             "a visible transcript.", st["body"]),
         paragraph("2. Method", st["h1"]),
-        paragraph("<b>Step 1: establish a preference.</b> The system made repeated, "
+        paragraph("<b>Step 1: establish a baseline majority.</b> The system made four "
                   "binding choices between two small tasks. Labels and display order "
-                  "were balanced. Only stable pairs entered the experiment.", st["body"]),
+                  "were balanced. Eight of 19 pairs repeated one choice in at least "
+                  "three decisions and entered the experiment. This is not a claim "
+                  "of permanence.",
+                  st["body"]),
+        Spacer(1, 0.04 * inch),
         paragraph("<b>Step 2: ask for a forecast.</b> Before any treatment work, the "
                   "system estimated how likely it would be to keep its preferred task "
-                  "after completing either task three times.", st["body"]),
+                  "after completing either task three times. Five independent fresh "
+                  "sessions answered each identical prompt, and their values were "
+                  "averaged before outcomes.", st["body"]),
+        Spacer(1, 0.04 * inch),
         paragraph("<b>Step 3: do the work.</b> The system completed one task three times. "
                   "The tasks were generated from recorded seeds and graded automatically.",
                   st["body"]),
+        Spacer(1, 0.04 * inch),
         paragraph("<b>Step 4: measure the next choice.</b> The system made another "
                   "binding choice. It then completed the task it selected.", st["body"]),
         Spacer(1, 0.08 * inch),
@@ -306,9 +372,11 @@ def build() -> Path:
         paragraph("Design safeguards", st["h2"]),
         paragraph(
             "Every treatment arm crossed two opaque labels with two display orders. "
-            "The clarification run shuffled all cells with a fixed seed. It records "
+            "The confirmation shuffled all cells with a fixed seed. It records "
             "replicate IDs, cell seeds, raw replies, model name, reasoning setting, "
-            "CLI version, isolation flags, and the system prompt.", st["body"]),
+            "CLI version, isolation flags, the system prompt, and pre-run source "
+            "hashes. It used 80 forecast samples, 128 outcome cells, and 872 logical "
+            "model calls.", st["body"]),
         paragraph(
             "The Codex route is an agent harness, not a bare model endpoint. It adds "
             "agent instructions and turns the message history into a role-marked "
@@ -318,17 +386,6 @@ def build() -> Path:
 
     permutation_p = h.get("correlation_permutation_p")
     ratio = h.get("model_to_fixed_full_repeat_mse_ratio")
-    if ratio is None:
-        baseline_text = (
-            "A fixed forecast of full repetition matched every observed pair. "
-            "The system's own forecasts did not."
-        )
-    else:
-        baseline_text = (
-            f"A fixed forecast of full repetition had {ratio:.1f} times lower "
-            "squared error than the system's forecasts. This baseline was fixed "
-            "without using the clarification run's outcomes."
-        )
     if permutation_p is None:
         ranking_text = (
             "Observed shifts did not vary enough for a correlation test. The study "
@@ -337,7 +394,7 @@ def build() -> Path:
     else:
         ranking_text = (
             f"The correlation between forecast and outcome was "
-            f"{h['correlation_forecast_vs_realized']:+.2f}. A two-sided permutation "
+            f"{h['correlation_forecast_vs_realized']:+.3f}. A two-sided permutation "
             f"check gave p = {permutation_p:.2f}. This does not show that the "
             "forecasts contain no information. It shows that this study found no "
             "reliable ranking signal."
@@ -346,33 +403,66 @@ def build() -> Path:
     story += [
         paragraph("3. Primary evidence", st["h1"]),
         pair_chart(primary["per_observation"]),
-        Spacer(1, 0.06 * inch),
+        Spacer(1, 0.03 * inch),
         paragraph(
             f"The average forecast was {h['mean_predicted_change']:+.3f}. The average "
             f"observed shift was {h['mean_realized_change']:+.3f}. "
             f"{n_under} of {h['n_observations']} forecasts underestimated the "
-            "observed shift.",
-            st["body"]),
-        paragraph(
-            f"This is partial foresight. Eleven of 13 forecasts had the correct "
-            f"positive direction; two predicted zero. The forecasts captured "
+            "observed shift. Seven had the correct positive direction and one "
+            "predicted a small negative shift. This is partial foresight, not "
+            "complete failure. The forecasts captured "
             f"{h['mean_predicted_change'] / h['mean_realized_change']:.0%} of the mean "
             f"observed shift and reduced squared error by {no_shift_reduction:.0%} "
             "relative to a fixed no-shift forecast.", st["body"]),
-        paragraph(baseline_text, st["body"]),
+        paragraph(
+            f"The mean within-prompt standard deviation was "
+            f"{reliability['mean_sd_after_preferred']:.3f} after baseline-majority "
+            f"work and {reliability['mean_sd_after_other']:.3f} after alternative "
+            "work. Even the most effect-favorable collected sample combination for "
+            f"each pair averaged only "
+            f"{envelope['mean_most_effect_favorable_sample_shift']:+.3f}.",
+            st["body"]),
+        paragraph("The miss was concentrated in one situation", st["h2"]),
+        Table([
+            [paragraph("Situation", st["table_head"]),
+             paragraph("Forecast", st["table_head"]),
+             paragraph("Observed", st["table_head"]),
+             paragraph("Error", st["table_head"])],
+            [paragraph("After baseline-majority work", st["table"]),
+             f"{arm['after_preferred']['forecast']:.3f}",
+             f"{arm['after_preferred']['observed']:.3f}",
+             f"{arm['after_preferred']['forecast_minus_observed']:+.3f}"],
+            [paragraph("After alternative work", st["table"]),
+             f"{arm['after_other']['forecast']:.3f}",
+             f"{arm['after_other']['observed']:.3f}",
+             f"{arm['after_other']['forecast_minus_observed']:+.3f}"],
+        ], colWidths=[2.85 * inch, 1.05 * inch, 1.05 * inch, 1.05 * inch],
+            rowHeights=[0.28 * inch, 0.28 * inch, 0.28 * inch],
+            style=TableStyle([
+                ("BACKGROUND", (0, 0), (-1, 0), NAVY),
+                ("ALIGN", (1, 0), (-1, -1), "CENTER"),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, PALE]),
+                ("GRID", (0, 0), (-1, -1), 0.5, RULE),
+                ("FONTNAME", (1, 1), (-1, -1), "Helvetica-Bold"),
+            ])),
+        paragraph(
+            "The system slightly underpredicted retention after baseline-majority "
+            f"work. It overpredicted retention by "
+            f"{arm['after_other']['forecast_minus_observed']:.3f} after alternative "
+            "work, where recent work almost completely overturned the baseline "
+            "majority.", st["body"]),
+        paragraph("Simple benchmarks", st["h2"]),
+        paragraph(
+            f"A fixed full-repeat forecast had {ratio:.1f} times lower squared error. "
+            f"A pre-existing +{empirical['forecast']:.2f} empirical benchmark had "
+            f"{empirical['model_to_baseline_mse_ratio']:.1f} times lower error and "
+            f"beat the system forecast on {empirical['better_than_model_on_pairs']} "
+            f"of {empirical['n_pairs']} pairs. It was frozen before the confirmation "
+            "outcomes, but its source overlaps this task set. It is a prospective "
+            "outside view here, not independent validation.", st["body"]),
         paragraph("Pair ranking remains uncertain", st["h2"]),
         paragraph(ranking_text, st["body"]),
-        paragraph("Checks", st["h2"]),
-        paragraph(
-            f"All three treatment tasks were correct in "
-            f"{primary['treatment_accuracy']:.1%} of cells. Post-choice task accuracy "
-            f"was {primary['post_task_accuracy']:.1%}. The realized "
-            "shift was positive in every label and order block. The saved grid and "
-            "summary passed offline verification.", st["body"]),
-        paragraph(
-            "Six of seven checks set before the run passed. The failed check required "
-            "mean forecast error at or below -0.50; the result was -0.487. The report "
-            "therefore makes the narrower underestimation claim.", st["body"]),
         HRFlowable(width="100%", thickness=0.7, color=RULE, spaceBefore=8,
                    spaceAfter=8),
         paragraph(
@@ -385,7 +475,7 @@ def build() -> Path:
     q_pred = sum(r["predicted_change"] for r in qwen_rows) / len(qwen_rows)
     q_real = sum(r["realized_change"] for r in qwen_rows) / len(qwen_rows)
     story += [
-        paragraph("4. Replication and control", st["h1"]),
+        paragraph("4. Replication and context controls", st["h1"]),
         paragraph("Local Qwen3-4B replication", st["h2"]),
         paragraph(
             f"The local model predicted a mean shift of {q_pred:+.3f}. The observed "
@@ -398,6 +488,18 @@ def build() -> Path:
             "planned dose-three cells was unusable. We report this nearly complete "
             "subset because several dose-one groups had more missing choices.",
             st["body"]),
+        paragraph("How the work is represented matters", st["h2"]),
+        context_table(ctx_luna, ctx_qwen, st),
+        Spacer(1, 0.08 * inch),
+        paragraph(
+            "Separate supporting runs changed what remained visible at the next "
+            "choice. Both systems showed a large repetition effect with the full "
+            "transcript and no effect with no work transcript. They reacted in "
+            "opposite directions to a short summary, so the data do not support one "
+            "universal memory mechanism.", st["body"]),
+        paragraph(
+            "The no-transcript condition is a visible-context control. It is not a "
+            "claim that a stateless endpoint erased hidden memory.", st["small"]),
         paragraph("Supporting retrospective control", st["h2"]),
         paragraph(
             f"When a model could see the record of recent work, its next-choice "
@@ -410,26 +512,86 @@ def build() -> Path:
             "This control saved cell outcomes but not the full provider settings or "
             "raw replies now recorded by the primary run. It is supporting evidence.",
             st["small"]),
-        paragraph("5. Limits", st["h1"]),
+        PageBreak(),
+    ]
+
+    lofo = dependence["leave_one_family_out_range"]
+    disjoint = dependence["maximum_family_disjoint_mean_error_range"]
+    story += [
+        paragraph("5. Dependence and checks", st["h1"]),
+        paragraph("Shared-family sensitivity", st["h2"]),
+        paragraph(
+            f"Task pairs reuse families. Leaving out one family at a time gave mean "
+            f"forecast errors from {lofo[0]:+.3f} to {lofo[1]:+.3f}. The largest "
+            f"family-disjoint subset contains "
+            f"{dependence['maximum_family_disjoint_pairs']} pairs and has mean "
+            f"error {disjoint[0]:+.3f}.",
+            st["body"]),
+        paragraph(
+            "These are descriptive sensitivities. Every original pair already had a "
+            "negative error. They show that no single family creates the mean result; "
+            "they are not independent replications.",
+            st["small"]),
+        paragraph("Checks and provenance", st["h2"]),
+        paragraph(
+            f"All three treatment tasks were correct in "
+            f"{primary['treatment_accuracy']:.1%} of cells. Post-choice task accuracy "
+            f"was {primary['post_task_accuracy']:.1%}. Restricting the analysis to "
+            f"the {robustness['n_correct_cells']} fully correct treatment cells changes "
+            f"the observed shift only to "
+            f"{robustness['correct_only_mean_realized_change']:+.3f}. Every label and "
+            "order block had a positive shift.", st["body"]),
+        paragraph(
+            "Seven of eight frozen diagnostic checks passed. The missed threshold "
+            "required at least 95% of treatment cells to have all three tasks correct; "
+            "the result was 93.75%. This run is a frozen diagnostic, not a public "
+            "preregistration.", st["body"]),
+        paragraph(
+            "The runner saved source and protocol hashes before the first model call. "
+            "They still match. Saved forecast samples, seeds, raw replies, cells, and "
+            "metrics passed the offline verifier.", st["small"]),
+        paragraph("6. Relation to other work", st["h1"]),
+        paragraph(
+            "<link href='https://proceedings.iclr.cc/paper_files/paper/2025/hash/"
+            "0a6059857ae5c82ea9726ee9282a7145-Abstract-Conference.html' "
+            "color='#087E8B'>Binder et al. (ICLR 2025)</link> trained behavioral "
+            "self-predictors. This study instead asks for a cold prospective forecast.",
+            st["small"]),
+        paragraph(
+            "<link href='https://arxiv.org/abs/2605.20382v1' color='#087E8B'>"
+            "Camassa and Shiller, version 1</link> included situated binary "
+            "self-predictions after induction histories. That experiment was removed "
+            "from version 2, so this report treats it as version-specific.", st["small"]),
+        paragraph(
+            "<link href='https://aclanthology.org/2026.acl-long.1301/' "
+            "color='#087E8B'>Qin et al. (ACL 2026)</link> test adaptation without "
+            "explicit retrieval prompts. <link href='https://aclanthology.org/"
+            "2026.acl-long.479/' color='#087E8B'>Ge et al. (ACL 2026)</link> compare "
+            "described gambles with passively shown payoff histories. Neither tests "
+            "this prospective causal forecast.", st["small"]),
+        paragraph(
+            "<link href='https://arxiv.org/abs/2605.26242' color='#087E8B'>Singh, "
+            "Linzen, and Ravfogel (2026)</link> motivate the narrow interpretation: "
+            "behavioral evidence alone does not establish strong introspection.",
+            st["small"]),
+        paragraph("7. Limits and reproducibility", st["h1"]),
         paragraph(
             "Two instruction-tuned systems were tested. The tasks were small and "
             "deterministic. Most effects were near the maximum. Task pairs shared "
             "families, so pair-level observations were dependent. Codex sampling was "
-            "not seeded. The study does not support claims about all models or about "
-            "subjective experience.", st["body"]),
-        paragraph("6. Reproducibility", st["h1"]),
+            "not seeded, although each forecast prompt was repeated in five fresh "
+            "sessions. Only eight pairs entered the confirmation. Supporting controls "
+            "have less complete provenance. The study does not support claims about "
+            "all models or subjective experience.",
+            st["body"]),
         paragraph(
-            "The primary clarification artifact contains the protocol, raw replies, "
+            "The primary artifact contains the protocol, raw replies, "
             "cell-level choices, analysis, model settings, and validation checks. "
             "Run <font name='Courier'>"
             "pytest -q</font>, <font name='Courier'>validate_research_os_frontier.py"
             "</font>, <font name='Courier'>winner_protocol/preflight.py</font>, and "
             "<font name='Courier'>scripts/verify_ranking.py</font> before any model "
             "run.", st["body"]),
-        paragraph(
-            "The run used an intermediate uncommitted runner revision, and its exact "
-            "source hash was not captured. The saved grid, seeds, raw replies, and "
-            "reported metrics passed offline verification.", st["small"]),
         paragraph(
             "Repository: <link href='https://github.com/SkyeNygaard/digital-minds' "
             "color='#087E8B'>github.com/SkyeNygaard/digital-minds</link>", st["body"]),
