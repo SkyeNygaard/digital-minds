@@ -33,7 +33,23 @@ PER_B_BF16 = 1.88
 # and swapping, which is where the damage happened.
 DEFAULT_HEADROOM_GIB = 3.0
 
+# Start anyway when free memory is short of `need_total` by at most this much.
+# The tolerance eats into HEADROOM ONLY -- `start_threshold` never drops below
+# the predicted peak, so a model is still never loaded into less memory than it
+# is expected to occupy. Set M4_SHORTFALL_TOLERANCE_GIB to use it; 0 = the old
+# behaviour, and values above the cap are clamped rather than honoured.
+MAX_SHORTFALL_TOLERANCE_GIB = 4.0
+
 LOCK = Path(os.environ.get("M4_RUN_LOCK", "/tmp/m4_model_run.lock"))
+
+
+def shortfall_tolerance_gib() -> float:
+    """How far below `need_total` we will still start, from the environment."""
+    try:
+        v = float(os.environ.get("M4_SHORTFALL_TOLERANCE_GIB", "0"))
+    except ValueError:
+        return 0.0
+    return min(max(v, 0.0), MAX_SHORTFALL_TOLERANCE_GIB)
 
 
 def required_gib(params_b: float, dtype_bytes: int = 2) -> float:
@@ -69,6 +85,8 @@ class Plan:
     required: float
     headroom: float
     need_total: float
+    tolerance: float
+    start_threshold: float
 
     def as_dict(self):
         return {**self.__dict__, "available": round(available_gib(), 2),
@@ -76,10 +94,16 @@ class Plan:
 
 
 def plan(params_b: float, dtype_bytes: int = 2,
-         headroom_gib: float = DEFAULT_HEADROOM_GIB) -> Plan:
+         headroom_gib: float = DEFAULT_HEADROOM_GIB,
+         tolerance_gib: float | None = None) -> Plan:
     req = required_gib(params_b, dtype_bytes)
+    need = req + headroom_gib
+    tol = shortfall_tolerance_gib() if tolerance_gib is None else min(
+        max(tolerance_gib, 0.0), MAX_SHORTFALL_TOLERANCE_GIB)
+    # The floor is the predicted peak. Tolerance spends headroom, never the model.
+    start = max(req, need - tol)
     return Plan(params_b, dtype_bytes, round(req, 2), headroom_gib,
-                round(req + headroom_gib, 2))
+                round(need, 2), round(tol, 2), round(start, 2))
 
 
 def check_fits_at_all(p: Plan) -> None:
@@ -106,21 +130,30 @@ def wait_for_memory(p: Plan, *, timeout_s: float = 1800, poll_s: float = 15,
     first = True
     while True:
         avail = available_gib()
-        if avail >= p.need_total:
-            if not first:
+        if avail >= p.start_threshold:
+            if p.tolerance and avail < p.need_total:
+                log(f"[memory_guard] starting {p.need_total - avail:.1f} GiB below "
+                    f"the {p.need_total:.1f} GiB target, inside the "
+                    f"{p.tolerance:.1f} GiB tolerance. {avail:.1f} GiB available "
+                    f"against a {p.required:.1f} GiB predicted peak, so roughly "
+                    f"{avail - p.required:.1f} GiB of real slack — expect "
+                    f"compression, and watch swap.")
+            elif not first:
                 log(f"[memory_guard] room available: {avail:.1f} GiB — starting")
             return
         if time.time() >= deadline:
             raise TimeoutError(
-                f"waited {timeout_s:.0f}s for {p.need_total:.1f} GiB; still only "
+                f"waited {timeout_s:.0f}s for {p.start_threshold:.1f} GiB; still only "
                 f"{avail:.1f} GiB available (swap {swap_used_gib():.1f} GiB). "
                 f"If no process owns the memory it is likely wired GPU memory from "
                 f"a killed MPS job — that needs a restart, not more waiting."
             )
         if first:
             log(f"[memory_guard] need {p.need_total:.1f} GiB "
-                f"({p.required:.1f} model + {p.headroom:.1f} headroom), "
-                f"have {avail:.1f} GiB — waiting for other jobs to finish")
+                f"({p.required:.1f} model + {p.headroom:.1f} headroom"
+                + (f", {p.tolerance:.1f} tolerance -> start at "
+                   f"{p.start_threshold:.1f}" if p.tolerance else "")
+                + f"), have {avail:.1f} GiB — waiting for other jobs to finish")
             first = False
         time.sleep(poll_s)
 
@@ -166,8 +199,9 @@ def _lock_holder():
 @contextlib.contextmanager
 def guard(*, params_b: float, dtype_bytes: int = 2,
           headroom_gib: float = DEFAULT_HEADROOM_GIB,
+          tolerance_gib: float | None = None,
           timeout_s: float = 1800, poll_s: float = 15, log=print):
-    p = plan(params_b, dtype_bytes, headroom_gib)
+    p = plan(params_b, dtype_bytes, headroom_gib, tolerance_gib)
     with _exclusive_lock(timeout_s, poll_s, log):
         wait_for_memory(p, timeout_s=timeout_s, poll_s=poll_s, log=log)
         log(f"[memory_guard] {json.dumps(p.as_dict())}")
@@ -206,6 +240,37 @@ def demo():
     except MemoryError:
         pass
 
+    # Shortfall tolerance spends headroom and stops at the predicted peak. Without
+    # that floor this knob would reintroduce exactly the fault the module exists
+    # to prevent: starting a load into less memory than the model occupies.
+    base = plan(4.02, tolerance_gib=0)
+    assert base.start_threshold == base.need_total, base
+    for tol in (1.0, 3.0, 4.0, 99.0):
+        p = plan(4.02, tolerance_gib=tol)
+        assert p.tolerance <= MAX_SHORTFALL_TOLERANCE_GIB, p
+        assert p.start_threshold >= p.required, p
+        assert p.start_threshold <= base.need_total, p
+    # the cap binds, so an absurd request behaves as the cap and not as infinity
+    assert plan(4.02, tolerance_gib=99.0).start_threshold == plan(
+        4.02, tolerance_gib=MAX_SHORTFALL_TOLERANCE_GIB).start_threshold
+    # headroom smaller than the tolerance must not push the floor below the peak
+    tight = plan(4.02, headroom_gib=0.5, tolerance_gib=4.0)
+    assert tight.start_threshold == tight.required, tight
+    # environment override, including a junk value falling back to zero.
+    # Restore rather than delete: this self-check must not clobber the caller's
+    # setting, which is what the table below reports against.
+    saved = os.environ.get("M4_SHORTFALL_TOLERANCE_GIB")
+    try:
+        os.environ["M4_SHORTFALL_TOLERANCE_GIB"] = "2.5"
+        assert plan(4.02).tolerance == 2.5
+        os.environ["M4_SHORTFALL_TOLERANCE_GIB"] = "not-a-number"
+        assert plan(4.02).tolerance == 0.0
+    finally:
+        if saved is None:
+            os.environ.pop("M4_SHORTFALL_TOLERANCE_GIB", None)
+        else:
+            os.environ["M4_SHORTFALL_TOLERANCE_GIB"] = saved
+
     # The lock is what stops two MPS jobs from overlapping, which is what turned
     # a recoverable spike into wired memory with no owner.
     quiet = lambda *a, **k: None
@@ -224,11 +289,17 @@ def demo():
     assert not LOCK.exists()
     print(f"machine total {total:.1f} GiB, available now {available_gib():.1f} GiB, "
           f"swap {swap_used_gib():.1f} GiB")
+    tol = shortfall_tolerance_gib()
+    if tol:
+        print(f"  (shortfall tolerance {tol:.1f} GiB active from the environment)")
     for m in PARAMS_B:
         p = plan(params_for(m))
-        fits = available_gib() >= p.need_total
+        avail = available_gib()
+        state = ("ready now" if avail >= p.need_total else
+                 "ready, on tolerance" if avail >= p.start_threshold else
+                 "would WAIT")
         print(f"  {m:42s} need {p.need_total:5.1f} GiB  "
-              f"{'ready now' if fits else 'would WAIT'}")
+              f"peak {p.required:5.1f}  {state}")
     print("memory_guard self-check passed")
 
 

@@ -326,6 +326,15 @@ def main() -> None:
     frozen["source"] = str(source.relative_to(ROOT))
 
     if a.provider == "local":
+        sys.path.insert(0, str(ROOT / "m4_feasibility"))
+        import memory_guard
+        # A run that started on the shortfall tolerance had less real slack than
+        # the guard's default; the artifact should say so rather than look like a
+        # comfortable load after the fact.
+        frozen["memory_shortfall_tolerance_gib"] = memory_guard.shortfall_tolerance_gib()
+        frozen["memory_available_gib_at_start"] = round(memory_guard.available_gib(), 2)
+        frozen["memory_predicted_peak_gib"] = round(
+            memory_guard.required_gib(memory_guard.params_for(a.model)), 2)
         import local_provider
         complete, close = local_provider.load(
             a.model, system=system, headroom_gib=a.headroom)
