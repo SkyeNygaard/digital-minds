@@ -322,6 +322,29 @@ def build() -> Path:
         Spacer(1, 0.2 * inch),
         metric_cards(h, st),
         Spacer(1, 0.22 * inch),
+        paragraph("What we found, in four lines", st["h1"]),
+        paragraph(
+            f"<b>1. It misreads itself.</b> Asked how much doing a task three times "
+            f"would move its next choice, the system said {h['mean_predicted_change']:+.2f}. "
+            f"The answer was {h['mean_realized_change']:+.2f}. Eight pairs out of eight "
+            "missed the same way, in two different systems.", st["body"]),
+        paragraph(
+            "<b>2. Showing it the evidence does not fix it.</b> With the finished work "
+            f"in front of it the estimate was "
+            f"{situated['situated_self_native_mean_change']:+.2f} -- no better. It is not "
+            "failing to picture an absent situation.", st["body"]),
+        paragraph(
+            "<b>3. Knowing the record is its own does not help.</b> Self and observer "
+            f"framings of the identical log landed "
+            f"{situated['self_minus_observer']:.3f} apart, on the one measure with room "
+            "for a gap.", st["body"]),
+        paragraph(
+            "<b>4. The obvious methodological objection explains about a fifth of it.</b> "
+            "Removing the sentence that reminds the system what it chose before moves the "
+            f"estimate from {situated['situated_self_native_mean_change']:+.2f} to "
+            f"{noanchor['situated_self_native_mean_change']:+.2f}. Not the rest.",
+            st["body"]),
+        Spacer(1, 0.16 * inch),
         paragraph("Result at a glance", st["h1"]),
         result_table(primary, qwen_rows, st),
         Spacer(1, 0.16 * inch),

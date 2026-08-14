@@ -14,9 +14,23 @@ and a one-line rule that ignores what the system says about itself makes about
 one-sixteenth of its squared error. Any elicitation method that asks a model
 about its own future choices inherits this gap.
 
-A second fact points the same way. Of 19 task pairs screened, only 8 produced
-the same choice in at least three of four balanced decisions. For the other 11
-there was no stable choice to ask about in the first place.
+A second fact points the same way. Of 19 task pairs screened, only 8 held to the
+same choice reliably enough to be worth asking about. For the other 11 there was
+no stable choice there in the first place.
+
+## What we found, in four lines
+
+1. **It misreads itself.** Asked how much doing a task three times would move its
+   next choice, the system said +0.29. The answer was +0.89. Eight pairs out of
+   eight missed the same way, in two different systems.
+2. **Showing it the evidence does not fix it.** With the finished work in front
+   of it, the estimate was +0.22 — no better. It is not failing to picture an
+   absent situation.
+3. **Knowing the record is its own does not help.** Self and observer framings of
+   the identical log landed 0.024 apart, on the one measure with room for a gap.
+4. **The obvious methodological objection explains about a fifth of it.** Removing
+   the sentence that reminds the system what it chose before moves the estimate
+   from +0.22 to +0.36. Not the rest.
 
 ## Question
 
@@ -122,6 +136,32 @@ The forecasts did not rank the pair effects. Pearson correlation was -0.002 and
 a two-sided permutation check gave p = 1.00. Eight dependent observations are
 too few to prove that the forecasts contain no information.
 
+### Robustness of the confirmation
+
+Everything in this subsection concerns the confirmation run above, not the
+experiments that follow it.
+
+The saved plan and recorded data match exactly. All 80 forecast samples and all
+128 outcome cells are present. Forecast prompts match within each arm. Labels,
+display order, and treatment arms are balanced. Every label and order block has
+a positive observed shift. Admission tasks were correct in 75 of 76 trials.
+
+Seven of eight frozen diagnostic checks passed. Treatment work was fully
+correct in 93.75% of cells, below the 95% target. Removing those eight cells
+changes the observed shift only from +0.891 to +0.896. Every correct-only pair
+effect remains positive.
+
+Task pairs reuse task families. Leaving out one family at a time gives mean
+forecast errors from -0.640 to -0.532. The largest subset with no repeated
+family contains four pairs and has mean error -0.611. These are descriptive
+sensitivity checks, not independent replications.
+
+The runner saved its arguments, protocol hash, candidate-panel hash, source
+hashes, model, CLI version, reasoning setting, isolation flags, system prompt,
+random seeds, planned cells, replicate IDs, and raw replies. The offline
+verifier recomputes the result from the raw rows and confirms that the frozen
+source hashes still match.
+
 ## Standing inside the situation does not help
 
 The obvious explanation for the miss is that the system was asked about a
@@ -149,11 +189,19 @@ This removes the comfortable reading. The system is not failing to imagine an
 absent context — it has the evidence in hand and still misreads what that
 evidence will do to it.
 
-The self and observer framings landed 0.024 apart. That gap matters more here
-than in the earlier binary control, because here there was room for it to be
-large: both framings sat around +0.33 against a truth of +0.891, so either could
-have been far better than the other. Neither was. Being told the record is your
-own conferred no advantage on the one measure with room to show it.
+The self and observer framings landed 0.024 apart. Being told the record is your
+own conferred no advantage.
+
+That is worth more than it looks, because we asked the same question the easy way
+first and it told us nothing. In an earlier 40-cell run the model saw the recent
+work and predicted its next choice as a yes or no: 95% correct, against 97.5% for
+an observer prompt and 97.5% for a rule that just guesses "it will repeat".
+Behaviour is that predictable from a transcript by anyone, so nobody had room to
+look better than anybody else. That comparison is a ceiling, not a finding.
+
+Asking for a probability instead opens the room back up. Both framings sat around
++0.33 against a truth of +0.891, so either could have been far better than the
+other. Neither was.
 
 Two of the three predictions written into the protocol before the run were
 wrong: the situated forecast was expected to beat the prospective one, and to
@@ -201,29 +249,6 @@ Diagnostics: 80 of 80 cells, balanced 40/40, treatment work fully correct in
 
 Artifact:
 `parallel_frontier/16_self_prediction_behavioral/results/situated_noanchor_v1/`.
-
-## Robustness and checks
-
-The saved plan and recorded data match exactly. All 80 forecast samples and all
-128 outcome cells are present. Forecast prompts match within each arm. Labels,
-display order, and treatment arms are balanced. Every label and order block has
-a positive observed shift. Admission tasks were correct in 75 of 76 trials.
-
-Seven of eight frozen diagnostic checks passed. Treatment work was fully
-correct in 93.75% of cells, below the 95% target. Removing those eight cells
-changes the observed shift only from +0.891 to +0.896. Every correct-only pair
-effect remains positive.
-
-Task pairs reuse task families. Leaving out one family at a time gives mean
-forecast errors from -0.640 to -0.532. The largest subset with no repeated
-family contains four pairs and has mean error -0.611. These are descriptive
-sensitivity checks, not independent replications.
-
-The runner saved its arguments, protocol hash, candidate-panel hash, source
-hashes, model, CLI version, reasoning setting, isolation flags, system prompt,
-random seeds, planned cells, replicate IDs, and raw replies. The offline
-verifier recomputes the result from the raw rows and confirms that the frozen
-source hashes still match.
 
 ## The agent harness is not what causes this
 
@@ -273,12 +298,6 @@ which model produced it, so the comparison between systems rests partly on an
 artifact with a gap in its record; the Luna reversal does not depend on it.
 Neither run carries the frozen-hash provenance of the main result, and neither
 proves that an endpoint has no hidden or persistent state.
-
-In a separate 40-cell control, a model that could see the recent work predicted
-its next choice correctly 95% of the time. An observer prompt and a fixed repeat
-baseline each scored 97.5%. Behaviour is that predictable from the transcript by
-anyone, so this comparison has no room to show privileged self-knowledge and is
-reported as a ceiling, not a finding.
 
 ## Relation to other work
 
