@@ -830,7 +830,52 @@ def build() -> Path:
             "real, smaller than any single headline number suggests, and part of what a "
             "binding-choice paradigm measures is the model reading the room.",
             st["body"]),
-        paragraph("6. Relation to other work", st["h1"]),
+        paragraph("6. What we predicted, and what happened", st["h1"]),
+        paragraph(
+            "Every run froze its predictions in a protocol file before its first model "
+            "call, and every protocol is hashed into that run's manifest. Sixteen frozen "
+            "items; we got five wrong.", st["body"]),
+        Table([["Run", "Frozen beforehand", "Outcome"],
+               ["Confirmation", "treatment work >=95% correct", "FAILED, 93.75%"],
+               ["Situated", "will beat the cold forecast", "FAILED"],
+               ["", "will land nearer the truth", "FAILED"],
+               ["", "self and observer within 0.10", "held, 0.018"],
+               ["Situated, no anchor", "some movement, not most", "held, +0.060"],
+               ["Context forecast", "ordered visible>summary>none", "FAILED"],
+               ["", "spread narrower than reality", "held, 0.103 vs 1.175"],
+               ["Prospective, no anchor", "stays well below +0.891", "held, +0.524"],
+               ["", "expected to move little", "WRONG fourfold"],
+               ["Intent", "normal reproduces confirmation", "held, +0.812"],
+               ["", "survives above +0.6", "FAILED, +0.562"]],
+              colWidths=[1.5 * inch, 2.6 * inch, 1.95 * inch],
+              style=TableStyle([
+                  ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                  ("FONTSIZE", (0, 0), (-1, -1), 7.6),
+                  ("TEXTCOLOR", (0, 0), (-1, 0), NAVY),
+                  ("LINEBELOW", (0, 0), (-1, 0), 0.75, RULE),
+                  ("TOPPADDING", (0, 0), (-1, -1), 3),
+                  ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+              ])),
+        Spacer(1, 0.08 * inch),
+        paragraph(
+            "Two of those failures changed a number we report and one changed the "
+            "headline. None was found by re-running until something worked: each run was "
+            "collected once, against predictions written down first.", st["small"]),
+        paragraph("Chronology", st["h2"]),
+        paragraph(
+            "<b>Exploration:</b> branches 01-19, including a forecast parser that "
+            "scavenged numbers out of prose, a guessable task family, and a control whose "
+            "ceiling was first misread as a finding. Preserved, not deleted. "
+            "<b>Confirmation:</b> ranking_v3 alone -- fresh admission, fresh items, "
+            "repeated forecasts collected before any outcome, frozen manifest, thresholds "
+            "fixed in advance. <b>Diagnostics:</b> everything after it tests the "
+            "confirmation rather than extending it, each with its own frozen protocol, "
+            "none presented as independent replication. <b>Corrections:</b> two runs "
+            "recollected after we found problems -- a missed system prompt, and an "
+            "external review that caught a mechanism stated backwards plus three report "
+            "bugs. The submission is more accurate, and its headline number smaller, than "
+            "it was twelve hours ago.", st["body"]),
+        paragraph("7. Relation to other work", st["h1"]),
         paragraph(
             "<link href='https://proceedings.iclr.cc/paper_files/paper/2025/hash/"
             "0a6059857ae5c82ea9726ee9282a7145-Abstract-Conference.html' "
@@ -861,7 +906,7 @@ def build() -> Path:
             "Linzen, and Ravfogel (2026)</link> motivate the narrow interpretation: "
             "behavioral evidence alone does not establish strong introspection.",
             st["small"]),
-        paragraph("7. Limits and reproducibility", st["h1"]),
+        paragraph("8. Limits and reproducibility", st["h1"]),
         paragraph(
             "Two instruction-tuned systems were tested. The tasks were small and "
             "deterministic. Most effects were near the maximum. Task pairs shared "

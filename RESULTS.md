@@ -23,7 +23,7 @@ across four balanced choices, which a fair coin passes 62.5% of the time. Seven
 of the eight admitted pairs were 3-1 and one was 4-0. These are orientations for
 the treatment contrast, not evidence of a stable underlying preference.
 
-## What we found, in five lines
+## What we found, in six lines
 
 1. **It misreads itself.** Asked how much doing a task three times would move its
    next choice, the system said +0.29 — or +0.52 once we delete a sentence from
@@ -46,11 +46,20 @@ the treatment contrast, not evidence of a stable underlying preference.
    zero, sign unstable between collections. This tests framing, not privileged
    access — both conditions ask Luna. Qwen shows a 0.130 gap, near a ceiling and
    collected once, so we report it without leaning on it.
-5. **The obvious methodological objection explains about two fifths of it.** The
-   forecast prompt names the earlier choice; the binding choice does not. Delete
-   that sentence and the cold forecast rises from +0.29 to +0.52 against a truth
-   of +0.89. All eight pairs still underestimate and a −0.37 gap remains, but a
-   meaningful part of the headline number is the way the question was asked.
+5. **Naming the earlier choice explains about two fifths of the forecasting gap.**
+   The forecast prompt names it; the binding choice does not. Delete that sentence
+   and the cold forecast rises from +0.29 to +0.52 against a truth of +0.89. All
+   eight pairs still underestimate and −0.37 remains.
+6. **A third of the behavioural effect is the model reading the user.** The
+   treatment is three *user requests*, not just three completions. Tell the system
+   the tasks were assigned at random and reflect nobody's preference, and the
+   effect falls from +0.81 to +0.56. Substantial, and it does not remove the
+   phenomenon.
+
+Findings 5 and 6 are the two obvious objections to this paradigm. Each removes
+about a third. Neither removes the result. That is the honest summary: the effect
+is real, smaller than any single headline number implies, and part of what a
+binding-choice paradigm measures is the model working out what is wanted.
 
 ## Question
 
@@ -334,7 +343,7 @@ earlier collection without the system prompt is kept alongside it in
 `situated_v1/`; every measure agrees within 0.051, which is inside the
 measurement's own spread.
 
-### Reminding it what it chose before does not explain the gap
+### Removing the reminder, with the work already present
 
 Every forecast prompt in this project contains one sentence the binding choice
 does not: "in earlier binding decisions you chose X". So the forecast is asked
@@ -559,6 +568,71 @@ attending to it would show no difference for reasons unrelated to intent.
 
 Artifact: `parallel_frontier/16_self_prediction_behavioral/results/intent_v1/`.
 
+## What we predicted, and what happened
+
+Every run in this project froze its predictions in a protocol file before the
+first model call, and every protocol file is hashed into the run's manifest. This
+table is the complete record. Sixteen frozen items, five of which we got wrong.
+
+| Run | Frozen before the run | Outcome |
+|---|---|---|
+| Confirmation | 8 diagnostic thresholds | 7 passed |
+| | treatment work ≥95% correct | **failed** — 93.75%; removing those cells moves the effect +0.891 → +0.896 |
+| Situated | situated forecast will beat the cold one | **failed** — +0.247 vs +0.290 |
+| | situated will land nearer the truth | **failed** — it did not |
+| | self and observer within 0.10 | held — 0.018 |
+| Situated, no anchor | some movement, not most of the gap | held — +0.060 |
+| Context forecast | ordered visible > summary > nothing | **failed** — the last two are indistinguishable |
+| | all three forecasts positive | held |
+| | forecast spread narrower than reality | held — 0.103 against 1.175 |
+| Prospective, no anchor | stays well below +0.891 | held — +0.524 |
+| | at least 6 of 8 still underestimate | held — 8 of 8 |
+| | mean moves toward the truth | held — +0.234 |
+| | *stated expectation: it will not move much more than the situated +0.060* | **wrong by fourfold** |
+| Intent | the normal condition reproduces the confirmation | held — +0.812 against +0.891 |
+| | the effect survives above +0.6 | **failed** — +0.562 |
+| | the difference is under 0.3 | held — 0.250 |
+
+Two of those failures changed a number we report. One — the prospective no-anchor
+result — changed the headline. None of them were discovered by re-running until
+something worked; each run was collected once, against predictions written down
+first, and reported as collected.
+
+## How this was built, in order
+
+Reviewers of a repository with twenty experimental branches are right to worry
+that the strongest-looking pattern was selected after the fact. The chronology
+matters, so here it is.
+
+**Exploration.** Branches 01–19, including several that failed outright: a
+forecast parser that scavenged numbers out of prose and turned "12 decisions"
+into a 0.12 forecast; a task family the model could guess without doing the work;
+a self-versus-observer control that hit its ceiling and initially had its ceiling
+misread as a finding. Those are preserved rather than deleted. An earlier Luna
+run, `ranking_v2`, found +0.340 predicted against +0.827 observed on 13 pairs.
+
+**Confirmation.** `ranking_v3` is the one experiment to treat as confirmatory:
+fresh admission choices, fresh task items, five repeated forecasts collected
+before any outcome cell, a frozen manifest, and diagnostic thresholds fixed in
+advance. Everything before it is a pilot. It is the source of +0.290 against
++0.891.
+
+**Diagnostics.** Everything after the confirmation tests it rather than extends
+it: the situated arms, the two no-anchor checks, the context forecast, the intent
+test. Each has its own frozen protocol. None of them are independent
+confirmations and none are presented as such.
+
+**Corrections.** Two runs were recollected after we found problems, not after we
+disliked results. The situated arms were rerun because they had missed the
+outcome cells' system prompt — which turned out to change reply length from 110
+characters to 12 while moving no conclusion. And an external review found a
+mechanism stated backwards, three report bugs and four overclaims; all were
+verified against the data and corrected, and the two experiments that review
+prompted each changed a number we report.
+
+That last part is worth stating plainly rather than hiding: the submission is
+more accurate and its headline number is smaller than it was twelve hours ago.
+
 ## Relation to other work
 
 - [Binder et al. (ICLR 2025)](https://proceedings.iclr.cc/paper_files/paper/2025/hash/0a6059857ae5c82ea9726ee9282a7145-Abstract-Conference.html)
@@ -657,15 +731,53 @@ asking the model about any of it does not recover the truth.
 
 ## Artifacts
 
-- Main result and offline verification:
-  `parallel_frontier/20_preference_foresight/results/ranking_v3/`
-- Local replication:
-  `parallel_frontier/20_preference_foresight/results/local_qwen4b_v1/`
-- Situated forecast, self and observer:
-  `parallel_frontier/16_self_prediction_behavioral/results/situated_sys_v1/`
-  (protocol frozen in `SITUATED_FORECAST_PROTOCOL.md`; `run_situated_forecast.py
-  --demo` re-checks the arithmetic offline)
-- Supporting retrospective control:
-  `parallel_frontier/16_self_prediction_behavioral/results/self_vs_observer_v1/`
-- Supporting context controls:
-  `parallel_frontier/18_preference_path_dependence/results/`
+Every run below has a frozen manifest recording its protocol hash, source
+hashes, system prompt, arguments and seeds, written before its first model call.
+
+**Confirmatory**
+
+- `parallel_frontier/20_preference_foresight/results/ranking_v3/` — the main
+  result, with an offline verifier (`scripts/verify_ranking.py`) that recomputes
+  every headline number from the raw rows and re-checks the frozen hashes.
+
+**Diagnostic, all in `parallel_frontier/16_self_prediction_behavioral/results/`**
+
+| Directory | What it tests | Protocol |
+|---|---|---|
+| `situated_sys_v1/` | the same question with the work present | `SITUATED_FORECAST_PROTOCOL.md` |
+| `situated_sys_noanchor_v1/` | the reminder, with the work present | `NOANCHOR_PROTOCOL.md` |
+| `prospective_noanchor_v1/` | the reminder, cold — where the headline comes from | `PROSPECTIVE_NOANCHOR_PROTOCOL.md` |
+| `context_forecast_v1/` | can it predict which presentation moves it | `CONTEXT_FORECAST_PROTOCOL.md` |
+| `intent_v1/` | is it path dependence or following the user | `INTENT_PROTOCOL.md` |
+| `situated_qwen_v1/` | the situated question on a local model | `SITUATED_FORECAST_PROTOCOL.md` |
+| `self_vs_observer_v1/` | the binary version, at its ceiling | branch README |
+
+Superseded collections are kept beside the ones that replaced them:
+`situated_v1/` and `situated_noanchor_v1/` ran without the outcome cells' system
+prompt and are retained so the comparison can be checked.
+
+**Supporting**
+
+- `parallel_frontier/20_preference_foresight/results/local_qwen4b_v1/` — the Qwen
+  replication. Thinner provenance than the confirmation: no frozen manifest, no
+  five-sample forecast grid, no raw forecast replies.
+- `parallel_frontier/18_preference_path_dependence/results/` — the context
+  controls. Collected without a system prompt, and the Qwen run does not record
+  which model produced it.
+
+**Checks that need no model calls**
+
+```bash
+.venv/bin/python -m pytest -q
+.venv/bin/python validate_research_os_frontier.py
+.venv/bin/python winner_protocol/preflight.py
+.venv/bin/python scripts/verify_ranking.py
+.venv/bin/python parallel_frontier/16_self_prediction_behavioral/run_situated_forecast.py --demo
+.venv/bin/python parallel_frontier/16_self_prediction_behavioral/run_context_forecast.py --demo
+.venv/bin/python parallel_frontier/16_self_prediction_behavioral/run_intent.py --demo
+```
+
+The three `--demo` checks re-derive the admitted panels, assert that each
+manipulation changes exactly the one sentence it claims to, assert that the
+choice prompt is never touched, and re-check the summary arithmetic against
+hand-worked fixtures.
