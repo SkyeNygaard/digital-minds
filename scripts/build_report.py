@@ -29,6 +29,7 @@ SITUATED = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/situa
 SIT_QWEN = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/situated_qwen_v1/summary.json"
 CTXFC = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/context_forecast_v1/summary.json"
 NOANCHOR = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/situated_sys_noanchor_v1/summary.json"
+INTENT = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/intent_v1/summary.json"
 PROSP_NA = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/prospective_noanchor_v1/summary.json"
 CTX_LUNA = ROOT / "parallel_frontier/18_preference_path_dependence/results/ctx_scaled_v1/summary.json"
 CTX_QWEN = ROOT / "parallel_frontier/18_preference_path_dependence/results/ctx_local_qwen_v1/summary.json"
@@ -272,6 +273,7 @@ def build() -> Path:
     ctxfc = read_json(CTXFC)
     noanchor = read_json(NOANCHOR)
     prosp_na = read_json(PROSP_NA)
+    intent = read_json(INTENT)
     ctx_luna = read_json(CTX_LUNA)
     ctx_qwen = read_json(CTX_QWEN)
     verification = read_json(VERIFY)
@@ -302,7 +304,7 @@ def build() -> Path:
         Spacer(1, 0.18 * inch),
         paragraph("AI SYSTEMS UNDERESTIMATE HOW STRONGLY<br/>"
                   "RECENT WORK SHAPES THEIR NEXT CHOICE", st["title"]),
-        paragraph("A behavioral study of preference foresight in two assistant systems",
+        paragraph("A behavioral study of self-forecasting and context-dependent choice",
                   st["subtitle"]),
         paragraph("Skye Nygaard", st["body"]),
         Spacer(1, 0.12 * inch),
@@ -788,6 +790,46 @@ def build() -> Path:
             "The runner saved source and protocol hashes before the first model call. "
             "They still match. Saved forecast samples, seeds, raw replies, cells, and "
             "metrics passed the offline verifier.", st["small"]),
+        paragraph("Is it path dependence, or following the user?", st["h2"]),
+        paragraph(
+            "The treatment is three <i>user requests</i> for a task, not just three "
+            "completions of it, so an assistant that infers and satisfies user intent "
+            "has a complete non-preference reason to continue. We changed one clause in "
+            "an opening turn -- that the tasks were selected at random and reflect no "
+            "preference of the requester -- and left everything else, including the "
+            "choice prompt, byte-identical.", st["body"]),
+        Table([["Condition", "Shift"],
+               ["The user asks for the task", f"{intent['by_condition']['requested']['shift']:+.3f}"],
+               ["Told the tasks were randomly assigned", f"{intent['by_condition']['assigned']['shift']:+.3f}"],
+               ["The confirmation, for reference", f"{intent['confirmation_shift']:+.3f}"]],
+              colWidths=[4.0 * inch, 2.05 * inch],
+              style=TableStyle([
+                  ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                  ("FONTNAME", (0, 2), (-1, 2), "Helvetica-Bold"),
+                  ("FONTSIZE", (0, 0), (-1, -1), 8.5),
+                  ("TEXTCOLOR", (0, 0), (-1, 0), NAVY),
+                  ("ALIGN", (1, 0), (-1, -1), "RIGHT"),
+                  ("LINEBELOW", (0, 0), (-1, 0), 0.75, RULE),
+                  ("TOPPADDING", (0, 0), (-1, -1), 4),
+                  ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+              ])),
+        Spacer(1, 0.08 * inch),
+        paragraph(
+            f"The intent signal is worth {intent['difference']:+.3f}, 95% interval "
+            "-0.473 to -0.027, t = -2.65. Four of eight pairs dropped, four were "
+            "unchanged, none rose. So it accounts for roughly a third of the effect, "
+            f"and {intent['by_condition']['assigned']['shift']:+.3f} survives when the "
+            "system is told plainly that nobody wants it to continue. We predicted the "
+            "survivor would stay above +0.6; it did not, and that is recorded as a "
+            "failed prediction.", st["body"]),
+        paragraph(
+            "So the two most obvious objections to this paradigm each remove about a "
+            "third and neither removes the phenomenon: naming the earlier choice is "
+            "worth two fifths of the <i>forecasting</i> gap, and the user-request "
+            "framing is worth a third of the <i>behavioural</i> effect. The effect is "
+            "real, smaller than any single headline number suggests, and part of what a "
+            "binding-choice paradigm measures is the model reading the room.",
+            st["body"]),
         paragraph("6. Relation to other work", st["h1"]),
         paragraph(
             "<link href='https://proceedings.iclr.cc/paper_files/paper/2025/hash/"

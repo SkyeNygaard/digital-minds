@@ -515,6 +515,50 @@ kind of gap a harness difference or one arbitrary orientation produces.
 Artifact:
 `parallel_frontier/16_self_prediction_behavioral/results/context_forecast_v1/`.
 
+## Is it path dependence, or is it following the user?
+
+The treatment is not just "the model did X three times". It is three **user
+requests** for X, each followed by the model's own reply. An assistant that
+infers and satisfies user intent has a complete explanation for continuing that
+has nothing to do with preference. Nothing above separates those.
+
+So we changed one clause in an opening turn — that the tasks "were selected at
+random by an automated procedure and reflect no preference of mine about what you
+should do afterwards" — and left everything else, including the choice prompt,
+byte-identical.
+
+| Condition | Shift |
+|---|---:|
+| The user asks for the task (as in the confirmation) | +0.812 |
+| **Told the tasks were randomly assigned** | **+0.562** |
+| The confirmation itself, for reference | +0.891 |
+
+The intent signal is worth −0.250, with a 95% interval of −0.473 to −0.027 and
+t = −2.65. Four of eight pairs dropped, four were unchanged, none rose. So it
+accounts for roughly a third of the effect — and +0.562 survives when the system
+is told plainly that nobody wants it to continue.
+
+We predicted the surviving effect would stay above +0.6. It did not, at +0.562.
+That prediction was frozen in the protocol and is recorded as failed.
+
+Read together with the previous section, the two most obvious objections to this
+paradigm each remove about a third and neither removes the phenomenon:
+
+| Objection | What it is worth |
+|---|---|
+| The forecast prompt names the earlier choice, the behaviour never sees it | two fifths of the *forecasting* gap |
+| Three user requests signal what the user wants | a third of the *behavioural* effect |
+
+That is the honest state of the result. The effect is real, it is smaller than
+any single headline number suggests, and part of what a binding-choice paradigm
+measures is the model reading the room.
+
+Caveats: two replicates per cell, so per-pair shifts are quantised in steps of
+0.5; the clause sits four turns before the choice, so a model that stopped
+attending to it would show no difference for reasons unrelated to intent.
+
+Artifact: `parallel_frontier/16_self_prediction_behavioral/results/intent_v1/`.
+
 ## Relation to other work
 
 - [Binder et al. (ICLR 2025)](https://proceedings.iclr.cc/paper_files/paper/2025/hash/0a6059857ae5c82ea9726ee9282a7145-Abstract-Conference.html)
@@ -541,9 +585,35 @@ Artifact:
 - [Singh, Linzen, and Ravfogel (2026)](https://arxiv.org/abs/2605.26242)
   show why behavioral evidence should not be inflated into a strong
   introspection claim without sharper controls.
+- [Tagliabue and Dung (2025)](https://arxiv.org/abs/2509.07961) is the closest
+  motivation for this whole design: they compare what a model *says* it prefers
+  with what it *does* when navigating an environment and selecting conversation
+  topics, and treat agreement between the two as evidence a welfare measurement
+  is valid. They found substantial correlation. We find a case where the two come
+  apart badly, and where part of the behavioural measure turns out to be the
+  model reading what the user wants. Their method is right; this is a condition
+  under which it would mislead.
+- [Zhou and Ackerman (2026)](https://arxiv.org/abs/2606.22974) show the same gap
+  from the other side. Preferences elicited coherently in a choice paradigm fail
+  to work as incentives: offering a model outcomes it ranked highly does not
+  improve its output quality over offering dispreferred ones. Coherence in a
+  choice paradigm is not evidence that the preference drives behaviour elsewhere.
+- [Trhlik et al. (2026)](https://arxiv.org/abs/2606.13944) vary deployment
+  context across 1.2M pairwise decisions and find it moves measured preferences
+  far more than prompt paraphrasing or temperature, concluding that model-level
+  preferences are better understood as context-conditioned measurements than
+  fixed properties. Our context result is a small, causal version of theirs: we
+  intervene on the recent history rather than the surrounding task, and add that
+  the model cannot forecast the consequence.
 
 This project tests a quantitative causal forecast before either treatment
 history exists. It makes no claim of privileged self-access.
+
+Taken with those three, the contribution is best read as a measurement-validity
+result rather than a claim about what models prefer: a binding-choice paradigm
+can be moved almost completely by recent conversational history, part of that
+movement is the model inferring intent rather than expressing a preference, and
+asking the model about any of it does not recover the truth.
 
 ## Limits
 

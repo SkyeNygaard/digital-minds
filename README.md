@@ -78,6 +78,15 @@ correct in 120 of 128 cells, below the 95% target. Restricting the analysis to
 those 120 cells changes the observed shift only from +0.891 to +0.896. Source
 and protocol hashes were saved before the first model call.
 
+Two objections to this paradigm were tested directly, and each removes about a
+third without removing the phenomenon. Deleting the sentence that names the
+earlier choice raises the cold forecast from +0.290 to +0.524 — two fifths of the
+forecasting gap. Telling the system its three tasks were assigned at random and
+reflect nobody's preference lowers the behavioural effect from +0.812 to +0.562 —
+about a third of it. The effect is real, smaller than any single headline number
+suggests, and part of what a binding-choice paradigm measures is the model
+reading what the user wants.
+
 These results concern measured choices in two assistant systems. They are not
 evidence about consciousness, feelings, or welfare.
 
