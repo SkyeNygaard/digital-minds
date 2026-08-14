@@ -26,13 +26,15 @@ the treatment contrast, not evidence of a stable underlying preference.
 ## What we found, in five lines
 
 1. **It misreads itself.** Asked how much doing a task three times would move its
-   next choice, the system said +0.29. The answer was +0.89. Eight pairs out of
-   eight missed the same way for Luna, and seven of seven for Qwen.
+   next choice, the system said +0.29 — or +0.52 once we delete a sentence from
+   the prompt that the real choice never sees (finding 5). Either way the answer
+   was +0.89. Eight pairs out of eight missed the same way for Luna, and seven of
+   seven for Qwen.
 2. **Whether showing it the evidence helps depends on the system.** Given the
    finished work, Qwen reads its own situation almost correctly (+0.79 against a
-   true +1.00, closing three quarters of its gap). Luna does not improve (+0.25;
-   the change from its cold forecast is -0.043, well inside noise). Same task,
-   same design, opposite outcome — so "show it the situation and ask" cannot be
+   true +1.00, closing three quarters of its gap). Luna does not improve, with or
+   without that sentence: -0.043 with it and -0.217 without. Same task, same
+   design, opposite outcome — so "show it the situation and ask" cannot be
    assumed to work without checking it for the model in hand.
 3. **It cannot predict which presentation of its history will move it.** Asked to
    forecast the same choice under three context conditions, Luna's answers move
@@ -204,6 +206,17 @@ Luna's change is −0.043 across eight pairs, with a 95% interval of −0.231 to
 that showing Luna the history **did not close the gap**, not that it made things
 worse; the point estimate is slightly lower and that is all. Qwen's +0.647 is far
 too large to be read that way.
+
+That conclusion does not depend on the prompt sentence discussed in finding 5.
+Removing it from both sides:
+
+| | Cold forecast | With the work present | Change |
+|---|---:|---:|---:|
+| With the reminder | +0.290 | +0.247 | −0.043 |
+| Without it | +0.524 | +0.307 | −0.217 |
+
+Showing Luna the evidence fails to help in both conditions, and by more without
+the reminder than with it.
 
 The split is entirely in one arm.
 
