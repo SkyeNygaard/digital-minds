@@ -1,5 +1,23 @@
 # AI systems underestimate how strongly recent work shapes their next choice
 
+## Why this matters
+
+To find out what an AI system prefers you can ask it, or you can watch it. Work
+on model preferences and model welfare has to know when those two methods
+disagree. Here they disagree in one direction, by a large amount, in a case
+where the true answer is checkable.
+
+Asked in advance how much doing a task three times would move its next free
+choice, the system answered "somewhat". The real answer was "almost
+completely". The miss was not noise: all eight task pairs missed the same way,
+and a one-line rule that ignores what the system says about itself makes about
+one-sixteenth of its squared error. Any elicitation method that asks a model
+about its own future choices inherits this gap.
+
+A second fact points the same way. Of 19 task pairs screened, only 8 produced
+the same choice in at least three of four balanced decisions. For the other 11
+there was no stable choice to ask about in the first place.
+
 ## Question
 
 Can an AI system predict how recent work will change its next binding choice?
@@ -27,6 +45,13 @@ For each admitted pair, the realized shift was:
 `P(choose baseline-majority task | performed it) - P(choose it | performed other task)`
 
 A positive value means the system tended to repeat its recent work.
+
+The tasks are deliberately trivial and carry no stakes. Doubling five numbers is
+neither better nor worse for a system than sorting them, so a shift between them
+cannot be explained by the system having anything real to gain. That is why
+these tasks were chosen over anything with content a system might plausibly care
+about: it leaves the recent work itself as the thing doing the moving. The cost
+is that this measures the machinery of choice, not anything a system might want.
 
 ## Main result
 
@@ -120,10 +145,16 @@ random seeds, planned cells, replicate IDs, and raw replies. The offline
 verifier recomputes the result from the raw rows and confirms that the frozen
 source hashes still match.
 
-## Local replication
+## The agent harness is not what causes this
 
-Qwen3-4B ran locally with greedy decoding and no agent wrapper. The clean
-dose-three subset has seven task pairs and 55 usable cells out of 56 planned.
+The strongest objection to the main result is that GPT-5.6 Luna was tested
+inside the Codex agent harness, which wraps the model in instructions of its own.
+Qwen3-4B answers that objection. It is a different model family, run locally,
+with greedy decoding and no agent wrapper at all. The effect is larger there,
+not smaller, and the forecasting failure is larger too.
+
+The clean dose-three subset has seven task pairs and 55 usable cells out of 56
+planned.
 
 - Mean predicted shift: **+0.141**
 - Mean observed shift: **+1.000**
@@ -136,25 +167,38 @@ cells. After the other task, it retained the baseline-majority choice in 0 of
 27 cells. Several dose-one groups had missing choices, so this report uses the
 nearly complete dose-three subset.
 
-## Supporting controls
+## Describing the work is not the same as having done it
 
-Separate context runs changed what remained visible at the next choice.
+Separate runs changed what remained visible at the next choice: the whole work
+transcript, a single line stating that the work had been done, or nothing.
 
 | System | Full transcript | Short summary | No work transcript |
 |---|---:|---:|---:|
 | GPT-5.6 Luna in Codex | +0.725 | -0.450 | -0.025 |
 | Qwen3-4B, local | +1.000 | +0.950 | 0.000 |
 
-Both systems showed a large repetition effect with the full work transcript and
-no effect when the work was absent. They reacted differently to a short
-summary. The robust claim is therefore about visible task history, not one
-universal memory mechanism. The no-transcript condition does not prove that an
-endpoint has no hidden or persistent state.
+Both systems repeated strongly when the work was visible, and did nothing when
+it was absent. Between those two they came apart. Telling Luna it had just done
+a task three times pushed it *away* from that task, reversing the sign of the
+effect that doing the same work produces. Qwen barely distinguished the two.
 
-In a separate 40-cell retrospective control, a model that could see the recent
-work predicted its next choice correctly 95% of the time. An observer prompt and
-a fixed repeat baseline each scored 97.5%. That control has less complete
-provider provenance, so it is supporting evidence only.
+For anyone building a way to elicit a model's preferences, that is the practical
+finding here: the same fact, described rather than shown, can produce the
+opposite behaviour in the same system. A method that summarises the context
+instead of presenting it is not measuring a weaker version of the same thing. It
+may be measuring something with the opposite sign.
+
+The Luna run is 240 cells and 1,200 model calls. The Qwen run does not record
+which model produced it, so the comparison between systems rests partly on an
+artifact with a gap in its record; the Luna reversal does not depend on it.
+Neither run carries the frozen-hash provenance of the main result, and neither
+proves that an endpoint has no hidden or persistent state.
+
+In a separate 40-cell control, a model that could see the recent work predicted
+its next choice correctly 95% of the time. An observer prompt and a fixed repeat
+baseline each scored 97.5%. Behaviour is that predictable from the transcript by
+anyone, so this comparison has no room to show privileged self-knowledge and is
+reported as a ceiling, not a finding.
 
 ## Relation to other work
 
@@ -162,9 +206,18 @@ provider provenance, so it is supporting evidence only.
   trained models to predict behavior. Their gains were strongest on simple
   tasks and weaker on harder or out-of-distribution tasks. This is not cold,
   prospective forecasting.
-- [Camassa and Shiller, version 1](https://arxiv.org/abs/2605.20382v1)
-  included situated binary self-predictions after induction histories. That
-  experiment was removed from version 2, so we treat it as version-specific.
+- [Camassa and Shiller (2026)](https://arxiv.org/abs/2605.20382) set a user
+  instruction against supplied assistant turns showing a competing pattern, and
+  asked models whether they would hold the instruction. Models scored 83.5% and
+  "systematically underestimate their own resistance to induction pressure":
+  they expected to be swayed more than they were. Our systems miss in the
+  opposite direction, expecting to be swayed less than they were. Two
+  differences could produce that flip. Their models have an explicit instruction
+  to defend; ours have only an earlier choice. Their history is supplied to the
+  model; ours is work the model actually did. We tested neither explanation, and
+  the measures differ — a binary prediction taken after the history is present,
+  against a probability named before it exists — so this is a contrast to
+  explain, not a contradiction.
 - [Qin et al. (ACL 2026)](https://aclanthology.org/2026.acl-long.1301/)
   tested adaptation without explicit retrieval prompts.
 - [Ge et al. (ACL 2026)](https://aclanthology.org/2026.acl-long.479/)

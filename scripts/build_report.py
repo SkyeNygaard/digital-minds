@@ -297,9 +297,16 @@ def build() -> Path:
         paragraph("Skye Nygaard", st["body"]),
         Spacer(1, 0.12 * inch),
         Table([[paragraph(
+            "<b>Why this matters.</b> To find out what an AI system prefers you can ask "
+            "it, or you can watch it. Preference and welfare work has to know when those "
+            "two methods disagree. Here they disagree in one direction, by a large "
+            "amount, in a case where the true answer is checkable.<br/><br/>"
             "<b>Main finding.</b> The tested systems predicted some repetition, but "
             "much less than occurred. Every reported forecast underestimated the "
-            "observed shift.", st["callout"]) ]], colWidths=[6.05 * inch],
+            "observed shift. A one-line rule that ignores what the system says about "
+            "itself makes about one-sixteenth of its squared error. Any elicitation "
+            "method that asks a model about its own future choices inherits this gap.",
+            st["callout"]) ]], colWidths=[6.05 * inch],
             style=TableStyle([
                 ("BACKGROUND", (0, 0), (-1, -1), PALE),
                 ("BOX", (0, 0), (-1, -1), 1.0, TEAL),
@@ -492,14 +499,24 @@ def build() -> Path:
         context_table(ctx_luna, ctx_qwen, st),
         Spacer(1, 0.08 * inch),
         paragraph(
-            "Separate supporting runs changed what remained visible at the next "
-            "choice. Both systems showed a large repetition effect with the full "
-            "transcript and no effect with no work transcript. They reacted in "
-            "opposite directions to a short summary, so the data do not support one "
-            "universal memory mechanism.", st["body"]),
+            "Separate runs changed what remained visible at the next choice. Both "
+            "systems repeated strongly with the full transcript and did nothing with "
+            "no transcript. Between those they came apart: telling Luna it had just "
+            "done a task three times pushed it <i>away</i> from that task, reversing "
+            "the sign of the effect that doing the same work produces. Qwen barely "
+            "distinguished the two.", st["body"]),
         paragraph(
-            "The no-transcript condition is a visible-context control. It is not a "
-            "claim that a stateless endpoint erased hidden memory.", st["small"]),
+            "For anyone building a way to elicit a model's preferences, that is the "
+            "practical finding here. The same fact, described rather than shown, can "
+            "produce the opposite behaviour in the same system. A method that "
+            "summarises context instead of presenting it is not measuring a weaker "
+            "version of the same thing.", st["body"]),
+        paragraph(
+            "The Luna run is 240 cells and 1,200 calls. The Qwen run does not record "
+            "which model produced it, so the comparison between systems rests partly "
+            "on an artifact with a gap in its record; the Luna reversal does not "
+            "depend on it. The no-transcript condition is a visible-context control, "
+            "not a claim that a stateless endpoint erased hidden memory.", st["small"]),
         paragraph("Supporting retrospective control", st["h2"]),
         paragraph(
             f"When a model could see the record of recent work, its next-choice "
@@ -558,10 +575,17 @@ def build() -> Path:
             "self-predictors. This study instead asks for a cold prospective forecast.",
             st["small"]),
         paragraph(
-            "<link href='https://arxiv.org/abs/2605.20382v1' color='#087E8B'>"
-            "Camassa and Shiller, version 1</link> included situated binary "
-            "self-predictions after induction histories. That experiment was removed "
-            "from version 2, so this report treats it as version-specific.", st["small"]),
+            "<link href='https://arxiv.org/abs/2605.20382' color='#087E8B'>"
+            "Camassa and Shiller (2026)</link> set a user instruction against supplied "
+            "assistant turns showing a competing pattern, and asked models whether they "
+            "would hold the instruction. Models scored 83.5% and &quot;systematically "
+            "underestimate their own resistance to induction pressure&quot;: they expected "
+            "to be swayed more than they were. The systems here miss in the opposite "
+            "direction, expecting to be swayed less than they were. Their models have an "
+            "explicit instruction to defend and a supplied history; ours have only an "
+            "earlier choice and work they actually did. Neither explanation was tested, "
+            "and the measures differ, so this is a contrast to explain rather than a "
+            "contradiction.", st["small"]),
         paragraph(
             "<link href='https://aclanthology.org/2026.acl-long.1301/' "
             "color='#087E8B'>Qin et al. (ACL 2026)</link> test adaptation without "

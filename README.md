@@ -1,5 +1,11 @@
 # AI systems underestimate how strongly recent work shapes their next choice
 
+To find out what an AI system prefers you can ask it, or you can watch it. Work
+on model preferences and model welfare has to know when those two methods
+disagree. Here they disagree in one direction, by a large amount, in a case
+where the true answer is checkable. Any elicitation method that asks a model
+about its own future choices inherits this gap.
+
 Can an AI system predict how recent work will change its next binding choice?
 
 We first measured which of two small tasks each system chose most often. Before
