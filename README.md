@@ -95,6 +95,17 @@ cd parallel_frontier/20_preference_foresight
   --out-dir results/ranking_v3
 ```
 
+The situated arms, which ask the same question after the work is actually done:
+
+```bash
+cd parallel_frontier/16_self_prediction_behavioral
+../../.venv/bin/python run_situated_forecast.py --out-dir results/situated_sys_v1
+../../.venv/bin/python run_situated_forecast.py --out-dir results/situated_sys_noanchor_v1 --no-anchor
+```
+
+`--demo` re-checks that runner's arithmetic and prompt construction offline, with
+no model calls.
+
 The Codex harness is the tested condition. It is not a bare model endpoint. The
 result records the harness settings and isolates the run from user and project
 instructions.
@@ -104,9 +115,18 @@ Local model runs use the standard Hugging Face cache. Set `HF_HOME` or
 
 ## Repository map
 
-- `parallel_frontier/20_preference_foresight/` is the submitted experiment.
-- `shared_behavioral/` contains task generation, grading, screening, and model
-  providers.
-- `parallel_frontier/` preserves supporting and alternative experiments.
-- `winner_protocol/` preserves a separate activation study. It is not part of
-  the submission claim.
+The submission is two branches:
+
+- `parallel_frontier/20_preference_foresight/` — the forecast made before the
+  work exists, and the outcome cells it is scored against.
+- `parallel_frontier/16_self_prediction_behavioral/` — the same question asked
+  from inside the situation, the self-versus-observer comparison, and the check
+  on whether reminding the system what it chose before is doing the work.
+
+Supporting:
+
+- `shared_behavioral/` — task generation, grading, screening, model providers.
+- `parallel_frontier/18_preference_path_dependence/` — the context controls
+  behind the described-versus-shown result.
+- `parallel_frontier/` — other branches, preserved but not claimed.
+- `winner_protocol/` — a separate activation study, not part of this submission.
