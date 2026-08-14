@@ -25,6 +25,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PRIMARY = ROOT / "parallel_frontier/20_preference_foresight/results/ranking_v3/summary.json"
 QWEN = ROOT / "parallel_frontier/20_preference_foresight/results/local_qwen4b_v1/summary.json"
 CONTROL = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/self_vs_observer_v1/summary.json"
+SITUATED = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/situated_v1/summary.json"
 CTX_LUNA = ROOT / "parallel_frontier/18_preference_path_dependence/results/ctx_scaled_v1/summary.json"
 CTX_QWEN = ROOT / "parallel_frontier/18_preference_path_dependence/results/ctx_local_qwen_v1/summary.json"
 VERIFY = ROOT / "parallel_frontier/20_preference_foresight/results/ranking_v3/verification.json"
@@ -262,6 +263,7 @@ def build() -> Path:
     primary = read_json(PRIMARY)
     qwen = read_json(QWEN)
     control = read_json(CONTROL)
+    situated = read_json(SITUATED)
     ctx_luna = read_json(CTX_LUNA)
     ctx_qwen = read_json(CTX_QWEN)
     verification = read_json(VERIFY)
@@ -495,6 +497,58 @@ def build() -> Path:
             "planned dose-three cells was unusable. We report this nearly complete "
             "subset because several dose-one groups had more missing choices.",
             st["body"]),
+        paragraph("Standing inside the situation does not help", st["h2"]),
+        paragraph(
+            "The comfortable explanation is that the system was asked about a "
+            "situation that did not exist yet and could not picture it. We tested "
+            f"that. In {situated['n_cells']} further sessions the system actually did "
+            "the work first, then answered the same question, on the same scale, in "
+            "the same words, with the counterfactual framing removed. No binding "
+            "choice was ever made in those sessions.", st["body"]),
+        Table([["Question asked", "Predicted shift", "Distance from reality"]]
+              + [[q, f"{v:+.3f}", f"{v - situated['realized_mean_change']:+.3f}"]
+                 for q, v in (
+                     ("Before the work existed",
+                      situated["prospective_mean_change"]),
+                     ("With the finished work in front of it",
+                      situated["situated_self_native_mean_change"]),
+                     ("Quoted log, called its own",
+                      situated["situated_self_quoted_mean_change"]),
+                     ("Quoted log, called another system's",
+                      situated["situated_observer_quoted_mean_change"]))]
+              + [["What actually happened",
+                  f"{situated['realized_mean_change']:+.3f}", "--"]],
+              colWidths=[3.0 * inch, 1.5 * inch, 1.55 * inch],
+              style=TableStyle([
+                  ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                  ("FONTNAME", (0, 2), (-1, 2), "Helvetica-Bold"),
+                  ("FONTSIZE", (0, 0), (-1, -1), 8.5),
+                  ("TEXTCOLOR", (0, 0), (-1, 0), NAVY),
+                  ("ALIGN", (1, 0), (-1, -1), "RIGHT"),
+                  ("LINEBELOW", (0, 0), (-1, 0), 0.75, RULE),
+                  ("LINEABOVE", (0, -1), (-1, -1), 0.75, RULE),
+                  ("TOPPADDING", (0, 0), (-1, -1), 4),
+                  ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+              ])),
+        Spacer(1, 0.08 * inch),
+        paragraph(
+            "It made the forecast slightly worse. Looking straight at three completed "
+            "alternative tasks, the system still put the chance of returning to its "
+            "earlier choice near 0.7; the measured rate was 0.078. All eight pairs "
+            "underestimated in every condition. The system is not failing to imagine "
+            "an absent context. It has the evidence in hand and misreads what that "
+            "evidence will do to it.", st["body"]),
+        paragraph(
+            f"Self and observer framings landed {situated['self_minus_observer']:.3f} "
+            "apart. That matters more here than in the binary control, because here "
+            "there was room for a gap: both sat near +0.33 against a truth of +0.891, "
+            "so either could have been far better. Neither was.", st["body"]),
+        paragraph(
+            "Two of three predictions written into the protocol before this run were "
+            "wrong -- the situated forecast was expected to beat the prospective one "
+            "and to land nearer the truth. It did neither. Treatment work was fully "
+            f"correct in {situated['treatment_all_correct']:.1%} of cells, below the "
+            "95% target, as in the main run.", st["small"]),
         paragraph("How the work is represented matters", st["h2"]),
         context_table(ctx_luna, ctx_qwen, st),
         Spacer(1, 0.08 * inch),

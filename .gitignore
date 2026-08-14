@@ -3,3 +3,17 @@ __pycache__/
 .pytest_cache/
 .env
 .DS_Store
+
+# Virtual environments. README tells you to build .venv here; torch alone is
+# 322 MB, over GitHub's 100 MB per-file limit.
+.venv/
+venv/
+env/
+
+# Model weights and caches -- these belong in HF_HOME, not the repo.
+*.safetensors
+*.bin
+*.pt
+*.ckpt
+.cache/
+hf_home/

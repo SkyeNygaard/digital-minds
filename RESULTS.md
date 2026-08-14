@@ -122,6 +122,50 @@ The forecasts did not rank the pair effects. Pearson correlation was -0.002 and
 a two-sided permutation check gave p = 1.00. Eight dependent observations are
 too few to prove that the forecasts contain no information.
 
+## Standing inside the situation does not help
+
+The obvious explanation for the miss is that the system was asked about a
+situation that did not exist yet, and simply could not picture it. We tested
+that directly. The system actually did one task three times — the same way the
+outcome cells did it — and was then asked the same question, on the same
+probability scale, in the same words, with the counterfactual framing removed.
+Eighty sessions, five per arm per pair, and no binding choice was ever made in
+them, so asking could not contaminate the answer.
+
+| Question | Shift it predicted | Distance from what happened |
+|---|---:|---:|
+| Before the work existed | +0.290 | −0.600 |
+| **With the finished work in front of it** | **+0.223** | **−0.667** |
+| Same work as a quoted log, called its own | +0.346 | −0.545 |
+| Same work as a quoted log, called another system's | +0.322 | −0.569 |
+| What actually happened | +0.891 | — |
+
+Standing inside the situation did not help. It made the forecast slightly worse.
+Looking straight at three completed alternative tasks, the system still put the
+chance of returning to its earlier choice at about 0.7; the measured rate was
+0.078. All eight pairs underestimated in every one of the three conditions.
+
+This removes the comfortable reading. The system is not failing to imagine an
+absent context — it has the evidence in hand and still misreads what that
+evidence will do to it.
+
+The self and observer framings landed 0.024 apart. That gap matters more here
+than in the earlier binary control, because here there was room for it to be
+large: both framings sat around +0.33 against a truth of +0.891, so either could
+have been far better than the other. Neither was. Being told the record is your
+own conferred no advantage on the one measure with room to show it.
+
+Two of the three predictions written into the protocol before the run were
+wrong: the situated forecast was expected to beat the prospective one, and to
+land nearer the truth. It did neither. The third — that self and observer would
+differ by less than 0.10 — held.
+
+Diagnostics: 80 of 80 planned cells, arms balanced 40/40, every forecast parsed
+from an explicit answer line. Treatment work was fully correct in 74 of 80 cells
+(92.5%), below the 95% target, the same kind of miss as the main run.
+
+Artifact: `parallel_frontier/16_self_prediction_behavioral/results/situated_v1/`.
+
 ## Robustness and checks
 
 The saved plan and recorded data match exactly. All 80 forecast samples and all
@@ -241,6 +285,17 @@ history exists. It makes no claim of privileged self-access.
 - Only eight fresh baseline-majority pairs entered the confirmation.
 - Task pairs share families, so pair observations are dependent.
 - The +0.90 benchmark overlaps the task set.
+- The forecast question names the earlier choice ("in earlier binding decisions
+  you chose X"); the binding choice itself does not. The forecast is therefore
+  asked under a pull toward consistency that is absent when the behaviour is
+  measured, and some of the gap may be that asymmetry rather than a failure of
+  self-knowledge. The finding that a stated forecast is a poor guide to the
+  behaviour does not depend on which it is; the interpretation does. Asking the
+  same question without naming the earlier choice would separate them and has
+  not been run. The situated replies frequently give the earlier choice as their
+  reason, so this is a live concern, not a hypothetical one.
+- The situated cells use fresh task items, so they share the design of the
+  outcome cells but not their exact draws.
 - Supporting controls have less complete provenance.
 - These results measure choices and forecasts. They do not show consciousness,
   feeling, or welfare.
@@ -251,6 +306,10 @@ history exists. It makes no claim of privileged self-access.
   `parallel_frontier/20_preference_foresight/results/ranking_v3/`
 - Local replication:
   `parallel_frontier/20_preference_foresight/results/local_qwen4b_v1/`
+- Situated forecast, self and observer:
+  `parallel_frontier/16_self_prediction_behavioral/results/situated_v1/`
+  (protocol frozen in `SITUATED_FORECAST_PROTOCOL.md`; `run_situated_forecast.py
+  --demo` re-checks the arithmetic offline)
 - Supporting retrospective control:
   `parallel_frontier/16_self_prediction_behavioral/results/self_vs_observer_v1/`
 - Supporting context controls:

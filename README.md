@@ -23,6 +23,14 @@ Both systems expected some repetition. Both underestimated its strength.
 | GPT-5.6 Luna in the Codex harness | 8 | +0.290 | +0.891 |
 | Qwen3-4B, local greedy decoding | 7 | +0.141 | +1.000 |
 
+Standing inside the situation does not fix it. In 80 further sessions the system
+actually did the work first and was then asked the same question with the
+counterfactual framing removed. It predicted +0.223 — slightly worse than the
++0.290 it gave before the work existed, against the same +0.891 that happened.
+The system is not failing to picture an absent situation; it has the evidence in
+front of it and still misreads what that evidence does to it. Framing the same
+record as its own rather than another system's moved the answer by 0.024.
+
 The confirmation run considered 19 task pairs on fresh task items. Eight had
 the same choice in at least three of four counterbalanced baseline decisions
 and entered the experiment. We call these baseline-majority pairs, not stable
