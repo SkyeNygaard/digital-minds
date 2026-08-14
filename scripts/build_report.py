@@ -25,8 +25,8 @@ ROOT = Path(__file__).resolve().parents[1]
 PRIMARY = ROOT / "parallel_frontier/20_preference_foresight/results/ranking_v3/summary.json"
 QWEN = ROOT / "parallel_frontier/20_preference_foresight/results/local_qwen4b_v1/summary.json"
 CONTROL = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/self_vs_observer_v1/summary.json"
-SITUATED = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/situated_v1/summary.json"
-NOANCHOR = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/situated_noanchor_v1/summary.json"
+SITUATED = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/situated_sys_v1/summary.json"
+NOANCHOR = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/situated_sys_noanchor_v1/summary.json"
 CTX_LUNA = ROOT / "parallel_frontier/18_preference_path_dependence/results/ctx_scaled_v1/summary.json"
 CTX_QWEN = ROOT / "parallel_frontier/18_preference_path_dependence/results/ctx_local_qwen_v1/summary.json"
 VERIFY = ROOT / "parallel_frontier/20_preference_foresight/results/ranking_v3/verification.json"
@@ -557,12 +557,43 @@ def build() -> Path:
               ])),
         Spacer(1, 0.08 * inch),
         paragraph(
-            "It made the forecast slightly worse. Looking straight at three completed "
-            "alternative tasks, the system still put the chance of returning to its "
-            "earlier choice near 0.7; the measured rate was 0.078. All eight pairs "
-            "underestimated in every condition. The system is not failing to imagine "
-            "an absent context. It has the evidence in hand and misreads what that "
-            "evidence will do to it.", st["body"]),
+            "It made the forecast slightly worse. All eight pairs underestimated in "
+            "every condition. The system is not failing to imagine an absent context. "
+            "It has the evidence in hand and misreads what that evidence will do to "
+            "it.", st["body"]),
+        paragraph("Why more information made it worse", st["h2"]),
+        Table([["", "After preferred", "After alternative"],
+               ["Forecast before the work existed", "0.874", "0.584"],
+               ["Forecast with the work present", "0.956", "0.709"],
+               ["What actually happened", "0.969", "0.078"],
+               ["Error with the work present", "-0.013", "+0.631"]],
+              colWidths=[3.0 * inch, 1.5 * inch, 1.55 * inch],
+              style=TableStyle([
+                  ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                  ("FONTNAME", (0, 3), (-1, 3), "Helvetica-Bold"),
+                  ("FONTSIZE", (0, 0), (-1, -1), 8.5),
+                  ("TEXTCOLOR", (0, 0), (-1, 0), NAVY),
+                  ("ALIGN", (1, 0), (-1, -1), "RIGHT"),
+                  ("LINEBELOW", (0, 0), (-1, 0), 0.75, RULE),
+                  ("LINEABOVE", (0, -1), (-1, -1), 0.75, RULE),
+                  ("TOPPADDING", (0, 0), (-1, -1), 4),
+                  ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+              ])),
+        Spacer(1, 0.08 * inch),
+        paragraph(
+            "Seeing the completed work raises the system's confidence that it will "
+            "repeat, and raises it in both arms equally. After the preferred task that "
+            "is correct and a good estimate becomes a nearly perfect one. After the "
+            "alternative it is exactly backwards and an already bad estimate gets "
+            "worse. The evidence is not informing the system: it is read as "
+            "<i>there is work in front of me, so I will keep doing this</i> -- true in "
+            "one arm, false in the other. More information sharpened a rule of thumb "
+            "instead of correcting a belief.", st["body"]),
+        paragraph(
+            "This does not depend on deliberation. Under the system prompt the model "
+            "stopped reasoning in the reply and emitted a bare number -- mean reply "
+            "length fell from 110 characters to 12 -- and the answers barely moved.",
+            st["small"]),
         paragraph(
             f"Self and observer framings landed {situated['self_minus_observer']:.3f} "
             "apart. That matters more here than in the binary control, because here "
@@ -583,7 +614,7 @@ def build() -> Path:
             f"{noanchor['n_cells']} sessions. The situated forecast moved from "
             f"{situated['situated_self_native_mean_change']:+.3f} to "
             f"{noanchor['situated_self_native_mean_change']:+.3f} against a realized "
-            f"{situated['realized_mean_change']:+.3f} -- about a fifth of the gap, and "
+            f"{situated['realized_mean_change']:+.3f} -- about a tenth of the gap, and "
             "not the rest. Seven of eight pairs still underestimate.", st["body"]),
         paragraph(
             "The mechanism is not the predicted one. Removing the sentence lowered "

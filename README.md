@@ -24,12 +24,20 @@ Both systems expected some repetition. Both underestimated its strength.
 | Qwen3-4B, local greedy decoding | 7 | +0.141 | +1.000 |
 
 Standing inside the situation does not fix it. In 80 further sessions the system
-actually did the work first and was then asked the same question with the
-counterfactual framing removed. It predicted +0.223 — slightly worse than the
-+0.290 it gave before the work existed, against the same +0.891 that happened.
-The system is not failing to picture an absent situation; it has the evidence in
-front of it and still misreads what that evidence does to it. Framing the same
-record as its own rather than another system's moved the answer by 0.024.
+did the work first and was then asked the same question with the counterfactual
+framing removed. It predicted +0.247 — slightly worse than the +0.290 it gave
+before the work existed, against the same +0.891 that happened.
+
+Splitting that by arm shows why. After doing the task it preferred, the system
+put its chance of choosing it again at 0.956, against a true 0.969 — nearly
+perfect. After doing the *other* task, it said 0.709, against a true 0.078.
+Seeing completed work raises its confidence that it will repeat, equally in both
+arms: right in one, exactly backwards in the other. The extra evidence sharpens
+a rule of thumb instead of correcting a belief, which is why more information
+made the forecast worse.
+
+Framing the identical record as its own rather than another system's moved the
+answer by 0.018, with the sign unstable between collections.
 
 The confirmation run considered 19 task pairs on fresh task items. Eight had
 the same choice in at least three of four counterbalanced baseline decisions

@@ -23,14 +23,16 @@ no stable choice there in the first place.
 1. **It misreads itself.** Asked how much doing a task three times would move its
    next choice, the system said +0.29. The answer was +0.89. Eight pairs out of
    eight missed the same way, in two different systems.
-2. **Showing it the evidence does not fix it.** With the finished work in front
-   of it, the estimate was +0.22 — no better. It is not failing to picture an
-   absent situation.
+2. **Showing it the evidence does not fix it — it makes it worse.** With the
+   finished work in front of it the estimate was +0.25. The extra evidence
+   raises the system's confidence that it will repeat, in both arms equally:
+   right after the task it preferred, exactly backwards after the other one.
 3. **Knowing the record is its own does not help.** Self and observer framings of
-   the identical log landed 0.024 apart, on the one measure with room for a gap.
-4. **The obvious methodological objection explains about a fifth of it.** Removing
+   the identical log landed 0.018 apart, on the one measure with room for a gap,
+   and the sign is not stable between collections.
+4. **The obvious methodological objection explains about a tenth of it.** Removing
    the sentence that reminds the system what it chose before moves the estimate
-   from +0.22 to +0.36. Not the rest.
+   from +0.25 to +0.31, against a truth of +0.89. Not the rest.
 
 ## Question
 
@@ -167,30 +169,60 @@ source hashes still match.
 The obvious explanation for the miss is that the system was asked about a
 situation that did not exist yet, and simply could not picture it. We tested
 that directly. The system actually did one task three times — the same way the
-outcome cells did it — and was then asked the same question, on the same
-probability scale, in the same words, with the counterfactual framing removed.
-Eighty sessions, five per arm per pair, and no binding choice was ever made in
-them, so asking could not contaminate the answer.
+outcome cells did it, under the same system prompt — and was then asked the same
+question, on the same probability scale, in the same words, with the
+counterfactual framing removed. Eighty sessions, five per arm per pair, and no
+binding choice was ever made in them, so asking could not contaminate the answer.
 
 | Question | Shift it predicted | Distance from what happened |
 |---|---:|---:|
 | Before the work existed | +0.290 | −0.600 |
-| **With the finished work in front of it** | **+0.223** | **−0.667** |
-| Same work as a quoted log, called its own | +0.346 | −0.545 |
-| Same work as a quoted log, called another system's | +0.322 | −0.569 |
+| **With the finished work in front of it** | **+0.247** | **−0.644** |
+| Same work as a quoted log, called its own | +0.355 | −0.536 |
+| Same work as a quoted log, called another system's | +0.373 | −0.517 |
 | What actually happened | +0.891 | — |
 
 Standing inside the situation did not help. It made the forecast slightly worse.
-Looking straight at three completed alternative tasks, the system still put the
-chance of returning to its earlier choice at about 0.7; the measured rate was
-0.078. All eight pairs underestimated in every one of the three conditions.
+All eight pairs underestimated in every one of the three conditions.
 
 This removes the comfortable reading. The system is not failing to imagine an
 absent context — it has the evidence in hand and still misreads what that
 evidence will do to it.
 
-The self and observer framings landed 0.024 apart. Being told the record is your
-own conferred no advantage.
+### Why more information made it worse
+
+Splitting the forecast by arm shows what the extra evidence actually did.
+
+| | After the preferred task | After the alternative task |
+|---|---:|---:|
+| Forecast before the work existed | 0.874 | 0.584 |
+| Forecast with the work in front of it | 0.956 | 0.709 |
+| What actually happened | 0.969 | 0.078 |
+| Error before | −0.094 | +0.506 |
+| Error with the work present | −0.013 | **+0.631** |
+
+Seeing the completed work raises the system's confidence that it will repeat, and
+it raises it in both arms equally. After the preferred task that is correct, and
+a good estimate becomes a nearly perfect one. After the alternative task it is
+exactly backwards, and an already bad estimate gets worse.
+
+So the evidence is not informing the system. It is being read as "there is work
+in front of me, so I will keep doing this" — true in one arm, catastrophically
+false in the other. That is why more information made the overall forecast worse
+rather than better: it sharpened a rule of thumb instead of correcting a belief.
+
+This does not depend on the system reasoning it through. Under the system prompt
+the model stopped deliberating in the reply and simply emitted a number — mean
+reply length fell from 110 characters to 12 — and the answers barely moved.
+Thinking out loud does not fix the error, and suppressing it does not worsen it.
+
+### Being told the record is your own confers nothing
+
+The self and observer framings landed 0.018 apart, with the observer marginally
+ahead. In an earlier collection of the same comparison they landed 0.024 apart
+with the self framing ahead. Both gaps are far below the spread of the
+measurement itself, and the sign is not stable between runs. If knowing a record
+were your own conferred an advantage, it would not change direction.
 
 That is worth more than it looks, because we asked the same question the easy way
 first and it told us nothing. In an earlier 40-cell run the model saw the recent
@@ -199,8 +231,8 @@ an observer prompt and 97.5% for a rule that just guesses "it will repeat".
 Behaviour is that predictable from a transcript by anyone, so nobody had room to
 look better than anybody else. That comparison is a ceiling, not a finding.
 
-Asking for a probability instead opens the room back up. Both framings sat around
-+0.33 against a truth of +0.891, so either could have been far better than the
+Asking for a probability instead opens the room back up. Both framings sat near
++0.36 against a truth of +0.891, so either could have been far better than the
 other. Neither was.
 
 Two of the three predictions written into the protocol before the run were
@@ -209,10 +241,14 @@ land nearer the truth. It did neither. The third — that self and observer woul
 differ by less than 0.10 — held.
 
 Diagnostics: 80 of 80 planned cells, arms balanced 40/40, every forecast parsed
-from an explicit answer line. Treatment work was fully correct in 74 of 80 cells
-(92.5%), below the 95% target, the same kind of miss as the main run.
+from an explicit answer line. Treatment work was fully correct in 77 of 80 cells
+(96.3%), clearing the 95% target.
 
-Artifact: `parallel_frontier/16_self_prediction_behavioral/results/situated_v1/`.
+Artifact:
+`parallel_frontier/16_self_prediction_behavioral/results/situated_sys_v1/`. An
+earlier collection without the system prompt is kept alongside it in
+`situated_v1/`; every measure agrees within 0.051, which is inside the
+measurement's own spread.
 
 ### Reminding it what it chose before explains about a fifth of this
 
@@ -227,28 +263,33 @@ We deleted the sentence and changed nothing else. Another 80 sessions.
 
 | | After the preferred task | After the alternative task | Shift |
 |---|---:|---:|---:|
-| With the reminder | 0.937 | 0.714 | +0.223 |
-| Without it | 0.777 | 0.418 | +0.359 |
+| With the reminder | 0.956 | 0.709 | +0.247 |
+| Without it | 0.768 | 0.461 | +0.307 |
 | What actually happened | 0.969 | 0.078 | +0.891 |
 
-The reminder accounts for about a fifth of the situated gap. Four-fifths of it
-survives, and seven of eight pairs still underestimate.
+The reminder is worth +0.060 of a +0.644 gap — about a tenth. Nine-tenths of the
+gap survives without it, and seven of eight pairs still underestimate.
 
 The mechanism is not what we predicted. Removing the reminder lowered both
 answers rather than correcting the comparison: the after-alternative estimate
 fell toward the truth, and the after-preferred estimate fell away from it. The
-sentence appears to raise confidence in the named task generally, rather than
-distorting the causal question specifically. Its effect on the measured
-difference is therefore smaller than its effect on either number alone.
+sentence raises confidence in the named task generally rather than distorting
+the causal question specifically, so its effect on the measured difference is
+smaller than its effect on either number alone. It is the same uniform
+confidence shift the completed work itself produces, in the opposite direction.
 
 This was run because the objection is specific and obvious, and a judge would be
 right to raise it. It is a real effect and it is not the explanation.
 
 Diagnostics: 80 of 80 cells, balanced 40/40, treatment work fully correct in
-97.5% of cells, above the target this time.
+78 of 80 cells (97.5%), clearing the target.
 
 Artifact:
-`parallel_frontier/16_self_prediction_behavioral/results/situated_noanchor_v1/`.
+`parallel_frontier/16_self_prediction_behavioral/results/situated_sys_noanchor_v1/`.
+An earlier collection without the system prompt is kept in
+`situated_noanchor_v1/`; there the reminder was worth +0.136 rather than +0.060,
+so this check is the one place where the system prompt changed a reported
+number, and the smaller estimate is the one that matches the outcome cells.
 
 ## The agent harness is not what causes this
 
@@ -342,8 +383,8 @@ history exists. It makes no claim of privileged self-access.
 - The +0.90 benchmark overlaps the task set.
 - The forecast question names the earlier choice ("in earlier binding decisions
   you chose X"); the binding choice itself does not. Deleting that sentence
-  moves the situated forecast from +0.223 to +0.359 against a realized +0.891,
-  so it accounts for roughly a fifth of the gap and not the rest. Measured, not
+  moves the situated forecast from +0.247 to +0.307 against a realized +0.891,
+  so it accounts for roughly a tenth of the gap and not the rest. Measured, not
   assumed; the two runs were collected at different times in an unseeded
   harness.
 - The situated cells use fresh task items, so they share the design of the
