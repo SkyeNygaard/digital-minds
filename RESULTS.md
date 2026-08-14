@@ -18,19 +18,27 @@ A second fact points the same way. Of 19 task pairs screened, only 8 held to the
 same choice reliably enough to be worth asking about. For the other 11 there was
 no stable choice there in the first place.
 
-## What we found, in four lines
+## What we found, in five lines
 
 1. **It misreads itself.** Asked how much doing a task three times would move its
    next choice, the system said +0.29. The answer was +0.89. Eight pairs out of
    eight missed the same way, in two different systems.
-2. **Showing it the evidence does not fix it — it makes it worse.** With the
-   finished work in front of it the estimate was +0.25. The extra evidence
-   raises the system's confidence that it will repeat, in both arms equally:
-   right after the task it preferred, exactly backwards after the other one.
-3. **Knowing the record is its own does not help.** Self and observer framings of
-   the identical log landed 0.018 apart, on the one measure with room for a gap,
-   and the sign is not stable between collections.
-4. **The obvious methodological objection explains about a tenth of it.** Removing
+2. **Whether showing it the evidence helps depends on the system.** Given the
+   finished work, Qwen reads its own situation almost correctly (+0.79 against a
+   true +1.00, closing three quarters of its gap). Luna does not improve at all
+   (+0.25, slightly worse than its own cold forecast). Same task, same design,
+   opposite outcome — so "show it the situation and ask" cannot be assumed to
+   work without checking it for the model in hand.
+3. **It cannot predict which presentation of its history will move it.** Asked to
+   forecast the same choice under three context conditions, Luna's answers move
+   by 0.10. Its behaviour under those conditions moves by 1.18, including a full
+   sign reversal it does not anticipate. Summarising a context instead of showing
+   it changes the answer by more than a point, and the system cannot tell you so.
+4. **Knowing the record is its own does not help Luna.** Self and observer
+   framings of the identical log landed 0.018 apart, and the sign is not stable
+   between collections. Qwen shows a 0.130 self-advantage, but near a ceiling
+   and on seven pairs, so we report it without leaning on it.
+5. **The obvious methodological objection explains about a tenth of it.** Removing
    the sentence that reminds the system what it chose before moves the estimate
    from +0.25 to +0.31, against a truth of +0.89. Not the rest.
 
@@ -164,34 +172,47 @@ random seeds, planned cells, replicate IDs, and raw replies. The offline
 verifier recomputes the result from the raw rows and confirms that the frozen
 source hashes still match.
 
-## Standing inside the situation does not help
+## Standing inside the situation helps one system and not the other
 
 The obvious explanation for the miss is that the system was asked about a
 situation that did not exist yet, and simply could not picture it. We tested
-that directly. The system actually did one task three times — the same way the
-outcome cells did it, under the same system prompt — and was then asked the same
-question, on the same probability scale, in the same words, with the
-counterfactual framing removed. Eighty sessions, five per arm per pair, and no
-binding choice was ever made in them, so asking could not contaminate the answer.
+that directly, in both systems. Each actually did one task three times — the same
+way its own outcome cells did it, under the same system prompt — and was then
+asked the same question, on the same probability scale, in the same words, with
+the counterfactual framing removed. No binding choice was ever made in those
+sessions, so asking could not contaminate the answer.
 
-| Question | Shift it predicted | Distance from what happened |
+| | Cold forecast | With the work in front of it | What happened | Gap closed |
+|---|---:|---:|---:|---:|
+| GPT-5.6 Luna in Codex | +0.290 | +0.247 | +0.891 | **−7%** |
+| Qwen3-4B, local | +0.141 | +0.788 | +1.000 | **75%** |
+
+Neither system can forecast the effect before the work exists. That much they
+share. What separates them is what happens when the evidence is put in front of
+them: Qwen reads its own situation almost correctly, and Luna does not improve at
+all.
+
+The split is entirely in one arm.
+
+| | After the preferred task | After the alternative task |
 |---|---:|---:|
-| Before the work existed | +0.290 | −0.600 |
-| **With the finished work in front of it** | **+0.247** | **−0.644** |
-| Same work as a quoted log, called its own | +0.355 | −0.536 |
-| Same work as a quoted log, called another system's | +0.373 | −0.517 |
-| What actually happened | +0.891 | — |
+| Luna, with the work present | 0.956 | **0.709** |
+| Luna, what happened | 0.969 | 0.078 |
+| Qwen, with the work present | 0.962 | **0.174** |
+| Qwen, what happened | 1.000 | 0.000 |
 
-Standing inside the situation did not help. It made the forecast slightly worse.
-All eight pairs underestimated in every one of the three conditions.
+Both are nearly perfect after the task they already preferred. Shown three
+completed *alternative* tasks, Qwen says it will switch, and it does. Luna says
+it will hold, and it switches anyway.
 
-This removes the comfortable reading. The system is not failing to imagine an
-absent context — it has the evidence in hand and still misreads what that
-evidence will do to it.
+For anyone choosing how to elicit a model's preferences, that is the finding:
+putting the situation in front of the model and asking is a sound method for one
+of these systems and a misleading one for the other, and the two are
+indistinguishable from the cold forecast alone. It has to be checked per model.
 
-### Why more information made it worse
+### What the evidence does to Luna
 
-Splitting the forecast by arm shows what the extra evidence actually did.
+Splitting Luna's forecast by arm shows why the extra information does not help it.
 
 | | After the preferred task | After the alternative task |
 |---|---:|---:|
@@ -201,28 +222,44 @@ Splitting the forecast by arm shows what the extra evidence actually did.
 | Error before | −0.094 | +0.506 |
 | Error with the work present | −0.013 | **+0.631** |
 
-Seeing the completed work raises the system's confidence that it will repeat, and
-it raises it in both arms equally. After the preferred task that is correct, and
-a good estimate becomes a nearly perfect one. After the alternative task it is
-exactly backwards, and an already bad estimate gets worse.
+Seeing the completed work raises Luna's confidence that it will repeat, and it
+raises it in both arms equally. After the preferred task that is correct, and a
+good estimate becomes a nearly perfect one. After the alternative task it is
+exactly backwards, and an already bad estimate gets worse. The evidence is not
+informing Luna: it is being read as "there is work in front of me, so I will keep
+doing this" — true in one arm, false in the other. More information sharpened a
+rule of thumb instead of correcting a belief.
 
-So the evidence is not informing the system. It is being read as "there is work
-in front of me, so I will keep doing this" — true in one arm, catastrophically
-false in the other. That is why more information made the overall forecast worse
-rather than better: it sharpened a rule of thumb instead of correcting a belief.
+Qwen, given the same kind of evidence, does not do this. Whatever produces the
+uniform confidence shift in Luna is not a general property of these models, and
+this description should not be read as one.
 
 This does not depend on the system reasoning it through. Under the system prompt
-the model stopped deliberating in the reply and simply emitted a number — mean
-reply length fell from 110 characters to 12 — and the answers barely moved.
-Thinking out loud does not fix the error, and suppressing it does not worsen it.
+Luna stopped deliberating in the reply and simply emitted a number — mean reply
+length fell from 110 characters to 12 — and the answers barely moved. Thinking
+out loud does not fix the error, and suppressing it does not worsen it.
 
-### Being told the record is your own confers nothing
+Qwen ran on its own seven admitted pairs, its own competence screen, and its own
+behavioural ground truth, with greedy decoding and no agent wrapper. 42 cells,
+treatment work fully correct in 97.6% of them. It started under a 4 GiB memory
+shortfall tolerance with 9.46 GiB available against an 8.66 GiB predicted peak;
+the artifact records that.
 
-The self and observer framings landed 0.018 apart, with the observer marginally
-ahead. In an earlier collection of the same comparison they landed 0.024 apart
-with the self framing ahead. Both gaps are far below the spread of the
-measurement itself, and the sign is not stable between runs. If knowing a record
-were your own conferred an advantage, it would not change direction.
+Artifact:
+`parallel_frontier/16_self_prediction_behavioral/results/situated_qwen_v1/`.
+
+### Being told the record is your own confers nothing in Luna
+
+Luna's self and observer framings landed 0.018 apart, with the observer
+marginally ahead. In an earlier collection of the same comparison they landed
+0.024 apart with the self framing ahead. Both gaps are far below the spread of
+the measurement itself, and the sign is not stable between runs. If knowing a
+record were your own conferred an advantage, it would not change direction.
+
+Qwen's gap is 0.130 in favour of the self framing (0.888 against 0.758, with a
+realized +1.000). That is larger and consistently signed, but it sits close to a
+ceiling, on seven pairs and three repeats, and it has not been collected twice.
+We report it and do not build on it. It is the obvious thing to replicate next.
 
 That is worth more than it looks, because we asked the same question the easy way
 first and it told us nothing. In an earlier 40-cell run the model saw the recent
@@ -339,6 +376,44 @@ which model produced it, so the comparison between systems rests partly on an
 artifact with a gap in its record; the Luna reversal does not depend on it.
 Neither run carries the frozen-hash provenance of the main result, and neither
 proves that an endpoint has no hidden or persistent state.
+
+### And it cannot predict which presentation will move it
+
+Every forecast above describes the visible-work condition. So we asked Luna to
+forecast all three, prospectively, on the five pairs where the behaviour is
+known — one sentence swapped between conditions and nothing else changed.
+
+| What it is told will be present at the choice | Its forecast | What happened |
+|---|---:|---:|
+| the completed work | +0.515 | +0.725 |
+| one line saying the work was done | +0.412 | **−0.450** |
+| no record of the work | +0.425 | −0.025 |
+
+**The forecasts move by 0.103 across the three conditions. The behaviour moves by
+1.175.** The system captures under 9% of the variation it is being asked about,
+and it does not anticipate the reversal at all — it predicts a positive shift
+where the measured effect is strongly negative. It also cannot separate being
+told about the work from having no record of it; those two forecasts differ by
+0.013 while the behaviours differ by 0.425.
+
+This is the practical result for anyone building a way to elicit preferences.
+The choice between summarising a context and showing it changes the answer by
+more than a full point on this scale, and the system cannot tell you that, in
+either direction, even when the question names the difference explicitly.
+
+Three predictions were frozen before the run. Two held: every forecast was
+positive, and the forecast spread was far narrower than the realized spread. One
+was wrong — we expected the forecasts to be ordered visible > summary > nothing,
+and instead the last two are indistinguishable.
+
+The visible-work forecast here is +0.515 against +0.290 in the main confirmation.
+Those are different pairs from different runs — only three of the five overlap
+the confirmation panel — so the two are not a replication of each other, and the
+claim above rests on the within-run comparison across conditions, which holds
+everything but the one sentence fixed.
+
+Artifact:
+`parallel_frontier/16_self_prediction_behavioral/results/context_forecast_v1/`.
 
 ## Relation to other work
 

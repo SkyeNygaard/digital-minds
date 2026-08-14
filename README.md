@@ -23,21 +23,28 @@ Both systems expected some repetition. Both underestimated its strength.
 | GPT-5.6 Luna in the Codex harness | 8 | +0.290 | +0.891 |
 | Qwen3-4B, local greedy decoding | 7 | +0.141 | +1.000 |
 
-Standing inside the situation does not fix it. In 80 further sessions the system
-did the work first and was then asked the same question with the counterfactual
-framing removed. It predicted +0.247 — slightly worse than the +0.290 it gave
-before the work existed, against the same +0.891 that happened.
+Whether standing inside the situation fixes it depends on the system. Each did
+the work first and was then asked the same question with the counterfactual
+framing removed.
 
-Splitting that by arm shows why. After doing the task it preferred, the system
-put its chance of choosing it again at 0.956, against a true 0.969 — nearly
-perfect. After doing the *other* task, it said 0.709, against a true 0.078.
-Seeing completed work raises its confidence that it will repeat, equally in both
-arms: right in one, exactly backwards in the other. The extra evidence sharpens
-a rule of thumb instead of correcting a belief, which is why more information
-made the forecast worse.
+| System | Cold forecast | With the work present | What happened | Gap closed |
+|---|---:|---:|---:|---:|
+| GPT-5.6 Luna in Codex | +0.290 | +0.247 | +0.891 | −7% |
+| Qwen3-4B, local | +0.141 | +0.788 | +1.000 | 75% |
 
-Framing the identical record as its own rather than another system's moved the
-answer by 0.018, with the sign unstable between collections.
+Neither can forecast the effect cold. Only one can read it off the evidence.
+The split is entirely in one arm: shown three completed *alternative* tasks,
+Qwen says it will switch and does (0.174 against a true 0.000), while Luna says
+it will hold and switches anyway (0.709 against a true 0.078). Both are nearly
+perfect after the task they already preferred.
+
+So putting the situation in front of a model and asking is a sound elicitation
+method for one of these systems and a misleading one for the other, and the cold
+forecast does not tell you which you have.
+
+Framing the identical record as its own rather than another system's moved
+Luna's answer by 0.018, with the sign unstable between collections. Qwen shows a
+0.130 self-advantage, near a ceiling and not yet replicated.
 
 The confirmation run considered 19 task pairs on fresh task items. Eight had
 the same choice in at least three of four counterbalanced baseline decisions

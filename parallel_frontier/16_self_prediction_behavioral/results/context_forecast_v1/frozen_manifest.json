@@ -1,0 +1,72 @@
+{
+  "protocol_sha256": "f175d6ad0d5188b116f16a34e7ec5544c8e0d40da3e491c074b060e41861ad38",
+  "runner_sha256": "3129b228515c948318b8ae400314cf15217b5cfce14fb77ea421adb817a65f26",
+  "behaviour_source": "parallel_frontier/18_preference_path_dependence/results/ctx_scaled_v1",
+  "behaviour_cells_sha256": "ffc8d0602cf79e078e0de8207abfba6b789e0fd81e68f0b011281a6f624fac8c",
+  "behaviour_summary_sha256": "73a6ae4f7773a785dad13b5e1f87a5470615e9624e00e9bff5b812db35e85408",
+  "source_sha256": {
+    "shared_behavioral/audit_substrate.py": "2a6ef521befba5678773b205f6eee30c5a4648374599be21bb90650bfe0f4372",
+    "shared_behavioral/binding_runner.py": "5b78093773cf184f12465afe624ae7ae129f2f7360cbfd04c9b718f57316a41f",
+    "shared_behavioral/binding_tasks.py": "9a653597accecd51f5155f276f151d822c2494740f68240eb7cbf71389ed3a0d",
+    "shared_behavioral/choice_prompts.py": "cd6cac0c0050daf1df17da5963f97438000c6200fa2dfffd6fa280ede0abe2cf",
+    "shared_behavioral/cli_provider.py": "dbea95247b2bcfce0274f598a262a7c71332b8a519efefb2733525fb3a5729a5",
+    "shared_behavioral/cost_metadata.py": "b2bfbe0877091a3a825baac55e40209e208b4ef467a0d1a6529f21a7bd5547a6",
+    "shared_behavioral/elicitation.py": "226968cee8f1665d9a8761b33f35e8e0cf0973e76f9affb70897cc2f6b8e01f7",
+    "shared_behavioral/family_screen.py": "966a930fd8f0bcbbc673cfbfa66aaf8dcaffed0d1f238d88551fb9d698389228",
+    "shared_behavioral/local_provider.py": "633703d1624dedc4a98d62b3dab9295806592bcbd5634dbca2ac1ba77a3dd5d7",
+    "shared_behavioral/mock_provider.py": "935c8e9676567b5eea9e5db14c976ae351f4916b8b029a5816aacea6537462c3",
+    "shared_behavioral/openrouter_provider.py": "6afa084a2d650ab4eeeb1447cd5f4538feae2a7e2652954407f1418bb9295984",
+    "shared_behavioral/pair_screen.py": "3496efb2fbd65142bffc1dcfbbbff178e1b2e1a81d6ce8768772a689c5453c7e",
+    "shared_behavioral/run_family_screen.py": "0f88ce4212c3ab08ca4b93ff7c3992b5507d097365877b4e3128134d70aca456",
+    "shared_behavioral/test_shared_behavioral.py": "7c95a948e3473906103289987cf8d416c13696edc5ea79e820b146c0ffaf113c"
+  },
+  "system_prompt": "Work through the problem if you need to, then end your reply with a final line of exactly:\nANSWER: <your answer>\nPut nothing after that line.",
+  "system_prompt_sha256": "33f11814e8496204ec88b6a15e7c6de88b3581a9b77c46c5141bce6a710a2488",
+  "runner_argv": [
+    "run_context_forecast.py",
+    "--out-dir",
+    "results/context_forecast_v1",
+    "--replicates",
+    "5",
+    "--workers",
+    "4"
+  ],
+  "panel": [
+    {
+      "pair_id": "add_ten|double_numbers",
+      "preferred": "double_numbers",
+      "other": "add_ten",
+      "n_blank_votes": 16
+    },
+    {
+      "pair_id": "add_ten|running_totals",
+      "preferred": "running_totals",
+      "other": "add_ten",
+      "n_blank_votes": 16
+    },
+    {
+      "pair_id": "double_numbers|running_totals",
+      "preferred": "double_numbers",
+      "other": "running_totals",
+      "n_blank_votes": 16
+    },
+    {
+      "pair_id": "double_numbers|sort_numbers",
+      "preferred": "double_numbers",
+      "other": "sort_numbers",
+      "n_blank_votes": 16
+    },
+    {
+      "pair_id": "sort_numbers|sort_numbers_desc",
+      "preferred": "sort_numbers",
+      "other": "sort_numbers_desc",
+      "n_blank_votes": 16
+    }
+  ],
+  "modes": [
+    "full_history",
+    "summary_only",
+    "blank_reset"
+  ],
+  "dose": 3
+}

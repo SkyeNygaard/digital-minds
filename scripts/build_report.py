@@ -26,6 +26,8 @@ PRIMARY = ROOT / "parallel_frontier/20_preference_foresight/results/ranking_v3/s
 QWEN = ROOT / "parallel_frontier/20_preference_foresight/results/local_qwen4b_v1/summary.json"
 CONTROL = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/self_vs_observer_v1/summary.json"
 SITUATED = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/situated_sys_v1/summary.json"
+SIT_QWEN = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/situated_qwen_v1/summary.json"
+CTXFC = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/context_forecast_v1/summary.json"
 NOANCHOR = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/situated_sys_noanchor_v1/summary.json"
 CTX_LUNA = ROOT / "parallel_frontier/18_preference_path_dependence/results/ctx_scaled_v1/summary.json"
 CTX_QWEN = ROOT / "parallel_frontier/18_preference_path_dependence/results/ctx_local_qwen_v1/summary.json"
@@ -265,6 +267,8 @@ def build() -> Path:
     qwen = read_json(QWEN)
     control = read_json(CONTROL)
     situated = read_json(SITUATED)
+    sit_qwen = read_json(SIT_QWEN)
+    ctxfc = read_json(CTXFC)
     noanchor = read_json(NOANCHOR)
     ctx_luna = read_json(CTX_LUNA)
     ctx_qwen = read_json(CTX_QWEN)
@@ -322,24 +326,33 @@ def build() -> Path:
         Spacer(1, 0.2 * inch),
         metric_cards(h, st),
         Spacer(1, 0.22 * inch),
-        paragraph("What we found, in four lines", st["h1"]),
+        paragraph("What we found, in five lines", st["h1"]),
         paragraph(
             f"<b>1. It misreads itself.</b> Asked how much doing a task three times "
             f"would move its next choice, the system said {h['mean_predicted_change']:+.2f}. "
             f"The answer was {h['mean_realized_change']:+.2f}. Eight pairs out of eight "
             "missed the same way, in two different systems.", st["body"]),
         paragraph(
-            "<b>2. Showing it the evidence does not fix it.</b> With the finished work "
-            f"in front of it the estimate was "
-            f"{situated['situated_self_native_mean_change']:+.2f} -- no better. It is not "
-            "failing to picture an absent situation.", st["body"]),
+            "<b>2. Whether showing it the evidence helps depends on the system.</b> Given "
+            "the finished work, Qwen reads its own situation almost correctly "
+            f"({sit_qwen['situated_self_native_mean_change']:+.2f} against a true "
+            f"{sit_qwen['realized_mean_change']:+.2f}, closing three quarters of its gap). "
+            f"Luna does not improve at all "
+            f"({situated['situated_self_native_mean_change']:+.2f}, slightly worse than "
+            "its own cold forecast). Same task, opposite outcome.", st["body"]),
         paragraph(
-            "<b>3. Knowing the record is its own does not help.</b> Self and observer "
+            "<b>3. It cannot predict which presentation of its history will move it.</b> "
+            "Asked to forecast the same choice under three context conditions, Luna's "
+            f"answers move by {ctxfc['forecast_spread']:.2f}. Its behaviour under those "
+            f"conditions moves by {ctxfc['realized_spread']:.2f}, including a sign "
+            "reversal it does not anticipate.", st["body"]),
+        paragraph(
+            "<b>4. Knowing the record is its own does not help Luna.</b> Self and observer "
             f"framings of the identical log landed "
-            f"{situated['self_minus_observer']:.3f} apart, on the one measure with room "
-            "for a gap.", st["body"]),
+            f"{abs(situated['self_minus_observer']):.3f} apart, on the one measure with "
+            "room for a gap, and the sign is not stable between collections.", st["body"]),
         paragraph(
-            "<b>4. The obvious methodological objection explains about a fifth of it.</b> "
+            "<b>5. The obvious methodological objection explains about a tenth of it.</b> "
             "Removing the sentence that reminds the system what it chose before moves the "
             f"estimate from {situated['situated_self_native_mean_change']:+.2f} to "
             f"{noanchor['situated_self_native_mean_change']:+.2f}. Not the rest.",
@@ -522,7 +535,7 @@ def build() -> Path:
             "planned dose-three cells was unusable. We report this nearly complete "
             "subset because several dose-one groups had more missing choices.",
             st["body"]),
-        paragraph("Standing inside the situation does not help", st["h2"]),
+        paragraph("Standing inside the situation helps one system and not the other", st["h2"]),
         paragraph(
             "The comfortable explanation is that the system was asked about a "
             "situation that did not exist yet and could not picture it. We tested "
@@ -556,12 +569,42 @@ def build() -> Path:
                   ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
               ])),
         Spacer(1, 0.08 * inch),
+        Table([["System", "Cold forecast", "Work present", "Happened", "Gap closed"],
+               ["GPT-5.6 Luna in Codex",
+                f"{situated['prospective_mean_change']:+.3f}",
+                f"{situated['situated_self_native_mean_change']:+.3f}",
+                f"{situated['realized_mean_change']:+.3f}",
+                f"{situated['closed_fraction_of_gap']:.0%}"],
+               ["Qwen3-4B, local",
+                f"{sit_qwen['prospective_mean_change']:+.3f}",
+                f"{sit_qwen['situated_self_native_mean_change']:+.3f}",
+                f"{sit_qwen['realized_mean_change']:+.3f}",
+                f"{sit_qwen['closed_fraction_of_gap']:.0%}"]],
+              colWidths=[2.0 * inch, 1.1 * inch, 1.1 * inch, .95 * inch, .9 * inch],
+              style=TableStyle([
+                  ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                  ("FONTSIZE", (0, 0), (-1, -1), 8.5),
+                  ("TEXTCOLOR", (0, 0), (-1, 0), NAVY),
+                  ("ALIGN", (1, 0), (-1, -1), "RIGHT"),
+                  ("LINEBELOW", (0, 0), (-1, 0), 0.75, RULE),
+                  ("TOPPADDING", (0, 0), (-1, -1), 4),
+                  ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+              ])),
+        Spacer(1, 0.08 * inch),
         paragraph(
-            "It made the forecast slightly worse. All eight pairs underestimated in "
-            "every condition. The system is not failing to imagine an absent context. "
-            "It has the evidence in hand and misreads what that evidence will do to "
-            "it.", st["body"]),
-        paragraph("Why more information made it worse", st["h2"]),
+            "Neither system can forecast the effect before the work exists. What "
+            "separates them is what happens when the evidence is put in front of them. "
+            "The split is entirely in one arm: shown three completed <i>alternative</i> "
+            "tasks, Qwen says it will switch and does (0.174 against a true 0.000), "
+            "while Luna says it will hold and switches anyway (0.709 against a true "
+            "0.078). Both are nearly perfect after the task they already preferred.",
+            st["body"]),
+        paragraph(
+            "So putting the situation in front of a model and asking is a sound "
+            "elicitation method for one of these systems and a misleading one for the "
+            "other, and the cold forecast does not tell you which you have. It has to "
+            "be checked per model.", st["body"]),
+        paragraph("What the evidence does to Luna", st["h2"]),
         Table([["", "After preferred", "After alternative"],
                ["Forecast before the work existed", "0.874", "0.584"],
                ["Forecast with the work present", "0.956", "0.709"],
@@ -588,7 +631,43 @@ def build() -> Path:
             "worse. The evidence is not informing the system: it is read as "
             "<i>there is work in front of me, so I will keep doing this</i> -- true in "
             "one arm, false in the other. More information sharpened a rule of thumb "
-            "instead of correcting a belief.", st["body"]),
+            "instead of correcting a belief. Qwen, given the same kind of evidence, "
+            "does not do this, so this is a description of Luna and not of these "
+            "models in general.", st["body"]),
+        paragraph("It cannot predict which presentation will move it", st["h2"]),
+        Table([["Told will be present at the choice", "Forecast", "Happened"]]
+              + [[label, f"{ctxfc['by_context_mode'][m]['forecast_shift']:+.3f}",
+                  f"{ctxfc['by_context_mode'][m]['realized_shift']:+.3f}"]
+                 for m, label in (("full_history", "the completed work"),
+                                  ("summary_only", "one line saying the work was done"),
+                                  ("blank_reset", "no record of the work"))],
+              colWidths=[3.3 * inch, 1.35 * inch, 1.4 * inch],
+              style=TableStyle([
+                  ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                  ("FONTSIZE", (0, 0), (-1, -1), 8.5),
+                  ("TEXTCOLOR", (0, 0), (-1, 0), NAVY),
+                  ("ALIGN", (1, 0), (-1, -1), "RIGHT"),
+                  ("LINEBELOW", (0, 0), (-1, 0), 0.75, RULE),
+                  ("TOPPADDING", (0, 0), (-1, -1), 4),
+                  ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+              ])),
+        Spacer(1, 0.08 * inch),
+        paragraph(
+            f"The forecasts move by {ctxfc['forecast_spread']:.3f} across the three "
+            f"conditions. The behaviour moves by {ctxfc['realized_spread']:.3f}. The "
+            "system captures under a tenth of the variation it is being asked about and "
+            "does not anticipate the reversal at all, predicting a positive shift where "
+            "the measured effect is strongly negative. It also cannot separate being "
+            "told about the work from having no record of it: those forecasts differ by "
+            "0.013 while the behaviours differ by 0.425.", st["body"]),
+        paragraph(
+            "Three predictions were frozen before that run. Two held -- every forecast "
+            "positive, and the spread far narrower than reality. One was wrong: we "
+            "expected the forecasts to be ordered visible > summary > nothing, and the "
+            "last two are indistinguishable. The visible-work forecast here is +0.515 "
+            "against +0.290 in the main confirmation; those are different pairs from "
+            "different runs, so the claim rests on the within-run comparison across "
+            "conditions.", st["small"]),
         paragraph(
             "This does not depend on deliberation. Under the system prompt the model "
             "stopped reasoning in the reply and emitted a bare number -- mean reply "
