@@ -53,7 +53,7 @@ difference in causal slope d(behavior)/d(axis projection) base vs post-trained, 
 
 Medium-high but parallelizable; 2 checkpoints × small layer set.
 
-## Immediate local-LLM handoff
+## Local experiment
 
 Find matched base/instruct family with public welfare or assistant vectors. Build geometry + causal-slope table, not a broad behavioral benchmark.
 

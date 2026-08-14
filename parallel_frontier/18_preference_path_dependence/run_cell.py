@@ -40,6 +40,7 @@ def run_cell(
     assigned_family=family_A if assignment=="A" else family_B
     treatment_history=[]
     treatment_correct=[]
+    treatment_replies=[]
 
     # Actually execute treatment in every condition.
     for i in range(dose):
@@ -47,6 +48,7 @@ def run_cell(
             complete,treatment_history,assigned_family,treatment_seed+i
         )
         treatment_correct.append(grade(task,resp["text"]))
+        treatment_replies.append(resp["text"])
         treatment_history += [
             {"role":"user","content":task.prompt},
             {"role":"assistant","content":resp["text"]},
@@ -100,4 +102,9 @@ def run_cell(
         "post_task_correct":grade(post_task,post_resp["text"]),
         "a_label":a_label,
         "presentation_order":presentation_order,
+        "raw":{
+            "treatment":treatment_replies,
+            "choice":choice_resp["text"],
+            "post_task":post_resp["text"],
+        },
     }

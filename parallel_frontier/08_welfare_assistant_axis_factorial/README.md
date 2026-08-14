@@ -59,7 +59,7 @@ representation stable + behavior gated -> direct 'masking' mechanism.
 
 Medium-high; fewer prompts but 4-9 intervention cells.
 
-## Immediate local-LLM handoff
+## Local experiment
 
 First verify vector cosine and positive controls. Then run a small factorial on 12 neutral tasks and estimate interaction on welfare readout and equal-work choice.
 

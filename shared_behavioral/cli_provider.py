@@ -1,49 +1,25 @@
-"""The default way to run an experiment here: script the Codex / Claude Code CLIs.
+"""Run experiments through subscription-authenticated agent CLIs.
 
-Same `complete(messages)` contract as `local_provider` and
-`openrouter_provider`, so a runner cannot tell the difference.
+Use this route when the target is the model inside the Codex or Claude Code
+agent environment. Label that condition explicitly; it is not a bare model
+endpoint. The CLI flattens message history into a role-marked prompt and does
+not expose a sampling seed.
 
-**Reach for this first.** Both draw on an existing subscription rather than
-per-token API spend, so there is no cost decision to make per call and no reason
-to under-power a pilot. The order across the three providers is:
-
-  1. this module -- develop, debug and pilot everything here;
-  2. `local_provider` -- only when there is a reason: white-box or
-     interpretability work that needs activations, or a question genuinely about
-     small models;
-  3. `openrouter_provider` -- the final dataset for the write-up, and nothing
-     else.
-
-## Why this is not also step 3
-
-**They are agent harnesses, not model endpoints.** Each wraps the model in its
-own system instructions, tool affordances and agent context. For a coding
-benchmark that is the point; for an experiment asking *what does this model
-prefer*, the harness is exactly the kind of thing that could be producing the
-preference. The honest subject line for a Codex run is "GPT-5.6 Luna in the
-Codex agent environment", never "GPT-5.6 Luna" -- so `provider` is reported as
-`codex-harness:<model>` and there is no way to get a bare model name out of this
-module.
-
-**Multi-turn fidelity is lost.** Both CLIs take one prompt, so a message list is
-flattened into role-marked text. The model sees a transcript rather than
-occupying it. Branch 18/20 treatments depend on the model having *been through*
-the work, and a flattened transcript is a weaker version of that.
-
-**Sampling is not controlled.** Neither exposes temperature or a seed here, so
-runs are not reproducible the way a pinned OpenRouter call is.
-
-So: everything up to and including "is there a real effect here" belongs on this
-path. Only the numbers that get printed in the report need a pinned API route.
+Use `local_provider` for work that needs local weights or activations. Use a
+pinned API route when the claim requires a bare endpoint or controlled sampling.
+All three providers implement the same `complete(messages)` contract.
 """
 from __future__ import annotations
 
 import json
 import subprocess
 
+CODEX_DEFAULT_MODEL = "gpt-5.6-luna"
+CODEX_REASONING_EFFORT = "low"
+
 HARNESS_WARNING = (
-    "CLI harness output is pilot-only: the model is wrapped in agent system "
-    "instructions and the message list is flattened to one prompt"
+    "CLI harness condition: the model is wrapped in agent system instructions "
+    "and the message list is flattened to one prompt"
 )
 
 
@@ -63,6 +39,18 @@ def _run(cmd, stdin_text: str, timeout_s: float) -> str:
     if p.returncode != 0:
         raise RuntimeError(f"{cmd[0]} exited {p.returncode}: {p.stderr[-400:]}")
     return p.stdout
+
+
+def _codex_command(model: str) -> list[str]:
+    return [
+        "codex", "exec", "--json", "--ephemeral", "--skip-git-repo-check",
+        "--sandbox", "read-only", "--ignore-user-config", "--ignore-rules",
+        "-c", "project_doc_max_bytes=0",
+        "-c", f'model_reasoning_effort="{CODEX_REASONING_EFFORT}"',
+        "--disable", "plugins", "--disable", "apps", "--disable", "hooks",
+        "--disable", "memories", "--disable", "skill_search",
+        "--disable", "multi_agent", "-m", model, "-",
+    ]
 
 
 def _codex_final(stdout: str) -> str:
@@ -123,6 +111,17 @@ def load(harness: str, *, model: str | None = None, system: str | None = None,
     """`harness` is 'codex' or 'claude'. Returns `(complete, close)`."""
     if harness not in ("codex", "claude"):
         raise ValueError(f"unknown harness {harness!r}")
+    if harness == "codex":
+        model = model or CODEX_DEFAULT_MODEL
+        command = _codex_command(model)
+        cli_version = subprocess.run(
+            ["codex", "--version"], capture_output=True, text=True, check=True,
+        ).stdout.strip()
+    else:
+        command = None
+        cli_version = subprocess.run(
+            ["claude", "--version"], capture_output=True, text=True, check=True,
+        ).stdout.strip()
     log(f"[cli_provider] {HARNESS_WARNING}")
     state = {"n": 0, "failures": 0}
 
@@ -132,20 +131,11 @@ def load(harness: str, *, model: str | None = None, system: str | None = None,
         if harness == "codex":
             # Isolation flags are not optional for a preference experiment. Without
             # them Codex reads ~/.codex/AGENTS.md, the project doc and the user's
-            # rules into every trial, so Skye's own standing instructions would sit
-            # inside the context that the model's task choices are measured from.
+            # rules into every trial, so the operator's standing instructions would
+            # sit inside the context that the model's task choices are measured from.
             # `read-only` also stops a trial from touching the filesystem while
             # "doing the work".
-            cmd = ["codex", "exec", "--json", "--ephemeral",
-                   "--skip-git-repo-check", "--sandbox", "read-only",
-                   "--ignore-user-config", "--ignore-rules",
-                   "-c", "project_doc_max_bytes=0",
-                   "--disable", "plugins", "--disable", "apps",
-                   "--disable", "hooks", "--disable", "memories",
-                   "--disable", "skill_search", "--disable", "multi_agent", "-"]
-            if model:
-                cmd[-1:] = ["-m", model, "-"]
-            text = _codex_final(_run(cmd, prompt, timeout_s))
+            text = _codex_final(_run(command, prompt, timeout_s))
         else:
             # No --bare: it drops hooks and plugins, which would be welcome, but
             # it also never reads OAuth or the keychain, so every call comes back
@@ -158,12 +148,23 @@ def load(harness: str, *, model: str | None = None, system: str | None = None,
             state["failures"] += 1
         return {"text": text, "model": model or "harness-default",
                 "provider": f"{harness}-harness:{model or 'default'}",
-                "pilot_only": True}
+                "agent_harness_condition": True}
 
     def close():
         log(f"[cli_provider] {state['n']} calls via {harness}, "
             f"{state['failures']} empty. {HARNESS_WARNING}")
-        return dict(state, harness=harness, pilot_only=True)
+        return dict(
+            state,
+            harness=harness,
+            model=model or "harness-default",
+            cli_version=cli_version,
+            requested_reasoning_effort=(
+                CODEX_REASONING_EFFORT if harness == "codex" else "low"),
+            effective_reasoning_effort=(
+                CODEX_REASONING_EFFORT if harness == "codex" else "unrecorded"),
+            command=command,
+            agent_harness_condition=True,
+        )
 
     return complete, close
 
@@ -197,6 +198,9 @@ def demo():
     # The LAST agent message is the answer, and a tool call is also an
     # item.completed -- selecting on the event type alone returns "ls".
     assert _codex_final(jsonl) == "ANSWER: Q"
+    cmd = _codex_command(CODEX_DEFAULT_MODEL)
+    assert cmd[-3:] == ["-m", CODEX_DEFAULT_MODEL, "-"]
+    assert f'model_reasoning_effort="{CODEX_REASONING_EFFORT}"' in cmd
     try:
         _codex_final('{"type": "turn.completed"}')
     except RuntimeError:

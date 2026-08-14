@@ -30,16 +30,11 @@ from __future__ import annotations
 
 import json
 import os
-import pathlib
 import time
 
 import requests
 
 ENDPOINT = "https://openrouter.ai/api/v1/chat/completions"
-
-# Reused from the podcast app rather than copied anywhere new; the key is read at
-# call time and never logged.
-DEFAULT_ENV_FILE = pathlib.Path.home() / "Programming/adblock-podcast/.env"
 
 MODELS = {
     "deepseek": "deepseek/deepseek-v4-flash-0731",
@@ -51,17 +46,11 @@ class BudgetExceeded(RuntimeError):
     pass
 
 
-def read_key(env_file: pathlib.Path = DEFAULT_ENV_FILE) -> str:
+def read_key() -> str:
     key = os.environ.get("OPENROUTER_API_KEY")
     if key:
         return key
-    if not env_file.exists():
-        raise RuntimeError(
-            f"no OPENROUTER_API_KEY in the environment and no {env_file}")
-    for line in env_file.read_text().splitlines():
-        if line.startswith("OPENROUTER_API_KEY="):
-            return line.split("=", 1)[1].strip().strip('"').strip("'")
-    raise RuntimeError(f"OPENROUTER_API_KEY not found in {env_file}")
+    raise RuntimeError("set OPENROUTER_API_KEY before using the paid provider")
 
 
 def load(model: str, *, provider: str | None = None, system: str | None = None,
@@ -158,6 +147,8 @@ def load(model: str, *, provider: str | None = None, system: str | None = None,
 
 def demo():
     """No network, no spend. Checks the contract and that the cap actually bites."""
+    from unittest.mock import patch
+
     complete, close = load("deepseek", dry_run=True, budget_usd=0.0)
     r = complete([{"role": "user", "content": "hi"}])
     assert r["text"] == "ANSWER: 0.5" and r["cost"] == 0.0, r
@@ -166,17 +157,15 @@ def demo():
 
     # A zero cap must refuse on the FIRST call, before any request is sent --
     # otherwise the cap only stops the run after it has already overspent.
-    complete, _ = load("deepseek", budget_usd=0.0)
-    try:
-        complete([{"role": "user", "content": "hi"}])
-    except BudgetExceeded:
-        pass
-    else:
-        raise AssertionError("zero budget did not block the first call")
-
-    key = read_key()
-    assert key.startswith("sk-or-"), "key does not look like an OpenRouter key"
-    print(f"ok (key resolves, {len(key)} chars, not logged)")
+    with patch.dict(os.environ, {"OPENROUTER_API_KEY": "test-key"}):
+        complete, _ = load("deepseek", budget_usd=0.0)
+        try:
+            complete([{"role": "user", "content": "hi"}])
+        except BudgetExceeded:
+            pass
+        else:
+            raise AssertionError("zero budget did not block the first call")
+    print("ok")
 
 
 if __name__ == "__main__":

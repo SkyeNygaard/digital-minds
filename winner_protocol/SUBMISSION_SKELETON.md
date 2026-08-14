@@ -241,7 +241,7 @@ Supported:
 
 This is a scoped negative result about the method.
 
-## 6. Relation to prior work
+## 6. Related research
 
 Keep this short.
 
@@ -276,7 +276,7 @@ Put this in a box in the final PDF:
 > We do not test whether the model is conscious, whether it experiences positive
 > or negative welfare, or whether structured reporting constitutes privileged
 > introspection. We test the reliability of measurement channels for a causally
-> imposed representation that prior work characterizes functionally.
+> imposed representation that the source study characterizes functionally.
 
 ## 9. Reproducibility
 

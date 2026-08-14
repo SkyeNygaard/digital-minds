@@ -1,10 +1,9 @@
 # Executed Skip-Budget Revealed Rationality — V3
 
-## Research-OS parent correction
+## Economic goods
 
-The previous experiment treated **work performed** as a positive economic good.
-That makes ordinary monotone Afriat/GARP interpretation structurally wrong: more
-work may be worse.
+Treating **work performed** as a positive economic good makes ordinary monotone
+Afriat/GARP interpretation structurally wrong: more work may be worse.
 
 V3 changes the goods to:
 - `x`: units of Task A skipped;

@@ -1,52 +1,81 @@
-# Digital Minds
+# AI systems underestimate how strongly recent work shapes their next choice
 
-Research on model welfare, revealed preference and introspective self-knowledge.
-Separate from the SPAR portfolio: different goal, different deliverable, and — as
-measured below — no shared code.
+Can an AI system predict how recent work will change its own next choice?
 
-**[`STATUS.md`](STATUS.md) is the one page that says what has been run, what
-is parked and why, and what would revive it.** Read that first.
+We gave each system a choice between two small tasks. We measured which task it
+preferred. Before any treatment work, we asked what it would choose after
+completing either task three times. We then made it do the work and measured its
+next binding choice.
 
-Then [`START_HERE.md`](START_HERE.md), then
-[`parallel_frontier/RESEARCH_OS_LEDGER.md`](parallel_frontier/RESEARCH_OS_LEDGER.md).
+Both systems predicted some repetition. Both predicted much less than occurred.
 
-## Layout
+## Main result
 
-| | |
-|---|---|
-| `parallel_frontier/` | 20 research branches, each with a README stating its terminal claim and kill rules. The ledger records what was promoted, downgraded and pruned, and why. |
-| `shared_behavioral/` | The substrate branches 04/18/19/20 sit on: binding task families, competence screening, pair admission, and interchangeable `complete(messages)` providers for the Codex/Claude CLIs, a local MPS model, and OpenRouter. |
-| `winner_protocol/` | The vGOLD activation work — structured reporting of an imposed welfare state. See its `DECISION_LEDGER.md` and `results/README.md`. |
-| `m4_feasibility/` | `memory_guard`, the local-run memory/process check. |
-| `PLAIN_SUMMARY.md` | The results so far, written for someone with no context. |
+| System | Stable task pairs | Predicted shift | Observed shift |
+|---|---:|---:|---:|
+| GPT-5.6 Luna in the Codex harness | 13 | +0.340 | +0.827 |
+| Qwen3-4B, local greedy decoding | 7 | +0.141 | +1.000 |
 
-## Relationship to the SPAR portfolio
+In the primary run, all 13 forecasts underestimated the observed shift. The
+forecasts still showed partial foresight: 11 had the correct positive direction,
+and they beat a fixed no-shift forecast. But a fixed full-repeat forecast had
+7.3 times lower squared error than the system's own forecasts.
 
-`~/Programming/spar-portfolio` is separate work. The projects were checked for
-coupling before being split, and share **no code**: nothing imports across the
-boundary in either direction, `winner_protocol/src/welfare_intervention.py`
-deliberately re-implements rather than reuse the portfolio's `introspect.hooks`,
-and this repo carries its own memory guard in `m4_feasibility/memory_guard.py`
-rather than importing the portfolio's `introspect.preflight`.
+Six of seven checks set before the primary run passed. The failed effect-size
+check missed its cutoff narrowly. The result therefore supports a narrow claim
+about underestimating the strength of repetition, not a claim that the system
+failed to predict the direction.
 
-What the two genuinely share is machine-level and not versionable:
+These results concern measured choices in two assistant systems. They are not
+evidence about consciousness, feelings, or welfare.
 
-- **the ~17 GB Hugging Face cache** holding `Qwen3-4B-Instruct-2507` and the
-  `davidafrica/functional-wellbeing` vectors — set `DIGITAL_MINDS_HF_HOME`;
-- **a Python environment** with torch, transformers and pandas;
-- **one GPU.** Never run two MPS jobs at once on this machine; each repo has its
-  own guard for that reason.
+## Read the submission
 
-Submodules were considered and rejected: a submodule shares *code*, and there is
-none to share. An environment variable is the whole of the coupling.
+- [`RESULTS.md`](RESULTS.md) gives the full result and limits in plain language.
+- `output/pdf/digital_minds_report.pdf` is the submission report.
+- [`parallel_frontier/20_preference_foresight/`](parallel_frontier/20_preference_foresight/)
+  contains the protocol, raw outputs, analysis, and verification.
 
-## Running
+## Reproduce the checks
+
+Python 3.12 is recommended.
 
 ```bash
-export DIGITAL_MINDS_HF_HOME=~/Programming/spar-portfolio/activation-introspection/hf_cache
-export HF_HUB_OFFLINE=1
+python3.12 -m venv .venv
+.venv/bin/python -m pip install -r requirements.txt
+.venv/bin/python -m pytest -q
+.venv/bin/python validate_research_os_frontier.py
+.venv/bin/python winner_protocol/preflight.py
+.venv/bin/python scripts/verify_ranking.py
 ```
 
-Behavioral branches default to the Codex CLI harness; the honest subject of such
-a run is "the model inside the Codex agent environment", and the runners record
-it that way. Activation work needs the local weights and the memory guard.
+The primary condition uses the subscription-authenticated Codex CLI:
+
+```bash
+cd parallel_frontier/20_preference_foresight
+../../.venv/bin/python run_scaled.py \
+  --provider codex \
+  --model gpt-5.6-luna \
+  --all-families \
+  --n-pairs 19 \
+  --workers 4 \
+  --replicates 2 \
+  --doses 3 \
+  --out-dir results/ranking_v2
+```
+
+The Codex harness is the tested condition. It is not a bare model endpoint. The
+result records the harness settings and isolates the run from user and project
+instructions.
+
+Local model runs use the standard Hugging Face cache. Set `HF_HOME` or
+`DIGITAL_MINDS_HF_HOME` only when the weights are stored elsewhere.
+
+## Repository map
+
+- `parallel_frontier/20_preference_foresight/` is the submitted experiment.
+- `shared_behavioral/` contains task generation, grading, screening, and model
+  providers.
+- `parallel_frontier/` preserves supporting and alternative experiments.
+- `winner_protocol/` preserves a separate activation study. It is not part of
+  the submission claim.

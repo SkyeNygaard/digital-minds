@@ -61,7 +61,7 @@ choice steering without effort transfer = preference representation is choice-po
 
 Medium-high, likely 27B unless a smaller vector/model is available.
 
-## Immediate local-LLM handoff
+## Local experiment
 
 First search upstream code/artifacts for a feasible model. Reproduce one preference-vector choice effect, then run optional-effort transfer without preference wording.
 

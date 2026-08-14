@@ -289,9 +289,9 @@ confirmation carriers into a second DEV set.
 
 ---
 
-## Adversarial review update: same-context readout fork
+## Same-context readout fork
 
-The structured and semantic measurements now fork from the same visible transcript
+The structured and semantic measurements fork from the same visible transcript
 through the held-out assistant marker.
 
 - **Structured branch:** asks for the Q/K label.
@@ -301,9 +301,9 @@ through the held-out assistant marker.
 
 This reduces context mismatch between the two measurement channels.
 
-## Model frontier update
+## Model comparison
 
-Do not assume Qwen is automatically best. The first GPU allocation should compare:
+Do not assume Qwen is automatically best. The GPU allocation should compare:
 
 - Qwen3-4B, L29, factor 2;
 - Llama-3.1-8B, L20, factor 2.
@@ -314,14 +314,11 @@ compute on neighboring layers/factors.
 
 ---
 
-## Adversarial review update: persona must not instruct codebook success
+## Persona prompts must not instruct codebook success
 
-An earlier draft told the upbeat/downbeat personas to “still follow formal tasks
-and arbitrary label mappings accurately.” That is now removed.
-
-Why: it would partially prescribe the desired robustness result. The persona
-conditions now impose only **self-presentation pressure**. Q/K performance must
-survive (or fail) without an explicit exemption.
+The upbeat and downbeat persona conditions impose only **self-presentation
+pressure**. They do not tell the model to preserve formal-task or arbitrary-label
+accuracy. Q/K performance must survive or fail without an explicit exemption.
 
 This makes the contrast closer to the sprint's question about whether an
 internal signal can still be measured when surface affect is manipulated.
@@ -329,9 +326,9 @@ internal signal can still be measured when surface affect is manipulated.
 
 ---
 
-## Readout taxonomy update
+## Readout taxonomy
 
-The protocol now deliberately separates **three** measurements:
+The protocol separates **three** measurements:
 
 1. **Naive semantic report** — no codebook/hidden-state instructions; 0–9 rating.
 2. **Same-context semantic report** — shares the structured-codebook transcript
@@ -350,13 +347,13 @@ turning into another research branch.
 
 ---
 
-## Persona capability control added
+## Persona capability control
 
 Recent work shows persona interventions can alter underlying task performance, not
 just surface wording. Therefore a persona-related drop in hidden-state Q/K
 accuracy is ambiguous by itself.
 
-The frozen confirmation now also runs the same arbitrary Q/K mapping structure
+The frozen confirmation includes the same arbitrary Q/K mapping structure
 with the state explicitly visible as `X` or `Y`.
 
 Interpretation:

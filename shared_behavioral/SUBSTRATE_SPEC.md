@@ -1,13 +1,11 @@
 # Shared behavioral substrate — frozen spec
 
-Branches 04, 18 and 19 all sit on this substrate. Supersedes `OPEN_DECISIONS.md`.
+Branches 04, 18 and 19 all use this substrate.
 
 The organising principle: **competence, guessability, cost and preference
 stability are four separate measurements and must not be estimated by the same
-trials.** The previous design used the four preference-admission trials to
-simultaneously screen competence, which made one formatting slip disqualify a
-pair and admitted only pairs where those exact four trials happened to go
-perfectly.
+trials.** Competence uses an independent screen, so one formatting slip during
+preference admission does not disqualify a pair.
 
 ## 1. Family competence screen — independent of preference measurement
 

@@ -59,7 +59,7 @@ clone each instance's KV/cache after t0 into two descendants. If descendants inh
 
 Low-medium on 3B-8B; directly reuses retained-trace machinery.
 
-## Immediate local-LLM handoff
+## Local experiment
 
 Adapt retained-trace cache experiment from concept identity to welfare/preference state. Implement exact cache fork and recompute-from-text control.
 

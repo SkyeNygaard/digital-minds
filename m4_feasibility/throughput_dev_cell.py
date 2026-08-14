@@ -26,7 +26,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from memory_guard import guard, params_for            # noqa: E402
 
-PKG = Path.home() / "Programming/digital_minds_m4_handoff/winner_protocol"
+PKG = Path(__file__).resolve().parents[1] / "winner_protocol"
 sys.path.insert(0, str(PKG / "src"))
 sys.path.insert(0, str(PKG))
 

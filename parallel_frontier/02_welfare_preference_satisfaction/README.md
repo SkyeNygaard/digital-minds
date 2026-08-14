@@ -57,7 +57,7 @@ dose-response by preference strength measured in Stage 1.
 
 Medium. Mostly generations plus activation projection; can parallelize.
 
-## Immediate local-LLM handoff
+## Local experiment
 
 Build 20 matched task pairs across 4 families, run consequential preference screen, freeze stable pairs, then randomized assignment and welfare-axis readout.
 

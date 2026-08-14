@@ -56,7 +56,7 @@ query perturbation sign is balanced and invisible; external observer should be e
 
 Medium. Best on model/vector with known causal choice effect.
 
-## Immediate local-LLM handoff
+## Local experiment
 
 Implement cache fork before self-prediction; compare prediction branch to realization sibling and an input-only observer.
 

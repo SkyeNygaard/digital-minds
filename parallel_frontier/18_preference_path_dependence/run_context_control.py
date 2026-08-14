@@ -131,7 +131,7 @@ def main() -> None:
                           f"{time.time()-t0:.0f}s", flush=True)
 
     usage = close()
-    summary = {"model": a.model, "pilot_only_agent_harness": True,
+    summary = {"model": a.model, "agent_harness_condition": True,
                "dose": DOSE, "n_cells": len(rows), "usage": usage,
                "wall_clock_s": round(time.time() - t0, 1),
                "treatment_all_correct": sum(r["treatment_all_correct"] for r in rows) / len(rows),

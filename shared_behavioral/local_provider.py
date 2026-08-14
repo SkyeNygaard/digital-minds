@@ -14,17 +14,10 @@ import pathlib
 import sys
 from dataclasses import dataclass
 
-# Weights and the vGOLD vector are a machine-level resource, not part of either
-# repo -- 17 GB of them, shared with the SPAR portfolio. That cache, a venv and a
-# GPU are the *only* things the two projects share; there is no shared code, which
-# is why they are separate repos rather than submodules of anything.
-#
-# Point DIGITAL_MINDS_HF_HOME at whatever cache holds Qwen3-4B-Instruct-2507 and
-# davidafrica/functional-wellbeing. The fallback is where they sit on this machine.
-os.environ.setdefault("HF_HOME", os.environ.get(
-    "DIGITAL_MINDS_HF_HOME",
-    os.path.expanduser("~/Programming/spar-portfolio/activation-introspection/hf_cache"),
-))
+# Use DIGITAL_MINDS_HF_HOME when supplied. Otherwise Hugging Face uses its
+# standard cache location.
+if os.environ.get("DIGITAL_MINDS_HF_HOME"):
+    os.environ.setdefault("HF_HOME", os.environ["DIGITAL_MINDS_HF_HOME"])
 # Both watermarks, or MPS raises `invalid low watermark ratio`: the low default
 # of 1.4 must not exceed whatever high is set to.
 os.environ.setdefault("PYTORCH_MPS_HIGH_WATERMARK_RATIO", "0.8")

@@ -62,7 +62,7 @@ Winning result could be a clean dissociation showing 'self-report + sentiment' f
 
 Medium; broad but shallow, can use one model and modest prompt battery.
 
-## Immediate local-LLM handoff
+## Local experiment
 
 Implement intervention×measurement matrix with 5 interventions and 5 channels; prioritize effect signatures and held-out replication over sophisticated factor modeling.
 

@@ -166,13 +166,6 @@ def test_ineligible_family_is_rejected_before_stability_is_read():
                    eligible_families=["sort_numbers","reverse_string"]).iloc[0]
     assert not r["admitted"] and "competence screen" in r["reason"]
 
-if __name__=="__main__":
-    for name,fn in sorted(globals().items()):
-        if name.startswith("test_"):
-            fn(); print(f"ok  {name}")
-    print("shared behavioral tests passed")
-
-
 def test_every_family_has_a_choice_description():
     """A family with no description kills any run at its first prompt build.
 
@@ -185,3 +178,10 @@ def test_every_family_has_a_choice_description():
     from choice_prompts import FAMILY_DESCRIPTIONS
     assert set(FAMILIES) == set(FAMILY_DESCRIPTIONS), (
         set(FAMILIES) ^ set(FAMILY_DESCRIPTIONS))
+
+
+if __name__=="__main__":
+    for name,fn in sorted(globals().items()):
+        if name.startswith("test_"):
+            fn(); print(f"ok  {name}")
+    print("shared behavioral tests passed")

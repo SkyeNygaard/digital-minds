@@ -162,9 +162,8 @@ def build_provider(args, screen):
                                    system=args.system, headroom_gib=args.headroom)
     if args.provider in ("codex", "claude"):
         import cli_provider
-        # Pilot only. The subject of a codex run is "the model inside the Codex
-        # agent environment", and `summary.json` records it that way so the
-        # distinction survives into whatever gets written up.
+        # The subject is the model inside the agent environment. Record that
+        # condition so it cannot be mistaken for a bare endpoint result.
         return cli_provider.load(args.provider, model=args.model,
                                  system=args.system)
     import openrouter_provider
@@ -199,7 +198,7 @@ def main():
                        or local_provider.ANSWER_PROTOCOL_SYSTEM)
 
     if args.provider in ("codex", "claude"):
-        print("PILOT ONLY: an agent harness, not a bare model endpoint; "
+        print("AGENT HARNESS CONDITION: not a bare model endpoint; "
               "flattened multi-turn context and uncontrolled sampling")
 
     # Families are screened per model. Reusing another model's screen would
@@ -309,7 +308,7 @@ def main():
         "model": args.model,
         # A CLI-harness run is not a run of the bare model. Recorded here so the
         # distinction cannot be lost between the run and the write-up.
-        "pilot_only_agent_harness": args.provider in ("codex", "claude"),
+        "agent_harness_condition": args.provider in ("codex", "claude"),
         "system_prompt": args.system,
         "replicates": args.replicates,
         "admission": stability_spectrum(screened),

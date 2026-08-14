@@ -66,9 +66,9 @@ ok("preference_selfknowledge_structured_improves_fixture",
 render=(WIN/"src"/"rendering.py").read_text()
 naive=(WIN/"src"/"naive_semantic.py").read_text()
 dev=(WIN/"run_dev.py").read_text()
-ok("winner_rating_space_prefix",'prefix = "Rating: "' in render)
-ok("winner_bare_digit_options",'tuple(str(i) for i in range(10))' in naive
-   and 'tuple(str(i) for i in range(10))' in dev)
+ok("winner_rating_prefix",'prefix = "Rating:"' in render)
+ok("winner_space_digit_options",'tuple(f" {i}" for i in range(10))' in naive
+   and 'tuple(f" {i}" for i in range(10))' in dev)
 
 # 8. Synthetic fixtures visibly quarantined.
 ok("synthetic_fixture_warning",

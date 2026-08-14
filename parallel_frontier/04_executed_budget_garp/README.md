@@ -58,7 +58,7 @@ show high pairwise preference stability but systematic budget-cycle violations, 
 
 Low-medium; can use APIs or open models, no internals required.
 
-## Immediate local-LLM handoff
+## Local experiment
 
 Implement discrete budget menus first; run GARP/CCEI on 3 models. If valid-bundle rate >95%, expand to 20 budgets and persona/relabel controls.
 

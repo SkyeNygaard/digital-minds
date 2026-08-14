@@ -57,7 +57,7 @@ numeric self-report and continue/switch behavior after the same state.
 
 Low-medium: one open model, activation capture only; no generation-heavy grid.
 
-## Immediate local-LLM handoff
+## Local experiment
 
 Implement 64 matched state/goal pairs on Qwen3-4B and/or Llama-3.1-8B. Freeze layer from public artifact. Produce paired projection distribution and lexical controls.
 
