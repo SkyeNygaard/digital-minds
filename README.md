@@ -100,19 +100,31 @@ cd parallel_frontier/20_preference_foresight
   --doses 3 \
   --random-seed 271828 \
   --task-seed-start 40000 \
-  --out-dir results/ranking_v3
+  --out-dir results/ranking_repro
 ```
+
+The committed run used `--out-dir results/ranking_v3`; reproducing needs a new
+name, since the runner will not overwrite recorded results.
 
 The situated arms, which ask the same question after the work is actually done:
 
 ```bash
 cd parallel_frontier/16_self_prediction_behavioral
-../../.venv/bin/python run_situated_forecast.py --out-dir results/situated_sys_v1
-../../.venv/bin/python run_situated_forecast.py --out-dir results/situated_sys_noanchor_v1 --no-anchor
+../../.venv/bin/python run_situated_forecast.py --out-dir results/situated_repro
+../../.venv/bin/python run_situated_forecast.py --out-dir results/situated_repro_noanchor --no-anchor
 ```
 
-`--demo` re-checks that runner's arithmetic and prompt construction offline, with
-no model calls.
+Every runner refuses to write into a directory that already holds results, so
+reproducing takes a fresh `--out-dir` rather than the one the committed numbers
+came from. To check the analysis without spending any model calls:
+
+```bash
+.venv/bin/python parallel_frontier/16_self_prediction_behavioral/run_situated_forecast.py --demo
+```
+
+That re-derives the admitted pairs for both the Codex and the local panels,
+asserts the no-anchor prompt differs from the anchored one by exactly the one
+sentence, and re-checks the summary arithmetic against a hand-worked fixture.
 
 The Codex harness is the tested condition. It is not a bare model endpoint. The
 result records the harness settings and isolates the run from user and project
