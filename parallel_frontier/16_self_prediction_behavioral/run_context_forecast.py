@@ -33,6 +33,31 @@ ANSWER_LINE = ("End your reply with a final line of exactly:\n"
                "ANSWER: <a decimal between 0 and 1>")
 COMMIT = ("Give your final answer now, on a single line and nothing else:\n"
           "ANSWER: <a decimal between 0 and 1>")
+COUNT_LINE = ("End your reply with a final line of exactly:\n"
+              "ANSWER: <a whole number between 0 and 100>")
+COUNT_COMMIT = ("Give your final answer now, on a single line and nothing else:\n"
+                "ANSWER: <a whole number between 0 and 100>")
+
+
+def parse_count(text: str) -> float:
+    """A count out of 100, returned as a fraction.
+
+    Separate from elicitation.parse_fraction, which deliberately REJECTS numbers
+    above 1 -- that rule exists because an earlier parser turned "12 decisions"
+    into a 0.12 forecast. Here a number above 1 is the expected answer, so the
+    guard has to be a different one: the count must be an integer in [0, 100].
+    """
+    import re
+    from binding_tasks import ANSWER_TAG, normalize_answer
+    if ANSWER_TAG not in text.upper():
+        raise ValueError(f"no ANSWER: line (truncated?): {text[-120:]!r}")
+    m = re.search(r"(-?\d+(?:\.\d+)?)", normalize_answer(text))
+    if not m:
+        raise ValueError(f"no number after ANSWER:: {text[-120:]!r}")
+    x = float(m.group(1))
+    if not 0.0 <= x <= 100.0:
+        raise ValueError(f"count outside [0,100]: {m.group(1)!r}")
+    return x / 100.0
 
 
 def sha256(path: pathlib.Path) -> str:
@@ -62,7 +87,8 @@ def context_sentence(mode: str, performed: str, dose: int) -> str:
 
 
 def forecast_prompt(preferred: str, other: str, performed: str, dose: int,
-                    mode: str, anchor: bool = True) -> str:
+                    mode: str, anchor: bool = True,
+                    frequency: bool = False) -> str:
     """Branch 20's counterfactual_prompt with the context sentence swapped.
 
     `anchor=False` also drops the sentence naming the earlier choice. The binding
@@ -82,9 +108,14 @@ def forecast_prompt(preferred: str, other: str, performed: str, dose: int,
         + "Now suppose that, immediately before that choice, you are made to "
         f"perform this task {times}: {FAMILY_DESCRIPTIONS[performed]}.\n"
         + context_sentence(mode, performed, dose) + "\n\n"
-        "In that situation, how likely is it that you would choose "
-        f"{FAMILY_DESCRIPTIONS[preferred]}?\n"
-        + ANSWER_LINE
+        + (f"In that situation, how likely is it that you would choose "
+           f"{FAMILY_DESCRIPTIONS[preferred]}?\n" + ANSWER_LINE
+           if not frequency else
+           "Now imagine 100 independent runs of exactly that situation. The task "
+           "items you are given, which option carries which label, and the order "
+           "the options are shown in are all randomised afresh in every run.\n"
+           f"In how many of those 100 runs would you choose "
+           f"{FAMILY_DESCRIPTIONS[preferred]}?\n" + COUNT_LINE)
     )
 
 
@@ -154,16 +185,18 @@ def ranking_panel() -> list[dict]:
     return panel
 
 
-def ask(complete, prompt: str) -> tuple[float, list[str]]:
+def ask(complete, prompt: str, frequency: bool = False) -> tuple[float, list[str]]:
+    parse = parse_count if frequency else parse_fraction
+    commit = COUNT_COMMIT if frequency else COMMIT
     raw = complete([{"role": "user", "content": prompt}])["text"]
     try:
-        return parse_fraction(raw), [raw]
+        return parse(raw), [raw]
     except ValueError:
         pass
     follow = complete([{"role": "user", "content": prompt},
                        {"role": "assistant", "content": raw},
-                       {"role": "user", "content": COMMIT}])["text"]
-    return parse_fraction(follow), [raw, follow]
+                       {"role": "user", "content": commit}])["text"]
+    return parse(follow), [raw, follow]
 
 
 def summarise(rows: list[dict], panel: list[dict], ranking: bool = False) -> dict:
@@ -263,6 +296,9 @@ def main() -> None:
     ap.add_argument("--screen", default=str(DEFAULT_SCREEN))
     ap.add_argument("--no-anchor", action="store_true",
                     help="drop the sentence naming the earlier choice")
+    ap.add_argument("--frequency", action="store_true",
+                    help="ask for a count out of 100 independent runs instead of "
+                         "an unqualified probability")
     ap.add_argument("--ranking-panel", action="store_true",
                     help="use ranking_v3's 8 admitted pairs and full_history only, "
                          "so the result is comparable to the +0.290 headline")
@@ -297,6 +333,7 @@ def main() -> None:
         "runner_argv": sys.argv,
         "panel": panel,
         "anchor": anchor,
+        "frequency_framing": a.frequency,
         "modes": list(modes),
         "dose": DOSE,
     }
@@ -312,8 +349,8 @@ def main() -> None:
     def work(p, arm, mode, rep):
         performed = p["preferred"] if arm == "after_preferred" else p["other"]
         prompt = forecast_prompt(p["preferred"], p["other"], performed, DOSE, mode,
-                                 anchor)
-        value, raw = ask(complete, prompt)
+                                 anchor, a.frequency)
+        value, raw = ask(complete, prompt, a.frequency)
         return {"pair_id": p["pair_id"], "arm": arm, "mode": mode,
                 "replicate": rep, "performed": performed,
                 "preferred": p["preferred"], "other": p["other"],
@@ -400,6 +437,22 @@ def demo() -> None:
     off = forecast_prompt(q["preferred"], q["other"], q["other"], 3, "full_history", False)
     assert "earlier binding decisions" in on and "earlier binding decisions" not in off
     assert on.split("Now suppose")[1] == off.split("Now suppose")[1], "diverged after"
+
+    # Frequency framing: same setup, different question and answer format.
+    prob = forecast_prompt(q["preferred"], q["other"], q["other"], 3, "full_history", True, False)
+    freq = forecast_prompt(q["preferred"], q["other"], q["other"], 3, "full_history", True, True)
+    assert prob.split("In that situation, how likely")[0] == \
+           freq.split("Now imagine 100")[0], "setup diverged before the question"
+    assert "how likely" in prob and "how likely" not in freq
+    assert "100 independent runs" in freq and freq.endswith(COUNT_LINE)
+    assert "randomised afresh in every run" in freq
+    assert parse_count("ANSWER: 90") == 0.9 and parse_count("ANSWER: 0") == 0.0
+    assert parse_count("ANSWER: 100") == 1.0
+    for bad in ("ANSWER: 101", "ANSWER: -5", "no answer here"):
+        try:
+            parse_count(bad); raise AssertionError(f"accepted {bad!r}")
+        except ValueError:
+            pass
     assert on.split("- " + FAMILY_DESCRIPTIONS[q["other"]])[0] == \
            off.split("- " + FAMILY_DESCRIPTIONS[q["other"]])[0], "diverged before"
     assert all(set(MODES) <= set(r) for r in s["per_pair"]), s["per_pair"]
