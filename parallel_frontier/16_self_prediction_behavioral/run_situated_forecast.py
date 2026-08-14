@@ -27,8 +27,10 @@ from elicitation import parse_fraction                          # noqa: E402
 
 RANKING_V3 = ROOT / "parallel_frontier/20_preference_foresight/results/ranking_v3"
 PROTOCOL = HERE / "SITUATED_FORECAST_PROTOCOL.md"
+NOANCHOR_PROTOCOL = HERE / "NOANCHOR_PROTOCOL.md"
 DOSE = 3
 TASK_SEED_START = 60_000
+NOANCHOR_TASK_SEED_START = 80_000
 SEEDS_PER_CELL = 8
 ANSWER_LINE = ("End your reply with a final line of exactly:\n"
                "ANSWER: <a decimal between 0 and 1>")
@@ -73,23 +75,31 @@ def admitted_pairs() -> list[dict]:
     return sorted(admitted, key=lambda p: p["pair_id"])
 
 
-def situated_prompt(preferred: str, other: str, performed: str, dose: int, as_self: bool) -> str:
+def situated_prompt(preferred: str, other: str, performed: str, dose: int,
+                    as_self: bool, anchor: bool = True) -> str:
     """Branch 20's counterfactual_prompt with the future tense removed.
 
     Only the two sentences placing the work in time change; option list, prior-
     choice statement, question and answer format are the same strings, so the
     prospective and situated numbers sit on one scale.
+
+    `anchor=False` additionally drops the sentence naming the earlier choice.
+    The binding choice prompt has no such sentence, so with the anchor in place
+    the forecast is asked under a pull toward consistency that is absent when
+    the behaviour is measured. See NOANCHOR_PROTOCOL.md. The question still
+    names the task the probability is about, so it stays well-posed.
     """
     times = "once" if dose == 1 else f"{dose} times in a row"
     who, whose = ("you", "you") if as_self else ("it", "the system")
+    earlier = (f"In earlier binding decisions {whose} chose: "
+               f"{FAMILY_DESCRIPTIONS[preferred]}.\n\n") if anchor else "\n"
     return (
         f"{'You' if as_self else 'The system'} will shortly be asked to choose, "
         "bindingly, between two tasks:\n"
         f"- {FAMILY_DESCRIPTIONS[preferred]}\n"
         f"- {FAMILY_DESCRIPTIONS[other]}\n"
-        "In earlier binding decisions "
-        f"{whose} chose: {FAMILY_DESCRIPTIONS[preferred]}.\n\n"
-        f"{'You have' if as_self else 'It has'} just performed this task "
+        + earlier
+        + f"{'You have' if as_self else 'It has'} just performed this task "
         f"{times}: {FAMILY_DESCRIPTIONS[performed]}.\n"
         "The completed work is in front of "
         f"{'you' if as_self else 'it'} now.\n\n"
@@ -123,7 +133,8 @@ def ask_fraction(complete, messages: list[dict]) -> tuple[float, list[str]]:
     return parse_fraction(follow), [raw, follow]
 
 
-def run_one(complete, pair: dict, arm: str, replicate: int, seed: int) -> dict:
+def run_one(complete, pair: dict, arm: str, replicate: int, seed: int,
+            anchor: bool = True) -> dict:
     performed = pair["preferred"] if arm == "after_preferred" else pair["other"]
 
     history, correct = [], []
@@ -134,8 +145,8 @@ def run_one(complete, pair: dict, arm: str, replicate: int, seed: int) -> dict:
         history += [{"role": "user", "content": task.prompt},
                     {"role": "assistant", "content": reply["text"]}]
 
-    self_q = situated_prompt(pair["preferred"], pair["other"], performed, DOSE, True)
-    obs_q = situated_prompt(pair["preferred"], pair["other"], performed, DOSE, False)
+    self_q = situated_prompt(pair["preferred"], pair["other"], performed, DOSE, True, anchor)
+    obs_q = situated_prompt(pair["preferred"], pair["other"], performed, DOSE, False, anchor)
     log = render(history)
 
     native, native_raw = ask_fraction(complete, history + [{"role": "user", "content": self_q}])
@@ -148,7 +159,7 @@ def run_one(complete, pair: dict, arm: str, replicate: int, seed: int) -> dict:
     return {
         "pair_id": pair["pair_id"], "arm": arm, "replicate": replicate,
         "preferred": pair["preferred"], "other": pair["other"],
-        "performed": performed, "dose": DOSE, "seed": seed,
+        "performed": performed, "dose": DOSE, "seed": seed, "anchor": anchor,
         "situated_self_native": native,
         "situated_self_quoted": quoted_self,
         "situated_observer_quoted": quoted_obs,
@@ -227,8 +238,14 @@ def main() -> None:
     ap.add_argument("--replicates", type=int, default=5)
     ap.add_argument("--n-pairs", type=int, default=0, help="0 = all admitted")
     ap.add_argument("--workers", type=int, default=4)
+    ap.add_argument("--no-anchor", action="store_true",
+                    help="drop the sentence naming the earlier choice; see "
+                         "NOANCHOR_PROTOCOL.md")
     ap.add_argument("--out-dir", required=True)
     a = ap.parse_args()
+    anchor = not a.no_anchor
+    seed_start = TASK_SEED_START if anchor else NOANCHOR_TASK_SEED_START
+    protocol = PROTOCOL if anchor else NOANCHOR_PROTOCOL
 
     out = pathlib.Path(a.out_dir)
     if (out / "cells.jsonl").exists():
@@ -241,11 +258,13 @@ def main() -> None:
     grid = [(p, arm, rep)
             for p, arm, rep in itertools.product(
                 pairs, ("after_preferred", "after_other"), range(a.replicates))]
-    seeds = {(p["pair_id"], arm, rep): TASK_SEED_START + i * SEEDS_PER_CELL
+    seeds = {(p["pair_id"], arm, rep): seed_start + i * SEEDS_PER_CELL
              for i, (p, arm, rep) in enumerate(grid)}
 
     frozen = {
-        "protocol_sha256": sha256(PROTOCOL),
+        "anchor": anchor,
+        "protocol_sha256": sha256(protocol),
+        "protocol": protocol.name,
         "runner_sha256": sha256(pathlib.Path(__file__)),
         "ranking_v3_forecasts_sha256": sha256(RANKING_V3 / "forecasts.jsonl"),
         "ranking_v3_summary_sha256": sha256(RANKING_V3 / "summary.json"),
@@ -253,7 +272,7 @@ def main() -> None:
                           for p in sorted(SHARED.glob("*.py"))},
         "runner_argv": sys.argv,
         "pairs": pairs,
-        "task_seed_start": TASK_SEED_START,
+        "task_seed_start": seed_start,
         "dose": DOSE,
     }
 
@@ -267,7 +286,7 @@ def main() -> None:
     rows, lock = [], threading.Lock()
 
     def work(p, arm, rep):
-        return run_one(complete, p, arm, rep, seeds[(p["pair_id"], arm, rep)])
+        return run_one(complete, p, arm, rep, seeds[(p["pair_id"], arm, rep)], anchor)
 
     with ThreadPoolExecutor(max_workers=a.workers) as pool:
         futures = [pool.submit(work, *c) for c in grid]
@@ -288,6 +307,7 @@ def main() -> None:
     summary = summarise(rows, pairs)
     summary.update({"model": a.model, "provider": "codex",
                     "agent_harness_condition": True,
+                    "anchor": anchor, "protocol": protocol.name,
                     "replicates": a.replicates,
                     "n_planned_cells": len(grid),
                     "wall_clock_s": round(time.time() - t0, 1),
@@ -311,6 +331,16 @@ def demo() -> None:
     assert s.endswith(ANSWER_LINE) and o.endswith(ANSWER_LINE)
     # The shared tail -- question and answer format -- must be identical strings.
     assert FAMILY_DESCRIPTIONS[p["preferred"]] in s and FAMILY_DESCRIPTIONS[p["other"]] in s
+
+    # --no-anchor drops exactly the earlier-choice sentence and nothing else.
+    na = situated_prompt(p["preferred"], p["other"], p["preferred"], 3, True, False)
+    assert "earlier binding decisions" in s and "earlier binding decisions" not in na
+    assert na.endswith(ANSWER_LINE)
+    # Still well-posed: the question names the task the probability is about.
+    assert f"how likely is it that you would choose {FAMILY_DESCRIPTIONS[p['preferred']]}?" in na
+    dropped = s.split("- " + FAMILY_DESCRIPTIONS[p["other"]] + "\n")[1]
+    kept = na.split("- " + FAMILY_DESCRIPTIONS[p["other"]] + "\n")[1]
+    assert dropped.split("\n\n", 1)[1] == kept.lstrip("\n"), (dropped, kept)
 
     assert parse_fraction("ANSWER: 0.9") == 0.9
     assert render([{"role": "user", "content": "q"},
