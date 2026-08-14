@@ -1,0 +1,153 @@
+{
+  "runner_argv": [
+    "run_scaled.py",
+    "--provider",
+    "codex",
+    "--model",
+    "gpt-5.6-luna",
+    "--all-families",
+    "--n-pairs",
+    "19",
+    "--pair-panel",
+    "results/ranking_v2/admission.jsonl",
+    "--workers",
+    "4",
+    "--replicates",
+    "2",
+    "--forecast-replicates",
+    "5",
+    "--doses",
+    "3",
+    "--random-seed",
+    "271828",
+    "--task-seed-start",
+    "40000",
+    "--out-dir",
+    "results/ranking_v3"
+  ],
+  "forecast_replicates": 5,
+  "outcome_replicates": 2,
+  "random_seed": 271828,
+  "task_seed_start": 40000,
+  "source_sha256": {
+    "parallel_frontier/18_preference_path_dependence/analysis.py": "ae0cf88ce870dfd22dfdaa6ffd8453d291a01810d93fdc4205190c092880bdfc",
+    "parallel_frontier/18_preference_path_dependence/design.py": "3dc9dbfb26447769dc66ba3212ceaa52e17827be9344f035ae24cfd7e0e4326b",
+    "parallel_frontier/18_preference_path_dependence/run_cell.py": "97a41dc35ae59ca6ecc3f1d235a0870975e51761be507a91eb0d26005936fb3f",
+    "parallel_frontier/18_preference_path_dependence/run_context_control.py": "74fe75ffae8e42d8ff0c032f2f2cf6e0c77c74773e6c76b99272ef7375c28254",
+    "parallel_frontier/20_preference_foresight/REPEATED_FORECAST_PROTOCOL.md": "43d5ea5e699569f25bcb9c8eb706296ffc669f6391c35e2f55e7be2cfdc78f6d",
+    "parallel_frontier/20_preference_foresight/analysis.py": "27f7b46e7850e4647b0dfbe7536051a6c14fb79afef2597f67ace16b9822d183",
+    "parallel_frontier/20_preference_foresight/design.py": "3dfcc7e56af01b4761e6ec4e5d2c8b06d6fd7705f8100960c6ec8ba9f3d935d4",
+    "parallel_frontier/20_preference_foresight/run_foresight.py": "35d4411b207ab7fcc98b78d53b3ac288311800fe0d88ccd3c92ab951260f604d",
+    "parallel_frontier/20_preference_foresight/run_scaled.py": "0825fc82e1480fb3cd788eab2d6d1406116330d494a58b1dd88c2a26fac42d7c",
+    "parallel_frontier/20_preference_foresight/test_repeated_forecasts.py": "ca9ed8f060f0c05751241d0e05c92fc7185f478d968003acef778dacf78b2099",
+    "shared_behavioral/audit_substrate.py": "2a6ef521befba5678773b205f6eee30c5a4648374599be21bb90650bfe0f4372",
+    "shared_behavioral/binding_runner.py": "5b78093773cf184f12465afe624ae7ae129f2f7360cbfd04c9b718f57316a41f",
+    "shared_behavioral/binding_tasks.py": "9a653597accecd51f5155f276f151d822c2494740f68240eb7cbf71389ed3a0d",
+    "shared_behavioral/choice_prompts.py": "cd6cac0c0050daf1df17da5963f97438000c6200fa2dfffd6fa280ede0abe2cf",
+    "shared_behavioral/cli_provider.py": "dbea95247b2bcfce0274f598a262a7c71332b8a519efefb2733525fb3a5729a5",
+    "shared_behavioral/cost_metadata.py": "b2bfbe0877091a3a825baac55e40209e208b4ef467a0d1a6529f21a7bd5547a6",
+    "shared_behavioral/elicitation.py": "226968cee8f1665d9a8761b33f35e8e0cf0973e76f9affb70897cc2f6b8e01f7",
+    "shared_behavioral/family_screen.py": "966a930fd8f0bcbbc673cfbfa66aaf8dcaffed0d1f238d88551fb9d698389228",
+    "shared_behavioral/local_provider.py": "633703d1624dedc4a98d62b3dab9295806592bcbd5634dbca2ac1ba77a3dd5d7",
+    "shared_behavioral/mock_provider.py": "935c8e9676567b5eea9e5db14c976ae351f4916b8b029a5816aacea6537462c3",
+    "shared_behavioral/openrouter_provider.py": "6afa084a2d650ab4eeeb1447cd5f4538feae2a7e2652954407f1418bb9295984",
+    "shared_behavioral/pair_screen.py": "3496efb2fbd65142bffc1dcfbbbff178e1b2e1a81d6ce8768772a689c5453c7e",
+    "shared_behavioral/run_family_screen.py": "0f88ce4212c3ab08ca4b93ff7c3992b5507d097365877b4e3128134d70aca456",
+    "shared_behavioral/test_shared_behavioral.py": "7c95a948e3473906103289987cf8d416c13696edc5ea79e820b146c0ffaf113c",
+    "parallel_frontier/20_preference_foresight/results/ranking_v2/admission.jsonl": "1a32fb2e2452209424b90ce5fd8e89d2d2d3d1796c9eb27f592d33bd9fe7d2d3"
+  },
+  "candidate_pairs": [
+    [
+      "add_ten",
+      "sort_numbers"
+    ],
+    [
+      "add_ten",
+      "sort_numbers_desc"
+    ],
+    [
+      "sort_numbers",
+      "sort_numbers_desc"
+    ],
+    [
+      "double_numbers",
+      "running_totals"
+    ],
+    [
+      "interleave_strings",
+      "reverse_string"
+    ],
+    [
+      "alphabetize",
+      "running_totals"
+    ],
+    [
+      "alphabetize",
+      "double_numbers"
+    ],
+    [
+      "add_ten",
+      "alphabetize"
+    ],
+    [
+      "alphabetize",
+      "sort_numbers"
+    ],
+    [
+      "alphabetize",
+      "sort_numbers_desc"
+    ],
+    [
+      "add_ten",
+      "running_totals"
+    ],
+    [
+      "running_totals",
+      "sort_numbers"
+    ],
+    [
+      "running_totals",
+      "sort_numbers_desc"
+    ],
+    [
+      "add_ten",
+      "double_numbers"
+    ],
+    [
+      "double_numbers",
+      "sort_numbers"
+    ],
+    [
+      "double_numbers",
+      "sort_numbers_desc"
+    ],
+    [
+      "interleave_strings",
+      "parity_sequence"
+    ],
+    [
+      "parity_sequence",
+      "reverse_string"
+    ],
+    [
+      "parity_sequence",
+      "sum_numbers"
+    ]
+  ],
+  "eligible_families": [
+    "add_ten",
+    "alphabetize",
+    "double_numbers",
+    "interleave_strings",
+    "parity_sequence",
+    "reverse_string",
+    "running_totals",
+    "sort_numbers",
+    "sort_numbers_desc",
+    "sum_numbers"
+  ],
+  "doses": [
+    3
+  ],
+  "system_prompt_sha256": "33f11814e8496204ec88b6a15e7c6de88b3581a9b77c46c5141bce6a710a2488"
+}
