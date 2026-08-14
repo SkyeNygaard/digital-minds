@@ -47,13 +47,15 @@ def sha256(path: pathlib.Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def admitted_pairs() -> list[dict]:
-    """The 8 pairs ranking_v3 admitted, with the baseline-majority family.
+def admitted_pairs(source: pathlib.Path = RANKING_V3) -> list[dict]:
+    """The pairs `source` admitted, with the baseline-majority family.
 
     Recomputed from admission rows under the same 3-of-4 rule rather than read
-    from a summary, so a mismatch with ranking_v3 surfaces here.
+    from a summary, so a mismatch with the source run surfaces here. Works
+    unchanged on any run that wrote admission.jsonl and forecasts.jsonl: 8 pairs
+    for ranking_v3, 7 for local_qwen4b_v1.
     """
-    rows = [json.loads(l) for l in (RANKING_V3 / "admission.jsonl").read_text().splitlines() if l.strip()]
+    rows = [json.loads(l) for l in (source / "admission.jsonl").read_text().splitlines() if l.strip()]
     by_pair: dict[str, list[dict]] = {}
     for r in rows:
         by_pair.setdefault(r["pair_id"], []).append(r)
@@ -74,9 +76,9 @@ def admitted_pairs() -> list[dict]:
         })
 
     expected = {json.loads(l)["pair_id"]
-                for l in (RANKING_V3 / "forecasts.jsonl").read_text().splitlines() if l.strip()}
+                for l in (source / "forecasts.jsonl").read_text().splitlines() if l.strip()}
     if {p["pair_id"] for p in admitted} != expected:
-        raise SystemExit("admitted pairs disagree with ranking_v3/forecasts.jsonl")
+        raise SystemExit(f"admitted pairs disagree with {source.name}/forecasts.jsonl")
     return sorted(admitted, key=lambda p: p["pair_id"])
 
 
@@ -176,12 +178,16 @@ def run_one(complete, pair: dict, arm: str, replicate: int, seed: int,
     }
 
 
-def summarise(rows: list[dict], pairs: list[dict]) -> dict:
-    """Mean shift per measure, against ranking_v3's prospective and realized."""
+def summarise(rows: list[dict], pairs: list[dict],
+              source: pathlib.Path = RANKING_V3) -> dict:
+    """Mean shift per measure, against the source run's prospective and realized."""
     v3 = {json.loads(l)["pair_id"]: json.loads(l)
-          for l in (RANKING_V3 / "forecasts.jsonl").read_text().splitlines() if l.strip()}
+          for l in (source / "forecasts.jsonl").read_text().splitlines() if l.strip()}
+    # Filter to this dose: local_qwen4b_v1 carries dose 1 and dose 3, and without
+    # the filter the later row silently overwrites the one we want.
     realized = {o["pair_id"]: o["realized_change"]
-                for o in json.load((RANKING_V3 / "summary.json").open())["per_observation"]}
+                for o in json.load((source / "summary.json").open())["per_observation"]
+                if o["dose"] == DOSE}
 
     measures = ("situated_self_native", "situated_self_quoted", "situated_observer_quoted")
     per_pair, shifts = [], {m: [] for m in measures}
@@ -239,7 +245,9 @@ def summarise(rows: list[dict], pairs: list[dict]) -> dict:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--model", default="gpt-5.6-luna")
+    ap.add_argument("--model", default=None,
+                    help="default: gpt-5.6-luna for codex, "
+                         "Qwen/Qwen3-4B-Instruct-2507 for local")
     ap.add_argument("--replicates", type=int, default=5)
     ap.add_argument("--n-pairs", type=int, default=0, help="0 = all admitted")
     ap.add_argument("--workers", type=int, default=4)
@@ -251,9 +259,18 @@ def main() -> None:
                          "outcome cells ran under")
     ap.add_argument("--no-system", action="store_true",
                     help="run without a system prompt, as situated_v1 did")
+    ap.add_argument("--provider", choices=("codex", "local"), default="codex")
+    ap.add_argument("--source", default=str(RANKING_V3),
+                    help="run supplying the admitted pairs and the prospective "
+                         "and realized numbers to compare against")
+    ap.add_argument("--headroom", type=float, default=1.5,
+                    help="local only; the guard's slack above its predicted peak")
     ap.add_argument("--out-dir", required=True)
     a = ap.parse_args()
     anchor = not a.no_anchor
+    source = pathlib.Path(a.source).resolve()
+    a.model = a.model or ("Qwen/Qwen3-4B-Instruct-2507"
+                          if a.provider == "local" else "gpt-5.6-luna")
     system = None if a.no_system else json.loads(
         pathlib.Path(a.screen).read_text()).get("system_prompt")
     if not a.no_system and not system:
@@ -266,9 +283,20 @@ def main() -> None:
         raise SystemExit(f"refusing to overwrite {out/'cells.jsonl'}")
     out.mkdir(parents=True, exist_ok=True)
 
-    pairs = admitted_pairs()
+    pairs = admitted_pairs(source)
     if a.n_pairs:
         pairs = pairs[:a.n_pairs]
+    if a.provider == "local":
+        # One model in one process: concurrent requests contend for the same
+        # graphics memory rather than run in parallel.
+        a.workers = 1
+        # Families are screened per model. A pair this model was never shown to
+        # be able to do would measure competence, not preference.
+        eligible = set(json.loads(pathlib.Path(a.screen).read_text())["eligible_acceptable"])
+        bad = [p["pair_id"] for p in pairs
+               if not {p["preferred"], p["other"]} <= eligible]
+        if bad:
+            raise SystemExit(f"pairs outside the screen's eligible families: {bad}")
     grid = [(p, arm, rep)
             for p, arm, rep in itertools.product(
                 pairs, ("after_preferred", "after_other"), range(a.replicates))]
@@ -294,10 +322,17 @@ def main() -> None:
     frozen["system_prompt_sha256"] = (
         hashlib.sha256(system.encode()).hexdigest() if system else None)
     frozen["screen"] = a.screen if not a.no_system else None
+    frozen["provider"] = a.provider
+    frozen["source"] = str(source.relative_to(ROOT))
 
-    import cli_provider
-    complete, close = cli_provider.load("codex", model=a.model, system=system)
-    frozen["cli_version"] = getattr(cli_provider, "CLI_VERSION", None)
+    if a.provider == "local":
+        import local_provider
+        complete, close = local_provider.load(
+            a.model, system=system, headroom_gib=a.headroom)
+    else:
+        import cli_provider
+        complete, close = cli_provider.load("codex", model=a.model, system=system)
+        frozen["cli_version"] = getattr(cli_provider, "CLI_VERSION", None)
     (out / "frozen_manifest.json").write_text(json.dumps(frozen, indent=2))
 
     print(f"{len(grid)} cells, ~{len(grid) * (DOSE + 3)} calls, {a.workers} workers", flush=True)
@@ -323,9 +358,11 @@ def main() -> None:
                     print(f"  {len(rows)}/{len(grid)}  {time.time()-t0:.0f}s", flush=True)
     close()
 
-    summary = summarise(rows, pairs)
-    summary.update({"model": a.model, "provider": "codex",
-                    "agent_harness_condition": True,
+    summary = summarise(rows, pairs, source)
+    summary.update({"model": a.model, "provider": a.provider,
+                    "agent_harness_condition": a.provider == "codex",
+                    "greedy_decoding": a.provider == "local",
+                    "source": str(source.relative_to(ROOT)),
                     "anchor": anchor, "protocol": protocol.name,
                     "system_prompt_sha256": frozen["system_prompt_sha256"],
                     "replicates": a.replicates,
@@ -340,6 +377,17 @@ def demo() -> None:
     """Offline check of the parts that can be wrong without a model."""
     pairs = admitted_pairs()
     assert len(pairs) == 8, pairs
+
+    # The same 3-of-4 rule on the local run's own screen gives its own panel.
+    qwen_src = ROOT / "parallel_frontier/20_preference_foresight/results/local_qwen4b_v1"
+    qwen = admitted_pairs(qwen_src)
+    assert len(qwen) == 7, qwen
+    eligible = set(json.loads(DEFAULT_SCREEN.read_text())["eligible_acceptable"])
+    assert all({p["preferred"], p["other"]} <= eligible for p in qwen), qwen
+    # dose filtering: that run carries dose 1 and dose 3 for every pair.
+    obs = json.load((qwen_src / "summary.json").open())["per_observation"]
+    assert len({o["pair_id"] for o in obs}) < len(obs), "expected repeated pair_ids"
+    assert len([o for o in obs if o["dose"] == DOSE]) == 7
     assert all(p["preferred"] != p["other"] for p in pairs)
     assert all(p["preferred"] in p["pair_id"] and p["other"] in p["pair_id"] for p in pairs)
 
