@@ -26,6 +26,7 @@ PRIMARY = ROOT / "parallel_frontier/20_preference_foresight/results/ranking_v3/s
 QWEN = ROOT / "parallel_frontier/20_preference_foresight/results/local_qwen4b_v1/summary.json"
 CONTROL = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/self_vs_observer_v1/summary.json"
 SITUATED = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/situated_v1/summary.json"
+NOANCHOR = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/situated_noanchor_v1/summary.json"
 CTX_LUNA = ROOT / "parallel_frontier/18_preference_path_dependence/results/ctx_scaled_v1/summary.json"
 CTX_QWEN = ROOT / "parallel_frontier/18_preference_path_dependence/results/ctx_local_qwen_v1/summary.json"
 VERIFY = ROOT / "parallel_frontier/20_preference_foresight/results/ranking_v3/verification.json"
@@ -264,6 +265,7 @@ def build() -> Path:
     qwen = read_json(QWEN)
     control = read_json(CONTROL)
     situated = read_json(SITUATED)
+    noanchor = read_json(NOANCHOR)
     ctx_luna = read_json(CTX_LUNA)
     ctx_qwen = read_json(CTX_QWEN)
     verification = read_json(VERIFY)
@@ -549,6 +551,24 @@ def build() -> Path:
             "and to land nearer the truth. It did neither. Treatment work was fully "
             f"correct in {situated['treatment_all_correct']:.1%} of cells, below the "
             "95% target, as in the main run.", st["small"]),
+        paragraph(
+            "Every forecast prompt here carries one sentence the binding choice does "
+            "not: <i>in earlier binding decisions you chose X</i>. The forecast is "
+            "therefore asked under a pull toward consistency that is absent when the "
+            "behaviour is measured, and the situated replies name that sentence as "
+            "their reason. We deleted it and changed nothing else, in another "
+            f"{noanchor['n_cells']} sessions. The situated forecast moved from "
+            f"{situated['situated_self_native_mean_change']:+.3f} to "
+            f"{noanchor['situated_self_native_mean_change']:+.3f} against a realized "
+            f"{situated['realized_mean_change']:+.3f} -- about a fifth of the gap, and "
+            "not the rest. Seven of eight pairs still underestimate.", st["body"]),
+        paragraph(
+            "The mechanism is not the predicted one. Removing the sentence lowered "
+            "both answers rather than correcting the comparison: the "
+            "after-alternative estimate fell toward the truth and the after-preferred "
+            "estimate fell away from it. It raises confidence in the named task "
+            "generally rather than distorting the causal question specifically.",
+            st["small"]),
         paragraph("How the work is represented matters", st["h2"]),
         context_table(ctx_luna, ctx_qwen, st),
         Spacer(1, 0.08 * inch),

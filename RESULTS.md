@@ -166,6 +166,42 @@ from an explicit answer line. Treatment work was fully correct in 74 of 80 cells
 
 Artifact: `parallel_frontier/16_self_prediction_behavioral/results/situated_v1/`.
 
+### Reminding it what it chose before explains about a fifth of this
+
+Every forecast prompt in this project contains one sentence the binding choice
+does not: "in earlier binding decisions you chose X". So the forecast is asked
+under a pull toward consistency that is absent when the behaviour is measured,
+and the situated replies name that sentence as their reason. If it were doing
+the work, the gap would be an artifact of asking the question differently from
+how the behaviour was measured.
+
+We deleted the sentence and changed nothing else. Another 80 sessions.
+
+| | After the preferred task | After the alternative task | Shift |
+|---|---:|---:|---:|
+| With the reminder | 0.937 | 0.714 | +0.223 |
+| Without it | 0.777 | 0.418 | +0.359 |
+| What actually happened | 0.969 | 0.078 | +0.891 |
+
+The reminder accounts for about a fifth of the situated gap. Four-fifths of it
+survives, and seven of eight pairs still underestimate.
+
+The mechanism is not what we predicted. Removing the reminder lowered both
+answers rather than correcting the comparison: the after-alternative estimate
+fell toward the truth, and the after-preferred estimate fell away from it. The
+sentence appears to raise confidence in the named task generally, rather than
+distorting the causal question specifically. Its effect on the measured
+difference is therefore smaller than its effect on either number alone.
+
+This was run because the objection is specific and obvious, and a judge would be
+right to raise it. It is a real effect and it is not the explanation.
+
+Diagnostics: 80 of 80 cells, balanced 40/40, treatment work fully correct in
+97.5% of cells, above the target this time.
+
+Artifact:
+`parallel_frontier/16_self_prediction_behavioral/results/situated_noanchor_v1/`.
+
 ## Robustness and checks
 
 The saved plan and recorded data match exactly. All 80 forecast samples and all
@@ -286,14 +322,11 @@ history exists. It makes no claim of privileged self-access.
 - Task pairs share families, so pair observations are dependent.
 - The +0.90 benchmark overlaps the task set.
 - The forecast question names the earlier choice ("in earlier binding decisions
-  you chose X"); the binding choice itself does not. The forecast is therefore
-  asked under a pull toward consistency that is absent when the behaviour is
-  measured, and some of the gap may be that asymmetry rather than a failure of
-  self-knowledge. The finding that a stated forecast is a poor guide to the
-  behaviour does not depend on which it is; the interpretation does. Asking the
-  same question without naming the earlier choice would separate them and has
-  not been run. The situated replies frequently give the earlier choice as their
-  reason, so this is a live concern, not a hypothetical one.
+  you chose X"); the binding choice itself does not. Deleting that sentence
+  moves the situated forecast from +0.223 to +0.359 against a realized +0.891,
+  so it accounts for roughly a fifth of the gap and not the rest. Measured, not
+  assumed; the two runs were collected at different times in an unseeded
+  harness.
 - The situated cells use fresh task items, so they share the design of the
   outcome cells but not their exact draws.
 - Supporting controls have less complete provenance.
