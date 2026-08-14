@@ -26,6 +26,11 @@ from choice_prompts import FAMILY_DESCRIPTIONS                  # noqa: E402
 from elicitation import parse_fraction                          # noqa: E402
 
 RANKING_V3 = ROOT / "parallel_frontier/20_preference_foresight/results/ranking_v3"
+# ranking_v3's outcome cells ran under this screen's system prompt. situated_v1
+# and situated_noanchor_v1 were collected before this was wired up and ran
+# without it; see RESULTS.md. Passing it is what makes "the same way the outcome
+# cells did it" true rather than nearly true.
+DEFAULT_SCREEN = ROOT / "shared_behavioral/results/family_screen_qwen3-4b_v2.json"
 PROTOCOL = HERE / "SITUATED_FORECAST_PROTOCOL.md"
 NOANCHOR_PROTOCOL = HERE / "NOANCHOR_PROTOCOL.md"
 DOSE = 3
@@ -241,9 +246,18 @@ def main() -> None:
     ap.add_argument("--no-anchor", action="store_true",
                     help="drop the sentence naming the earlier choice; see "
                          "NOANCHOR_PROTOCOL.md")
+    ap.add_argument("--screen", default=str(DEFAULT_SCREEN),
+                    help="competence screen supplying the system prompt the "
+                         "outcome cells ran under")
+    ap.add_argument("--no-system", action="store_true",
+                    help="run without a system prompt, as situated_v1 did")
     ap.add_argument("--out-dir", required=True)
     a = ap.parse_args()
     anchor = not a.no_anchor
+    system = None if a.no_system else json.loads(
+        pathlib.Path(a.screen).read_text()).get("system_prompt")
+    if not a.no_system and not system:
+        raise SystemExit(f"no system_prompt in {a.screen}")
     seed_start = TASK_SEED_START if anchor else NOANCHOR_TASK_SEED_START
     protocol = PROTOCOL if anchor else NOANCHOR_PROTOCOL
 
@@ -276,8 +290,13 @@ def main() -> None:
         "dose": DOSE,
     }
 
+    frozen["system_prompt"] = system
+    frozen["system_prompt_sha256"] = (
+        hashlib.sha256(system.encode()).hexdigest() if system else None)
+    frozen["screen"] = a.screen if not a.no_system else None
+
     import cli_provider
-    complete, close = cli_provider.load("codex", model=a.model)
+    complete, close = cli_provider.load("codex", model=a.model, system=system)
     frozen["cli_version"] = getattr(cli_provider, "CLI_VERSION", None)
     (out / "frozen_manifest.json").write_text(json.dumps(frozen, indent=2))
 
@@ -308,6 +327,7 @@ def main() -> None:
     summary.update({"model": a.model, "provider": "codex",
                     "agent_harness_condition": True,
                     "anchor": anchor, "protocol": protocol.name,
+                    "system_prompt_sha256": frozen["system_prompt_sha256"],
                     "replicates": a.replicates,
                     "n_planned_cells": len(grid),
                     "wall_clock_s": round(time.time() - t0, 1),
