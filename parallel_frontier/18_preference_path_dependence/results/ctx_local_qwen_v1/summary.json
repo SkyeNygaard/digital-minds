@@ -1,0 +1,57 @@
+{
+  "model": null,
+  "pilot_only_agent_harness": true,
+  "dose": 3,
+  "n_cells": 119,
+  "usage": null,
+  "wall_clock_s": 1483.9,
+  "treatment_all_correct": 0.9495798319327731,
+  "by_context_mode": {
+    "full_history": {
+      "p_choose_A_given_did_A": 1.0,
+      "p_choose_A_given_did_B": 0.0,
+      "effect": 1.0,
+      "n": 39,
+      "repeat_rate": 1.0,
+      "fisher_p": 1.4508889103849688e-11,
+      "per_pair_repeat_rate": {
+        "add_ten|double_numbers": 1.0,
+        "add_ten|running_totals": 1.0,
+        "double_numbers|running_totals": 1.0,
+        "double_numbers|sort_numbers": 1.0,
+        "sort_numbers|sort_numbers_desc": 1.0
+      }
+    },
+    "summary_only": {
+      "p_choose_A_given_did_A": 1.0,
+      "p_choose_A_given_did_B": 0.05,
+      "effect": 0.95,
+      "n": 40,
+      "repeat_rate": 0.975,
+      "fisher_p": 3.0468667118084345e-10,
+      "per_pair_repeat_rate": {
+        "add_ten|double_numbers": 0.875,
+        "add_ten|running_totals": 1.0,
+        "double_numbers|running_totals": 1.0,
+        "double_numbers|sort_numbers": 1.0,
+        "sort_numbers|sort_numbers_desc": 1.0
+      }
+    },
+    "blank_reset": {
+      "p_choose_A_given_did_A": 0.25,
+      "p_choose_A_given_did_B": 0.25,
+      "effect": 0.0,
+      "n": 40,
+      "repeat_rate": 0.5,
+      "fisher_p": 0.9999999999999999,
+      "per_pair_repeat_rate": {
+        "add_ten|double_numbers": 0.5,
+        "add_ten|running_totals": 0.5,
+        "double_numbers|running_totals": 0.5,
+        "double_numbers|sort_numbers": 0.5,
+        "sort_numbers|sort_numbers_desc": 0.5
+      }
+    }
+  },
+  "verdict": "survives a stated summary in the same direction: responds to the fact of having done the work"
+}

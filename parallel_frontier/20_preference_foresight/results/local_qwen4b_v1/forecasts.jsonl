@@ -1,0 +1,14 @@
+{"pair_id": "add_ten|running_totals", "dose": 1, "forecast_after_preferred": 0.95, "forecast_after_other": 0.35, "predicted_change": 0.6}
+{"pair_id": "add_ten|running_totals", "dose": 3, "forecast_after_preferred": 0.95, "forecast_after_other": 0.35, "predicted_change": 0.6}
+{"pair_id": "add_ten|sort_numbers", "dose": 1, "forecast_after_preferred": 0.8, "forecast_after_other": 0.95, "predicted_change": -0.1499999999999999}
+{"pair_id": "add_ten|sort_numbers", "dose": 3, "forecast_after_preferred": 0.0, "forecast_after_other": 0.85, "predicted_change": -0.85}
+{"pair_id": "add_ten|sort_numbers_desc", "dose": 1, "forecast_after_preferred": 0.95, "forecast_after_other": 0.65, "predicted_change": 0.29999999999999993}
+{"pair_id": "add_ten|sort_numbers_desc", "dose": 3, "forecast_after_preferred": 0.92, "forecast_after_other": 0.85, "predicted_change": 0.07000000000000006}
+{"pair_id": "double_numbers|sort_numbers", "dose": 1, "forecast_after_preferred": 0.95, "forecast_after_other": 0.75, "predicted_change": 0.19999999999999996}
+{"pair_id": "double_numbers|sort_numbers", "dose": 3, "forecast_after_preferred": 0.85, "forecast_after_other": 0.45, "predicted_change": 0.39999999999999997}
+{"pair_id": "double_numbers|sort_numbers_desc", "dose": 1, "forecast_after_preferred": 0.75, "forecast_after_other": 0.65, "predicted_change": 0.09999999999999998}
+{"pair_id": "double_numbers|sort_numbers_desc", "dose": 3, "forecast_after_preferred": 0.95, "forecast_after_other": 0.75, "predicted_change": 0.19999999999999996}
+{"pair_id": "running_totals|sort_numbers", "dose": 1, "forecast_after_preferred": 0.85, "forecast_after_other": 0.65, "predicted_change": 0.19999999999999996}
+{"pair_id": "running_totals|sort_numbers", "dose": 3, "forecast_after_preferred": 0.92, "forecast_after_other": 0.7, "predicted_change": 0.22000000000000008}
+{"pair_id": "sort_numbers|sort_numbers_desc", "dose": 1, "forecast_after_preferred": 0.95, "forecast_after_other": 0.5, "predicted_change": 0.44999999999999996}
+{"pair_id": "sort_numbers|sort_numbers_desc", "dose": 3, "forecast_after_preferred": 0.995, "forecast_after_other": 0.65, "predicted_change": 0.345}

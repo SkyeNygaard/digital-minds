@@ -1,0 +1,129 @@
+{
+  "headline": {
+    "n_observations": 10,
+    "mean_realized_change": 1.0,
+    "mean_predicted_change": 0.15850000000000003,
+    "mean_error": -0.8414999999999999,
+    "realized_varies": false,
+    "sign_agreement": 0.8,
+    "realized_by_dose": {
+      "1": 1.0,
+      "3": 1.0
+    },
+    "predicted_by_dose": {
+      "1": 0.19999999999999998,
+      "3": 0.14071428571428574
+    },
+    "model_forecast_mse": 0.8599824999999999,
+    "constant_guess_mse": 0.0
+  },
+  "per_observation": [
+    {
+      "pair_id": "add_ten|running_totals",
+      "dose": 3,
+      "forecast_after_preferred": 0.95,
+      "forecast_after_other": 0.35,
+      "predicted_change": 0.6,
+      "realized_change": 1.0,
+      "n_cells": 8,
+      "error": -0.4
+    },
+    {
+      "pair_id": "add_ten|sort_numbers",
+      "dose": 1,
+      "forecast_after_preferred": 0.8,
+      "forecast_after_other": 0.95,
+      "predicted_change": -0.1499999999999999,
+      "realized_change": 1.0,
+      "n_cells": 7,
+      "error": -1.15
+    },
+    {
+      "pair_id": "add_ten|sort_numbers",
+      "dose": 3,
+      "forecast_after_preferred": 0.0,
+      "forecast_after_other": 0.85,
+      "predicted_change": -0.85,
+      "realized_change": 1.0,
+      "n_cells": 8,
+      "error": -1.85
+    },
+    {
+      "pair_id": "add_ten|sort_numbers_desc",
+      "dose": 1,
+      "forecast_after_preferred": 0.95,
+      "forecast_after_other": 0.65,
+      "predicted_change": 0.29999999999999993,
+      "realized_change": 1.0,
+      "n_cells": 6,
+      "error": -0.7000000000000001
+    },
+    {
+      "pair_id": "add_ten|sort_numbers_desc",
+      "dose": 3,
+      "forecast_after_preferred": 0.92,
+      "forecast_after_other": 0.85,
+      "predicted_change": 0.07000000000000006,
+      "realized_change": 1.0,
+      "n_cells": 8,
+      "error": -0.9299999999999999
+    },
+    {
+      "pair_id": "double_numbers|sort_numbers",
+      "dose": 3,
+      "forecast_after_preferred": 0.85,
+      "forecast_after_other": 0.45,
+      "predicted_change": 0.39999999999999997,
+      "realized_change": 1.0,
+      "n_cells": 7,
+      "error": -0.6000000000000001
+    },
+    {
+      "pair_id": "double_numbers|sort_numbers_desc",
+      "dose": 3,
+      "forecast_after_preferred": 0.95,
+      "forecast_after_other": 0.75,
+      "predicted_change": 0.19999999999999996,
+      "realized_change": 1.0,
+      "n_cells": 8,
+      "error": -0.8
+    },
+    {
+      "pair_id": "running_totals|sort_numbers",
+      "dose": 3,
+      "forecast_after_preferred": 0.92,
+      "forecast_after_other": 0.7,
+      "predicted_change": 0.22000000000000008,
+      "realized_change": 1.0,
+      "n_cells": 8,
+      "error": -0.7799999999999999
+    },
+    {
+      "pair_id": "sort_numbers|sort_numbers_desc",
+      "dose": 1,
+      "forecast_after_preferred": 0.95,
+      "forecast_after_other": 0.5,
+      "predicted_change": 0.44999999999999996,
+      "realized_change": 1.0,
+      "n_cells": 7,
+      "error": -0.55
+    },
+    {
+      "pair_id": "sort_numbers|sort_numbers_desc",
+      "dose": 3,
+      "forecast_after_preferred": 0.995,
+      "forecast_after_other": 0.65,
+      "predicted_change": 0.345,
+      "realized_change": 1.0,
+      "n_cells": 8,
+      "error": -0.655
+    }
+  ],
+  "model": "Qwen/Qwen3-4B-Instruct-2507",
+  "provider": "local",
+  "pilot_only_agent_harness": false,
+  "greedy_decoding": true,
+  "cells_recorded": 92,
+  "cells_attempted": 112,
+  "note": "20 cells lost: the model answered the choice and then did the task in the same reply, so the answer extractor rejected it. Arm balance among survivors 47/45."
+}

@@ -1,0 +1,2 @@
+{"pair_id":"add_ten|sort_numbers","branch":"default","required_agreement":3,"preferred":"A","agreement":3,"stability":0.75,"task_correct":1.0,"admitted":true,"reason":"pass"}
+{"pair_id":"add_ten|sort_numbers_desc","branch":"default","required_agreement":3,"preferred":"B","agreement":3,"stability":0.75,"task_correct":1.0,"admitted":true,"reason":"pass"}

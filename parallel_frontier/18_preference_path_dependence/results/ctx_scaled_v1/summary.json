@@ -1,0 +1,63 @@
+{
+  "model": "gpt-5.6-luna",
+  "pilot_only_agent_harness": true,
+  "dose": 3,
+  "n_cells": 240,
+  "usage": {
+    "n": 1200,
+    "failures": 0,
+    "harness": "codex",
+    "pilot_only": true
+  },
+  "wall_clock_s": 1228.0,
+  "treatment_all_correct": 1.0,
+  "by_context_mode": {
+    "full_history": {
+      "p_choose_A_given_did_A": 0.9,
+      "p_choose_A_given_did_B": 0.175,
+      "effect": 0.7250000000000001,
+      "n": 80,
+      "repeat_rate": 0.8625,
+      "fisher_p": 4.048578232343557e-11,
+      "per_pair_repeat_rate": {
+        "add_ten|double_numbers": 0.9375,
+        "add_ten|running_totals": 0.8125,
+        "double_numbers|running_totals": 0.875,
+        "double_numbers|sort_numbers": 0.6875,
+        "sort_numbers|sort_numbers_desc": 1.0
+      }
+    },
+    "summary_only": {
+      "p_choose_A_given_did_A": 0.3,
+      "p_choose_A_given_did_B": 0.75,
+      "effect": -0.45,
+      "n": 80,
+      "repeat_rate": 0.275,
+      "fisher_p": 0.00011168092409191843,
+      "per_pair_repeat_rate": {
+        "add_ten|double_numbers": 0.1875,
+        "add_ten|running_totals": 0.4375,
+        "double_numbers|running_totals": 0.125,
+        "double_numbers|sort_numbers": 0.1875,
+        "sort_numbers|sort_numbers_desc": 0.4375
+      }
+    },
+    "blank_reset": {
+      "p_choose_A_given_did_A": 0.55,
+      "p_choose_A_given_did_B": 0.575,
+      "effect": -0.02499999999999991,
+      "n": 80,
+      "repeat_rate": 0.4875,
+      "fisher_p": 1.0,
+      "per_pair_repeat_rate": {
+        "add_ten|double_numbers": 0.5,
+        "add_ten|running_totals": 0.4375,
+        "double_numbers|running_totals": 0.5,
+        "double_numbers|sort_numbers": 0.5,
+        "sort_numbers|sort_numbers_desc": 0.5
+      }
+    }
+  },
+  "verdict": "REVERSAL: shown the work it repeats, told about the same work it avoids. Self-report and situated behaviour come apart.",
+  "superseded_verdict_note": "an earlier rule tested only significance, not sign, and reported the reversal as agreement"
+}

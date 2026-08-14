@@ -1,0 +1,27 @@
+{
+  "model": "Qwen/Qwen3-4B-Instruct-2507",
+  "layer": 22,
+  "n_random": 2000,
+  "cosine_welfare_with_valence": 0.011496555991470814,
+  "worded": {
+    "welfare_pairs_positive": 16,
+    "welfare_mean_delta": 0.565475850366056,
+    "valence_pairs_positive": 16,
+    "valence_mean_delta": 2.2132037580013275,
+    "random_mean_pairs_positive": 7.977499961853027,
+    "random_p95_pairs_positive": 16,
+    "random_max_pairs_positive": 16,
+    "p_vs_random": 0.15092453360557556
+  },
+  "lexical": {
+    "welfare_pairs_positive": 16,
+    "welfare_mean_delta": 0.21022282843478024,
+    "valence_pairs_positive": 14,
+    "valence_mean_delta": 0.7652428498258814,
+    "random_mean_pairs_positive": 7.928999900817871,
+    "random_p95_pairs_positive": 15,
+    "random_max_pairs_positive": 16,
+    "p_vs_random": 0.045477259904146194
+  },
+  "verdict": "not specific: a plain good-bad direction does about as well, so this is 'something went right', not 'right given my goal'"
+}

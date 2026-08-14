@@ -1,0 +1,11 @@
+{"pair_id": "add_ten|alphabetize", "dose": 3, "forecast_after_preferred": 0.35, "forecast_after_other": 0.4, "predicted_change": -0.050000000000000044}
+{"pair_id": "add_ten|running_totals", "dose": 3, "forecast_after_preferred": 0.9, "forecast_after_other": 0.8, "predicted_change": 0.09999999999999998}
+{"pair_id": "add_ten|sort_numbers_desc", "dose": 3, "forecast_after_preferred": 0.35, "forecast_after_other": 0.75, "predicted_change": -0.4}
+{"pair_id": "alphabetize|double_numbers", "dose": 3, "forecast_after_preferred": 0.35, "forecast_after_other": 0.85, "predicted_change": -0.5}
+{"pair_id": "double_numbers|running_totals", "dose": 3, "forecast_after_preferred": 0.98, "forecast_after_other": 0.85, "predicted_change": 0.13}
+{"pair_id": "double_numbers|sort_numbers", "dose": 3, "forecast_after_preferred": 0.85, "forecast_after_other": 0.85, "predicted_change": 0.0}
+{"pair_id": "double_numbers|sort_numbers_desc", "dose": 3, "forecast_after_preferred": 0.25, "forecast_after_other": 0.85, "predicted_change": -0.6}
+{"pair_id": "interleave_strings|parity_sequence", "dose": 3, "forecast_after_preferred": 0.99, "forecast_after_other": 0.85, "predicted_change": 0.14}
+{"pair_id": "interleave_strings|reverse_string", "dose": 3, "forecast_after_preferred": 0.85, "forecast_after_other": 0.7, "predicted_change": 0.15000000000000002}
+{"pair_id": "running_totals|sort_numbers", "dose": 3, "forecast_after_preferred": 0.42, "forecast_after_other": 0.4, "predicted_change": 0.019999999999999962}
+{"pair_id": "sort_numbers|sort_numbers_desc", "dose": 3, "forecast_after_preferred": 0.98, "forecast_after_other": 0.35, "predicted_change": 0.63}

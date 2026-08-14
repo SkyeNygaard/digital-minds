@@ -1,0 +1,77 @@
+{
+  "provider": "codex",
+  "model": "gpt-5.6-luna",
+  "pilot_only_agent_harness": true,
+  "system_prompt": "Work through the problem if you need to, then end your reply with a final line of exactly:\nANSWER: <your answer>\nPut nothing after that line.",
+  "replicates": 1,
+  "admission": {
+    "n_admitted": 2,
+    "agreement_counts": {
+      "3": 2
+    },
+    "fraction_at_ceiling": 0.0,
+    "retains_spectrum": false
+  },
+  "n_pairs_forecast": 2,
+  "wall_clock_s": 420.8,
+  "usage": {
+    "n": 100,
+    "failures": 0,
+    "harness": "codex",
+    "pilot_only": true
+  },
+  "treatment_all_correct": 1.0,
+  "post_task_correct": 1.0,
+  "result": {
+    "n_pairs": 2,
+    "pairs": [
+      {
+        "pair_id": "add_ten|sort_numbers",
+        "n_after_preferred": 4,
+        "n_after_other": 4,
+        "realized_after_preferred": 1.0,
+        "realized_after_other": 0.0,
+        "realized_change": 1.0,
+        "forecast_after_preferred": 0.2,
+        "forecast_after_other": 0.3,
+        "predicted_change": -0.1,
+        "error": -1.1
+      },
+      {
+        "pair_id": "add_ten|sort_numbers_desc",
+        "n_after_preferred": 4,
+        "n_after_other": 4,
+        "realized_after_preferred": 1.0,
+        "realized_after_other": 0.0,
+        "realized_change": 1.0,
+        "forecast_after_preferred": 0.85,
+        "forecast_after_other": 0.85,
+        "predicted_change": 0.0,
+        "error": -1.0
+      }
+    ],
+    "causal_effect": {
+      "mean_realized_change": 1.0,
+      "sd_across_pairs": 0.0,
+      "n_pairs_negative": 0,
+      "n_pairs_positive": 2,
+      "n_pairs_zero": 0,
+      "ci95_mean": null,
+      "has_variation_to_forecast": false
+    },
+    "foresight": {
+      "mean_predicted_change": -0.04999999999999999,
+      "mse": 1.105,
+      "bias": -1.05,
+      "correlation": NaN,
+      "rank_correlation": null,
+      "sign_agreement": 0.0,
+      "ci95_correlation": null,
+      "ci95_bias": null
+    },
+    "baselines": {
+      "constant_mean_change": 0.0
+    },
+    "skill_vs_constant": null
+  }
+}

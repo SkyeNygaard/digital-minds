@@ -1,0 +1,54 @@
+{
+  "model": "gpt-5.6-luna",
+  "pilot_only_agent_harness": true,
+  "dose": 3,
+  "n_cells": 48,
+  "usage": {
+    "n": 240,
+    "failures": 0,
+    "harness": "codex",
+    "pilot_only": true
+  },
+  "wall_clock_s": 867.8,
+  "treatment_all_correct": 1.0,
+  "by_context_mode": {
+    "full_history": {
+      "p_choose_A_given_did_A": 1.0,
+      "p_choose_A_given_did_B": 0.25,
+      "effect": 0.75,
+      "n": 16,
+      "repeat_rate": 0.875,
+      "fisher_p": 0.006993006993006993,
+      "per_pair_repeat_rate": {
+        "add_ten|sort_numbers": 1.0,
+        "add_ten|sort_numbers_desc": 0.75
+      }
+    },
+    "summary_only": {
+      "p_choose_A_given_did_A": 0.75,
+      "p_choose_A_given_did_B": 0.375,
+      "effect": 0.375,
+      "n": 16,
+      "repeat_rate": 0.6875,
+      "fisher_p": 0.3146853146853147,
+      "per_pair_repeat_rate": {
+        "add_ten|sort_numbers": 0.5,
+        "add_ten|sort_numbers_desc": 0.875
+      }
+    },
+    "blank_reset": {
+      "p_choose_A_given_did_A": 0.5,
+      "p_choose_A_given_did_B": 0.625,
+      "effect": -0.125,
+      "n": 16,
+      "repeat_rate": 0.4375,
+      "fisher_p": 1.0,
+      "per_pair_repeat_rate": {
+        "add_ten|sort_numbers": 0.25,
+        "add_ten|sort_numbers_desc": 0.625
+      }
+    }
+  },
+  "verdict": "requires the transcript. A stated summary of the same work does not reproduce it, so this is closer to continuation of a visible pattern than to a preference the model carries",
+  "superseded_verdict_note": "the first verdict fired on an exact 0.5x tie with no significance test"
+}

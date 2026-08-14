@@ -1,0 +1,18 @@
+{
+  "model": "gpt-5.6-luna",
+  "n_cells": 40,
+  "dose": 3,
+  "self_accuracy": 0.95,
+  "observer_accuracy": 0.975,
+  "difference": -0.025000000000000022,
+  "discordant_self_only": 0,
+  "discordant_observer_only": 1,
+  "mcnemar_p": 1.0,
+  "actual_repeat_rate": 0.975,
+  "self_predicted_repeat_rate": 0.975,
+  "observer_predicted_repeat_rate": 1.0,
+  "always_repeat_baseline_accuracy": 0.975,
+  "treatment_all_correct": 1.0,
+  "verdict": "UNINFORMATIVE: behaviour is 97.5% predictable from the transcript by anyone, so neither predictor has room to show privileged access. Note this is itself the point: shown the record, prediction is easy; the branch-20 failure is about anticipating the situation, not reading it.",
+  "superseded_verdict_note": "the first verdict read a ceiling as 'no privileged access'"
+}
