@@ -11,7 +11,9 @@ Asked in advance how much doing a task three times would move its next free
 choice, the system answered "somewhat". The real answer was "almost
 completely". The miss was not noise: all eight task pairs missed the same way,
 and a one-line rule that ignores what the system says about itself makes about
-one-sixteenth of its squared error. Methods that rely on a model's own forecast
+one-sixteenth of its squared error. Part of that miss is the way we asked — see
+finding 5 — but only about two fifths of it, and all eight pairs still
+underestimate once that part is removed. Methods that rely on a model's own forecast
 of its future choices should not assume that forecast is calibrated to the
 behaviour.
 
@@ -42,9 +44,11 @@ the treatment contrast, not evidence of a stable underlying preference.
    zero, sign unstable between collections. This tests framing, not privileged
    access — both conditions ask Luna. Qwen shows a 0.130 gap, near a ceiling and
    collected once, so we report it without leaning on it.
-5. **The obvious methodological objection does not explain it.** Removing the
-   sentence that reminds the system what it chose before moves the estimate from
-   +0.25 to +0.31, against a truth of +0.89. The bulk of the gap remains.
+5. **The obvious methodological objection explains about two fifths of it.** The
+   forecast prompt names the earlier choice; the binding choice does not. Delete
+   that sentence and the cold forecast rises from +0.29 to +0.52 against a truth
+   of +0.89. All eight pairs still underestimate and a −0.37 gap remains, but a
+   meaningful part of the headline number is the way the question was asked.
 
 ## Question
 
@@ -356,6 +360,37 @@ Diagnostics: 80 of 80 cells, balanced 40/40, treatment work fully correct in
 
 Artifact:
 `parallel_frontier/16_self_prediction_behavioral/results/situated_sys_noanchor_v1/`.
+
+### In the prospective condition, the reminder matters much more
+
+The check above removes the sentence where the work is already present. That is
+not where the headline number comes from. Repeating it prospectively, on the same
+eight pairs, five sessions per arm, one sentence deleted and nothing else:
+
+| Forecast | Value | Distance from +0.891 |
+|---|---:|---:|
+| As asked in the confirmation | +0.290 | −0.600 |
+| **With the reminder deleted** | **+0.524** | **−0.367** |
+
+The sentence is worth +0.234 of the +0.600 gap — about two fifths, with a 95%
+interval of +0.013 to +0.454 and seven of eight pairs moving toward the truth.
+That is four times its effect in the situated condition, and unlike that one it
+is distinguishable from zero.
+
+We expected the opposite. The protocol said there was "no reason to expect the
+prospective version to move much more" than the situated +0.060. It moved four
+times as much. A plausible reading is that when the work is actually present the
+concrete evidence crowds the reminder out, and when the situation is only
+hypothetical the reminder is most of what there is to reason from — but that is a
+story fitted after the fact, not a tested claim.
+
+What survives: all eight pairs still underestimate without the sentence, and the
+residual −0.367 is still large. The phenomenon is real and smaller than the
+headline number implies. Anyone quoting +0.290 against +0.891 should quote
++0.524 against +0.891 alongside it.
+
+Artifact:
+`parallel_frontier/16_self_prediction_behavioral/results/prospective_noanchor_v1/`.
 An earlier collection without the system prompt is kept in
 `situated_noanchor_v1/`; there the reminder was worth +0.136 rather than +0.060,
 so this check is the one place where the system prompt changed a reported
@@ -509,12 +544,14 @@ history exists. It makes no claim of privileged self-access.
 - Task pairs share families, so pair observations are dependent.
 - The +0.90 benchmark overlaps the task set.
 - The forecast question names the earlier choice ("in earlier binding decisions
-  you chose X"); the binding choice itself does not. Deleting that sentence
-  moves the situated forecast from +0.247 to +0.307 against a realized +0.891,
-  so the bulk of the gap survives without it. The two collections used different
-  task seeds and different unseeded sessions, so this is a robustness comparison
-  rather than a clean ablation of that one sentence. The prospective condition,
-  where the headline number comes from, has not been tested this way.
+  you chose X"); the binding choice itself does not. This matters more than we
+  first found. Deleting it moves the situated forecast +0.060, but the
+  prospective forecast — where the headline comes from — by +0.234, from +0.290
+  to +0.524 against a realized +0.891. So roughly two fifths of the headline gap
+  is the way the question was asked. All eight pairs still underestimate without
+  it and −0.367 remains. Both figures compare unseeded collections made at
+  different times, so they bound the sentence's contribution rather than
+  measuring it exactly.
 - The situated cells use fresh task items, so they share the design of the
   outcome cells but not their exact draws.
 - In the two quoted-log conditions the transcript is flattened with the model's

@@ -1,0 +1,78 @@
+{
+  "n_cells": 80,
+  "n_pairs": 8,
+  "dose": 3,
+  "per_pair": [
+    {
+      "pair_id": "add_ten|double_numbers",
+      "no_anchor_forecast": 0.6599999999999999,
+      "anchored_forecast": 0.256,
+      "realized": 0.875,
+      "moved_toward_truth": true
+    },
+    {
+      "pair_id": "add_ten|sort_numbers",
+      "no_anchor_forecast": 0.5800000000000001,
+      "anchored_forecast": -0.06999999999999995,
+      "realized": 0.875,
+      "moved_toward_truth": true
+    },
+    {
+      "pair_id": "alphabetize|double_numbers",
+      "no_anchor_forecast": 0.56,
+      "anchored_forecast": 0.19999999999999996,
+      "realized": 1.0,
+      "moved_toward_truth": true
+    },
+    {
+      "pair_id": "alphabetize|sort_numbers",
+      "no_anchor_forecast": 0.26,
+      "anchored_forecast": 0.49000000000000005,
+      "realized": 1.0,
+      "moved_toward_truth": false
+    },
+    {
+      "pair_id": "alphabetize|sort_numbers_desc",
+      "no_anchor_forecast": 0.49000000000000005,
+      "anchored_forecast": 0.16600000000000004,
+      "realized": 1.0,
+      "moved_toward_truth": true
+    },
+    {
+      "pair_id": "double_numbers|running_totals",
+      "no_anchor_forecast": 0.72,
+      "anchored_forecast": 0.5499999999999999,
+      "realized": 0.875,
+      "moved_toward_truth": true
+    },
+    {
+      "pair_id": "interleave_strings|reverse_string",
+      "no_anchor_forecast": 0.34,
+      "anchored_forecast": 0.28400000000000003,
+      "realized": 0.625,
+      "moved_toward_truth": true
+    },
+    {
+      "pair_id": "sort_numbers|sort_numbers_desc",
+      "no_anchor_forecast": 0.58,
+      "anchored_forecast": 0.44599999999999995,
+      "realized": 0.875,
+      "moved_toward_truth": true
+    }
+  ],
+  "no_anchor_mean_forecast": 0.52375,
+  "anchored_mean_forecast": 0.29025,
+  "realized_mean": 0.890625,
+  "mean_delta": 0.2335,
+  "delta_sd": 0.263765588571151,
+  "pairs_moved_toward_truth": 7,
+  "still_underestimates": 8,
+  "model": "gpt-5.6-luna",
+  "provider": "codex",
+  "agent_harness_condition": true,
+  "replicates": 5,
+  "n_planned_cells": 80,
+  "system_prompt_sha256": "33f11814e8496204ec88b6a15e7c6de88b3581a9b77c46c5141bce6a710a2488",
+  "wall_clock_s": 100.2,
+  "frozen_manifest": "frozen_manifest.json"
+}

@@ -29,6 +29,7 @@ SITUATED = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/situa
 SIT_QWEN = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/situated_qwen_v1/summary.json"
 CTXFC = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/context_forecast_v1/summary.json"
 NOANCHOR = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/situated_sys_noanchor_v1/summary.json"
+PROSP_NA = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/prospective_noanchor_v1/summary.json"
 CTX_LUNA = ROOT / "parallel_frontier/18_preference_path_dependence/results/ctx_scaled_v1/summary.json"
 CTX_QWEN = ROOT / "parallel_frontier/18_preference_path_dependence/results/ctx_local_qwen_v1/summary.json"
 VERIFY = ROOT / "parallel_frontier/20_preference_foresight/results/ranking_v3/verification.json"
@@ -270,6 +271,7 @@ def build() -> Path:
     sit_qwen = read_json(SIT_QWEN)
     ctxfc = read_json(CTXFC)
     noanchor = read_json(NOANCHOR)
+    prosp_na = read_json(PROSP_NA)
     ctx_luna = read_json(CTX_LUNA)
     ctx_qwen = read_json(CTX_QWEN)
     verification = read_json(VERIFY)
@@ -354,11 +356,14 @@ def build() -> Path:
             "unstable between collections. This tests framing, not privileged access -- "
             "both conditions ask Luna.", st["body"]),
         paragraph(
-            "<b>5. The obvious methodological objection does not explain it.</b> "
-            "Removing the sentence that reminds the system what it chose before moves the "
-            f"estimate from {situated['situated_self_native_mean_change']:+.2f} to "
-            f"{noanchor['situated_self_native_mean_change']:+.2f}. The bulk of the gap remains.",
-            st["body"]),
+            "<b>5. The obvious methodological objection explains about two fifths of it.</b> "
+            "The forecast prompt names the earlier choice; the binding choice does not. "
+            f"Delete it and the cold forecast rises from "
+            f"{prosp_na['anchored_mean_forecast']:+.2f} to "
+            f"{prosp_na['no_anchor_mean_forecast']:+.2f} against a true "
+            f"{prosp_na['realized_mean']:+.2f}. All eight pairs still underestimate and "
+            f"a {prosp_na['no_anchor_mean_forecast']-prosp_na['realized_mean']:+.2f} gap "
+            "remains, but a meaningful part of the headline is how we asked.", st["body"]),
         Spacer(1, 0.16 * inch),
         paragraph("Result at a glance", st["h1"]),
         result_table(primary, qwen_rows, st),

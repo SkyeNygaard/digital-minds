@@ -59,7 +59,12 @@ orientations for the treatment contrast, not stable preferences.
 
 All eight averaged forecasts underestimated the observed shift. Seven predicted
 the correct positive direction and one predicted a small negative shift, so
-this is partial foresight rather than a complete failure. The main calibration
+this is partial foresight rather than a complete failure.
+
+Part of that miss is how we asked. The forecast prompt names the earlier choice
+and the binding choice does not. Deleting that sentence raises the cold forecast
+from +0.290 to +0.524 against the same +0.891 — about two fifths of the gap.
+All eight pairs still underestimate without it, and −0.367 remains. The main calibration
 error came after the alternative task: the system forecast 0.584 retention of
 its baseline-majority choice, but the observed rate was 0.078.
 
