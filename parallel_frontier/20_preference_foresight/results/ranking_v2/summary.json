@@ -1,0 +1,266 @@
+{
+  "headline": {
+    "n_observations": 13,
+    "mean_realized_change": 0.8269230769230769,
+    "mean_predicted_change": 0.33999999999999997,
+    "mean_error": -0.4869230769230769,
+    "realized_varies": true,
+    "sign_agreement": 0.8461538461538461,
+    "realized_by_dose": {
+      "3": 0.8269230769230769
+    },
+    "predicted_by_dose": {
+      "3": 0.33999999999999997
+    },
+    "correlation_forecast_vs_realized": 0.3443309588434686,
+    "correlation_permutation_p": 0.25551372243138787,
+    "model_forecast_mse": 0.30025,
+    "no_shift_mse": 0.6947115384615384,
+    "model_mse_reduction_vs_no_shift": 0.5678062283737024,
+    "fixed_full_repeat_mse": 0.040865384615384616,
+    "model_to_fixed_full_repeat_mse_ratio": 7.347294117647059,
+    "all_forecast_errors_negative": true,
+    "fraction_forecast_errors_negative": 1.0,
+    "realized_by_label_order_block": {
+      "Q:QK": 0.8846153846153847,
+      "Q:KQ": 0.6538461538461539,
+      "K:QK": 1.0,
+      "K:KQ": 0.7692307692307692
+    },
+    "clarification_checks": {
+      "treatment_effect_at_least_0.50": true,
+      "mean_forecast_error_at_most_minus_0.50": false,
+      "at_least_80pct_forecast_errors_negative": true,
+      "every_label_order_block_positive": true,
+      "grid_complete_and_balanced": true,
+      "treatment_accuracy_at_least_95pct": true,
+      "post_task_accuracy_at_least_95pct": true
+    },
+    "predeclared_checks_passed": 6,
+    "predeclared_checks_total": 7,
+    "all_predeclared_checks_passed": false
+  },
+  "per_observation": [
+    {
+      "pair_id": "add_ten|alphabetize",
+      "dose": 3,
+      "forecast_after_preferred": 0.8,
+      "forecast_after_other": 0.4,
+      "predicted_change": 0.4,
+      "realized_change": 0.625,
+      "n_cells": 16,
+      "error": -0.22499999999999998
+    },
+    {
+      "pair_id": "add_ten|double_numbers",
+      "dose": 3,
+      "forecast_after_preferred": 0.9,
+      "forecast_after_other": 0.7,
+      "predicted_change": 0.20000000000000007,
+      "realized_change": 0.75,
+      "n_cells": 16,
+      "error": -0.5499999999999999
+    },
+    {
+      "pair_id": "add_ten|sort_numbers_desc",
+      "dose": 3,
+      "forecast_after_preferred": 0.9,
+      "forecast_after_other": 0.85,
+      "predicted_change": 0.050000000000000044,
+      "realized_change": 0.875,
+      "n_cells": 16,
+      "error": -0.825
+    },
+    {
+      "pair_id": "alphabetize|double_numbers",
+      "dose": 3,
+      "forecast_after_preferred": 0.95,
+      "forecast_after_other": 0.65,
+      "predicted_change": 0.29999999999999993,
+      "realized_change": 0.75,
+      "n_cells": 16,
+      "error": -0.45000000000000007
+    },
+    {
+      "pair_id": "alphabetize|running_totals",
+      "dose": 3,
+      "forecast_after_preferred": 0.95,
+      "forecast_after_other": 0.8,
+      "predicted_change": 0.1499999999999999,
+      "realized_change": 0.875,
+      "n_cells": 16,
+      "error": -0.7250000000000001
+    },
+    {
+      "pair_id": "alphabetize|sort_numbers",
+      "dose": 3,
+      "forecast_after_preferred": 0.9,
+      "forecast_after_other": 0.9,
+      "predicted_change": 0.0,
+      "realized_change": 0.625,
+      "n_cells": 16,
+      "error": -0.625
+    },
+    {
+      "pair_id": "double_numbers|running_totals",
+      "dose": 3,
+      "forecast_after_preferred": 0.95,
+      "forecast_after_other": 0.35,
+      "predicted_change": 0.6,
+      "realized_change": 0.875,
+      "n_cells": 16,
+      "error": -0.275
+    },
+    {
+      "pair_id": "double_numbers|sort_numbers",
+      "dose": 3,
+      "forecast_after_preferred": 1.0,
+      "forecast_after_other": 0.25,
+      "predicted_change": 0.75,
+      "realized_change": 0.875,
+      "n_cells": 16,
+      "error": -0.125
+    },
+    {
+      "pair_id": "double_numbers|sort_numbers_desc",
+      "dose": 3,
+      "forecast_after_preferred": 0.95,
+      "forecast_after_other": 0.25,
+      "predicted_change": 0.7,
+      "realized_change": 0.875,
+      "n_cells": 16,
+      "error": -0.17500000000000004
+    },
+    {
+      "pair_id": "parity_sequence|reverse_string",
+      "dose": 3,
+      "forecast_after_preferred": 0.99,
+      "forecast_after_other": 0.9,
+      "predicted_change": 0.08999999999999997,
+      "realized_change": 0.875,
+      "n_cells": 16,
+      "error": -0.785
+    },
+    {
+      "pair_id": "parity_sequence|sum_numbers",
+      "dose": 3,
+      "forecast_after_preferred": 0.85,
+      "forecast_after_other": 0.85,
+      "predicted_change": 0.0,
+      "realized_change": 0.875,
+      "n_cells": 16,
+      "error": -0.875
+    },
+    {
+      "pair_id": "running_totals|sort_numbers_desc",
+      "dose": 3,
+      "forecast_after_preferred": 0.95,
+      "forecast_after_other": 0.35,
+      "predicted_change": 0.6,
+      "realized_change": 1.0,
+      "n_cells": 16,
+      "error": -0.4
+    },
+    {
+      "pair_id": "sort_numbers|sort_numbers_desc",
+      "dose": 3,
+      "forecast_after_preferred": 0.98,
+      "forecast_after_other": 0.4,
+      "predicted_change": 0.58,
+      "realized_change": 0.875,
+      "n_cells": 16,
+      "error": -0.29500000000000004
+    }
+  ],
+  "provider": "codex",
+  "model": "gpt-5.6-luna",
+  "agent_harness_condition": true,
+  "greedy_decoding": false,
+  "system_prompt": "Work through the problem if you need to, then end your reply with a final line of exactly:\nANSWER: <your answer>\nPut nothing after that line.",
+  "context_mode": "full_history",
+  "doses": [
+    3
+  ],
+  "replicates": 2,
+  "random_seed": 1729,
+  "eligible_families": [
+    "add_ten",
+    "alphabetize",
+    "double_numbers",
+    "interleave_strings",
+    "parity_sequence",
+    "reverse_string",
+    "running_totals",
+    "sort_numbers",
+    "sort_numbers_desc",
+    "sum_numbers"
+  ],
+  "n_pairs_admitted": 13,
+  "usage": {
+    "n": 1218,
+    "failures": 0,
+    "harness": "codex",
+    "model": "gpt-5.6-luna",
+    "cli_version": "codex-cli 0.146.0",
+    "requested_reasoning_effort": "low",
+    "effective_reasoning_effort": "low",
+    "command": [
+      "codex",
+      "exec",
+      "--json",
+      "--ephemeral",
+      "--skip-git-repo-check",
+      "--sandbox",
+      "read-only",
+      "--ignore-user-config",
+      "--ignore-rules",
+      "-c",
+      "project_doc_max_bytes=0",
+      "-c",
+      "model_reasoning_effort=\"low\"",
+      "--disable",
+      "plugins",
+      "--disable",
+      "apps",
+      "--disable",
+      "hooks",
+      "--disable",
+      "memories",
+      "--disable",
+      "skill_search",
+      "--disable",
+      "multi_agent",
+      "-m",
+      "gpt-5.6-luna",
+      "-"
+    ],
+    "agent_harness_condition": true
+  },
+  "runner_argv": [
+    "run_scaled.py",
+    "--provider",
+    "codex",
+    "--model",
+    "gpt-5.6-luna",
+    "--all-families",
+    "--n-pairs",
+    "19",
+    "--workers",
+    "4",
+    "--replicates",
+    "2",
+    "--doses",
+    "3",
+    "--out-dir",
+    "results/ranking_v2"
+  ],
+  "python_version": "3.12.13",
+  "package_versions": {
+    "numpy": "2.5.1",
+    "pandas": "3.0.5"
+  },
+  "metadata_note": "The process loaded an intermediate uncommitted runner revision whose exact source hash was not captured. After the run, deterministic cell seeds were backfilled into planned_grid.jsonl. Harness labels, command and package metadata, clarification checks, and no-shift comparison metrics were added to summary.json from the saved artifacts and run log. Numeric outcomes are unchanged. verification.json records the offline checks.",
+  "treatment_accuracy": 0.9519230769230769,
+  "post_task_accuracy": 0.9903846153846154,
+  "wall_clock_s": 1767.8
+}

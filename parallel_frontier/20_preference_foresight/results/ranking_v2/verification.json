@@ -1,0 +1,34 @@
+{
+  "passed": true,
+  "checks": {
+    "plan_keys_unique": true,
+    "choice_keys_unique": true,
+    "grid_complete": true,
+    "grid_balanced": true,
+    "seed_mapping_matches_plan": true,
+    "raw_choice_replies_present": true,
+    "raw_forecast_replies_present": true,
+    "summary_observation_count_matches": true,
+    "summary_mean_predicted_matches": true,
+    "summary_mean_realized_matches": true,
+    "summary_mean_error_matches": true,
+    "summary_model_mse_matches": true,
+    "summary_no_shift_mse_matches": true,
+    "summary_fixed_mse_matches": true,
+    "treatment_cells_at_least_95pct_correct": true,
+    "post_tasks_at_least_95pct_correct": true
+  },
+  "n_planned_cells": 208,
+  "n_recorded_cells": 208,
+  "n_forecasts": 13,
+  "recomputed": {
+    "mean_predicted_change": 0.33999999999999997,
+    "mean_realized_change": 0.8269230769230769,
+    "mean_error": -0.4869230769230769,
+    "model_forecast_mse": 0.30025,
+    "no_shift_mse": 0.6947115384615384,
+    "fixed_full_repeat_mse": 0.040865384615384616
+  },
+  "verifier_sha256": "e426e7fe116649a1cf4e474882dca8fbdd6fc67a87b7555b9d621d38304e3592",
+  "provenance_note": "This is an offline check of saved artifacts. The run loaded an intermediate uncommitted runner revision whose exact source hash was not captured; current experiment source may differ."
+}

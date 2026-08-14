@@ -1,0 +1,1 @@
+python run_scaled.py --provider codex --model gpt-5.6-luna --all-families --n-pairs 19 --workers 4 --replicates 2 --doses 3 --out-dir results/ranking_v2
