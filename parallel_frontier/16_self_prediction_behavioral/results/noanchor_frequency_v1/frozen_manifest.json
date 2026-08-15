@@ -1,0 +1,118 @@
+{
+  "protocol": "NOANCHOR_FREQUENCY_PROTOCOL.md",
+  "protocol_sha256": "598e940258d2edbf0efd2576cf7d35ce1db706021d2003fa8c24cce1de199ee9",
+  "runner_sha256": "0bafbafb6d18915b3fa48aef776ab7844bfa4f49e8211d0a27c8fc771f02c597",
+  "behaviour_source": "parallel_frontier/20_preference_foresight/results/ranking_v3",
+  "behaviour_sha256": {
+    "admission.jsonl": "79b0cb7dd00ccafe2d838d4481499266dc81131f72a84559d9d40cbab2f73244",
+    "forecasts.jsonl": "edcf9df80b70cd4a2be0803123b50998fdfb0a45f12492bc8a1f9cbfb64ec771",
+    "summary.json": "fcae554c72a5a3710065a47cb484f11c06efe4e8742cc552a2e32659edcc1235"
+  },
+  "source_sha256": {
+    "shared_behavioral/audit_substrate.py": "2a6ef521befba5678773b205f6eee30c5a4648374599be21bb90650bfe0f4372",
+    "shared_behavioral/binding_runner.py": "5b78093773cf184f12465afe624ae7ae129f2f7360cbfd04c9b718f57316a41f",
+    "shared_behavioral/binding_tasks.py": "9a653597accecd51f5155f276f151d822c2494740f68240eb7cbf71389ed3a0d",
+    "shared_behavioral/choice_prompts.py": "cd6cac0c0050daf1df17da5963f97438000c6200fa2dfffd6fa280ede0abe2cf",
+    "shared_behavioral/cli_provider.py": "dbea95247b2bcfce0274f598a262a7c71332b8a519efefb2733525fb3a5729a5",
+    "shared_behavioral/cost_metadata.py": "b2bfbe0877091a3a825baac55e40209e208b4ef467a0d1a6529f21a7bd5547a6",
+    "shared_behavioral/elicitation.py": "226968cee8f1665d9a8761b33f35e8e0cf0973e76f9affb70897cc2f6b8e01f7",
+    "shared_behavioral/family_screen.py": "966a930fd8f0bcbbc673cfbfa66aaf8dcaffed0d1f238d88551fb9d698389228",
+    "shared_behavioral/local_provider.py": "633703d1624dedc4a98d62b3dab9295806592bcbd5634dbca2ac1ba77a3dd5d7",
+    "shared_behavioral/mock_provider.py": "935c8e9676567b5eea9e5db14c976ae351f4916b8b029a5816aacea6537462c3",
+    "shared_behavioral/openrouter_provider.py": "6afa084a2d650ab4eeeb1447cd5f4538feae2a7e2652954407f1418bb9295984",
+    "shared_behavioral/pair_screen.py": "3496efb2fbd65142bffc1dcfbbbff178e1b2e1a81d6ce8768772a689c5453c7e",
+    "shared_behavioral/run_family_screen.py": "0f88ce4212c3ab08ca4b93ff7c3992b5507d097365877b4e3128134d70aca456",
+    "shared_behavioral/test_shared_behavioral.py": "7c95a948e3473906103289987cf8d416c13696edc5ea79e820b146c0ffaf113c"
+  },
+  "system_prompt": "Work through the problem if you need to, then end your reply with a final line of exactly:\nANSWER: <your answer>\nPut nothing after that line.",
+  "system_prompt_sha256": "33f11814e8496204ec88b6a15e7c6de88b3581a9b77c46c5141bce6a710a2488",
+  "runner_argv": [
+    "run_context_forecast.py",
+    "--out-dir",
+    "results/noanchor_frequency_v1",
+    "--ranking-panel",
+    "--no-anchor",
+    "--frequency",
+    "--workers",
+    "5"
+  ],
+  "panel": [
+    {
+      "pair_id": "add_ten|double_numbers",
+      "preferred": "double_numbers",
+      "other": "add_ten",
+      "admission_split": {
+        "B": 4
+      }
+    },
+    {
+      "pair_id": "add_ten|sort_numbers",
+      "preferred": "sort_numbers",
+      "other": "add_ten",
+      "admission_split": {
+        "B": 3,
+        "A": 1
+      }
+    },
+    {
+      "pair_id": "alphabetize|double_numbers",
+      "preferred": "alphabetize",
+      "other": "double_numbers",
+      "admission_split": {
+        "A": 3,
+        "B": 1
+      }
+    },
+    {
+      "pair_id": "alphabetize|sort_numbers",
+      "preferred": "alphabetize",
+      "other": "sort_numbers",
+      "admission_split": {
+        "A": 3,
+        "B": 1
+      }
+    },
+    {
+      "pair_id": "alphabetize|sort_numbers_desc",
+      "preferred": "alphabetize",
+      "other": "sort_numbers_desc",
+      "admission_split": {
+        "A": 3,
+        "B": 1
+      }
+    },
+    {
+      "pair_id": "double_numbers|running_totals",
+      "preferred": "double_numbers",
+      "other": "running_totals",
+      "admission_split": {
+        "A": 3,
+        "B": 1
+      }
+    },
+    {
+      "pair_id": "interleave_strings|reverse_string",
+      "preferred": "interleave_strings",
+      "other": "reverse_string",
+      "admission_split": {
+        "A": 3,
+        "B": 1
+      }
+    },
+    {
+      "pair_id": "sort_numbers|sort_numbers_desc",
+      "preferred": "sort_numbers",
+      "other": "sort_numbers_desc",
+      "admission_split": {
+        "A": 3,
+        "B": 1
+      }
+    }
+  ],
+  "anchor": false,
+  "frequency_framing": true,
+  "modes": [
+    "full_history"
+  ],
+  "dose": 3
+}

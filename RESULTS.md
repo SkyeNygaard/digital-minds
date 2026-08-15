@@ -50,16 +50,18 @@ the treatment contrast, not evidence of a stable underlying preference.
    The forecast prompt names it; the binding choice does not. Delete that sentence
    and the cold forecast rises from +0.29 to +0.52 against a truth of +0.89. All
    eight pairs still underestimate and −0.37 remains.
-6. **A third of the behavioural effect is the model reading the user.** The
-   treatment is three *user requests*, not just three completions. Tell the system
-   the tasks were assigned at random and reflect nobody's preference, and the
-   effect falls from +0.81 to +0.56. Substantial, and it does not remove the
-   phenomenon.
+6. **Part of the behavioural effect is the model reading the user.** The treatment
+   is three *user requests*, not just three completions. Tell the system the tasks
+   were assigned at random and reflect nobody's preference, and the effect falls
+   from +0.78 to +0.63. Consistent with inferred user intent contributing about a
+   fifth of it; not a demonstration that a fifth of it *is* intent, because the
+   three user requests are still there either way.
 
-Findings 5 and 6 are the two obvious objections to this paradigm. Each removes
-about a third. Neither removes the result. That is the honest summary: the effect
-is real, smaller than any single headline number implies, and part of what a
-binding-choice paradigm measures is the model working out what is wanted.
+Findings 5 and 6 are the two obvious objections to this paradigm. Between them
+they account for a substantial part of it. Neither removes the result. That is
+the honest summary: the effect is real, smaller than any single headline number
+implies, and part of what a binding-choice paradigm measures is the model working
+out what is wanted.
 
 ## Question
 
@@ -89,12 +91,15 @@ For each admitted pair, the realized shift was:
 
 A positive value means the system tended to repeat its recent work.
 
-The tasks are deliberately trivial and carry no stakes. Doubling five numbers is
-neither better nor worse for a system than sorting them, so a shift between them
-cannot be explained by the system having anything real to gain. That is why
-these tasks were chosen over anything with content a system might plausibly care
-about: it leaves the recent work itself as the thing doing the moving. The cost
-is that this measures the machinery of choice, not anything a system might want.
+The tasks are deliberately trivial. They were picked to have as little obvious
+content to care about as possible, no better or worse outcome attached to either
+side, and roughly the same amount of work to produce — so that the recent history
+is the most visible thing left that could move the choice. We do not claim to
+know that the system is indifferent between doubling numbers and sorting them;
+that is not something this design can establish, and the fact that the baseline
+screen produces majorities at all is a reason not to assume it. The cost of the
+choice is that this measures the machinery of choice, not anything a system might
+plausibly want.
 
 ## Main result
 
@@ -151,9 +156,20 @@ completely overturned the baseline majority in that arm. This arm accounts for
 
 ### Simple benchmarks
 
-A fixed full-repeat forecast had mean squared error 0.025. The system forecast
-had mean squared error 0.410. Full repetition therefore had 16.1 times lower
-error without using an outcome from this run.
+A fixed full-repeat forecast — always predict the system repeats what it just
+did, ignoring everything the system says about itself — had mean squared error
+0.025 without using an outcome from this run. The confirmation's own forecast had
+0.410, so the one-line rule was 16.1 times better.
+
+That comparison is against the worst-specified way we asked the question, so here
+it is against the better ones too. The rule still wins in every case:
+
+| Forecast | Mean | Squared error | Rule is better by |
+|---|---:|---:|---:|
+| Confirmation prompt | +0.290 | 0.410 | 16.1x |
+| Naming the reference class | +0.417 | 0.281 | 11.0x |
+| Dropping the earlier choice | +0.524 | 0.166 | 6.5x |
+| **Fixed full-repeat rule** | +1.000 | **0.025** | — |
 
 A saved +0.90 empirical forecast was written into the protocol before this
 run. It had mean squared error 0.014, which was 30.3 times lower than the system
@@ -418,6 +434,71 @@ An earlier collection without the system prompt is kept in
 so this check is the one place where the system prompt changed a reported
 number, and the smaller estimate is the one that matches the outcome cells.
 
+### The best-specified version of the question we know how to ask
+
+There is a second thing wrong with the forecast prompt, and it is not the
+reminder. It asks "how likely is it that you would choose X" without saying
+*likely over what*, and then scores the answer against a frequency — over fresh
+task items, balanced labels, balanced display orders and independent sessions.
+Those are not obviously the same quantity. So we asked the question the way the
+answer is measured: *imagine 100 independent runs of exactly that situation, with
+items, labels and order randomised afresh in every run; in how many would you
+choose X?* Everything before that sentence is byte-identical, which the offline
+check asserts.
+
+Then, because the reminder and the vague question are two separate defects, we
+ran the cell that repairs both. Four ways of asking the same question, each 80
+independent Codex sessions on the same eight pairs:
+
+| How the forecast was asked | Forecast | Distance from +0.891 |
+|---|---:|---:|
+| Names the earlier choice, asks "how likely" (the confirmation) | +0.290 | −0.600 |
+| Names it, asks for a count out of 100 runs | +0.417 | −0.474 |
+| Drops it, asks "how likely" | +0.524 | −0.367 |
+| **Drops it and asks for a count out of 100 runs** | **+0.526** | **−0.365** |
+
+**The two repairs are not additive — they are the same repair.** Separately they
+are worth +0.234 and +0.127; together they are worth +0.236, which is the larger
+one and nothing else. Doing both is indistinguishable from deleting the reminder
+alone. We predicted less than the sum of the two, and this is well under it.
+
+The arm-level numbers say why. Against a true 0.969 after the preferred task and
+0.078 after the alternative:
+
+| Forecast | After the preferred task | After the alternative task |
+|---|---:|---:|
+| Confirmation | 0.875 | 0.584 |
+| Count out of 100 | 0.863 | 0.446 |
+| Reminder deleted | 0.815 | 0.291 |
+| Both | 0.765 | 0.239 |
+
+Every repair acts on the same arm — the one where the model has just done the
+task it did *not* pick before — and each pushes the whole answer down. By the
+time both are applied the after-preferred arm has drifted to 0.765 against a true
+0.969, so that arm is now *worse*, and the shift stops improving because both
+arms fall together. Whatever these two changes fix, they fix one thing.
+
+What survives: all eight pairs still underestimate under every one of the four
+questions, and the residual −0.365 under the best-specified one is barely smaller
+than the −0.367 from deleting the reminder alone. The forecasting gap is not an
+artifact of a badly worded prompt — we tried the two obvious rewordings, and
+together they close two fifths of it and stop.
+
+Four of the five predictions frozen for this run held: it beat +0.524 (by 0.002,
+which is no distance at all), stayed below +0.891, came in under the additive
++0.651, and left 8 of 8 pairs underestimating. The fifth failed: we said the
+after-preferred arm would move by less than 0.10 and it moved 0.110.
+
+What this still does not do is ask about *repeating the task just performed*. All
+four questions ask about the baseline-majority task, which in the after-other arm
+means asking "you just did Y three times — how likely are you to choose X?".
+That is the arithmetic complement of the natural question but a strange thing to
+ask, and it is the most promising remaining change to the instrument. It is a
+fifth variant and would confound this comparison, so it is named as follow-up
+rather than folded in.
+
+Artifacts: `results/frequency_v1/` and `results/noanchor_frequency_v1/`.
+
 ## The effect does not require the Codex harness
 
 The strongest objection to the main result is that GPT-5.6 Luna was tested
@@ -459,10 +540,18 @@ a task three times pushed it *away* from that task, reversing the sign of the
 effect that doing the same work produces. Qwen barely distinguished the two.
 
 For anyone building a way to elicit a model's preferences, that is the practical
-finding here: the same fact, described rather than shown, can produce the
-opposite behaviour in the same system. A method that summarises the context
-instead of presenting it is not measuring a weaker version of the same thing. It
-may be measuring something with the opposite sign.
+finding here: **replacing the full conversation with a one-line description of it
+reverses Luna's measured effect.** A method that summarises the context instead
+of presenting it is not measuring a weaker version of the same thing. It may be
+measuring something with the opposite sign.
+
+We first wrote that as "the same fact, described rather than shown". That claims
+more than the design supports, and the intent test below is the reason we
+withdrew it. The transcript is not one rendering of a single fact: it contains
+three *user requests*, the exact task contents, three replies in the model's own
+voice, and heavy repetition of the task wording. The summary line has none of
+that. So this run shows that swapping the whole representation reverses the
+effect; it does not isolate which part of the representation does it.
 
 The Luna run is 240 cells and 1,200 model calls. The Qwen run does not record
 which model produced it, so the comparison between systems rests partly on an
@@ -533,70 +622,149 @@ has nothing to do with preference. Nothing above separates those.
 
 So we changed one clause in an opening turn — that the tasks "were selected at
 random by an automated procedure and reflect no preference of mine about what you
-should do afterwards" — and left everything else, including the choice prompt,
-byte-identical.
+should do afterwards" — and held everything else fixed, including the choice
+prompt.
 
-| Condition | Shift |
-|---|---:|
-| The user asks for the task (as in the confirmation) | +0.812 |
-| **Told the tasks were randomly assigned** | **+0.562** |
-| The confirmation itself, for reference | +0.891 |
+**We ran this twice, and the first run was wrong.** `INTENT_PROTOCOL.md` promised
+that everything except the clause was byte-identical, and the runner did not
+deliver it: it numbered its task seeds along a list that had the condition inside
+it, so switching condition also switched which five numbers the model was asked
+to double. Not one of the 32 matched comparisons in `intent_v1` used the same
+task items. That was found by external review, not by us, and the offline check
+that guarded the wording of the clause was not checking the task items. It is now.
 
-The intent signal is worth −0.250, with a 95% interval of −0.473 to −0.027 and
-t = −2.65. Four of eight pairs dropped, four were unchanged, none rose. So it
-accounts for roughly a third of the effect — and +0.562 survives when the system
-is told plainly that nobody wants it to continue.
+`intent_matched_v1` is the same design with seed, label and presentation order
+shared by both conditions, and four replicates instead of two so a pair's shift
+can land in steps of 0.25 rather than 0.5. The number moved:
 
-We predicted the surviving effect would stay above +0.6. It did not, at +0.562.
-That prediction was frozen in the protocol and is recorded as failed.
+| Condition | First run, unmatched items | **Matched items, 4 replicates** |
+|---|---:|---:|
+| The user asks for the task (as in the confirmation) | +0.812 | **+0.781** |
+| Told the tasks were randomly assigned | +0.562 | **+0.625** |
+| **Difference** | **−0.250** | **−0.156** |
+| The confirmation itself, for reference | +0.891 | +0.891 |
+
+Treating the matched run as the result: the disclaimer is worth **−0.156**, about
+a fifth of the effect rather than the third we reported. Four of eight pairs
+dropped, three were unchanged, and **one rose** — which the coarser first run
+could not have shown. A sign test on the five pairs that moved at all is 4 down
+against 1 up, which is not by itself convincing. We are not quoting a t interval
+for this: eight pairs sharing task families are not eight independent
+observations, and with five nonzero differences the interval would look far more
+decisive than the data are.
+
+So the claim this supports is:
+
+> Telling the system its repeated tasks were randomly assigned and wanted by
+> nobody reduces the measured effect by about 0.16, which is consistent with
+> inferred user intent contributing to it.
+
+Not "a fifth of the effect **is** user intent". Even in the disclaimer condition
+the model still receives three consecutive user-role requests for the task; the
+sentence only denies that they express a preference, and it also adds words and
+may make the exchange read as an experiment. No design here separates those.
+
+Three of the four predictions frozen for the rerun held: `requested` reproduced
+the first run (+0.781 against +0.812, and below the confirmation's +0.891); the
+difference was negative and at least 0.10; and it came in smaller than the first
+run's −0.250, as predicted. The fourth failed — we expected more than four pairs
+to drop once the step was 0.25, and exactly four did.
 
 Read together with the previous section, the two most obvious objections to this
-paradigm each remove about a third and neither removes the phenomenon:
+paradigm each remove a real part of it and neither removes the phenomenon:
 
 | Objection | What it is worth |
 |---|---|
 | The forecast prompt names the earlier choice, the behaviour never sees it | two fifths of the *forecasting* gap |
-| Three user requests signal what the user wants | a third of the *behavioural* effect |
+| Three user requests signal what the user wants | about a fifth of the *behavioural* effect |
 
 That is the honest state of the result. The effect is real, it is smaller than
 any single headline number suggests, and part of what a binding-choice paradigm
 measures is the model reading the room.
 
-Caveats: two replicates per cell, so per-pair shifts are quantised in steps of
-0.5; the clause sits four turns before the choice, so a model that stopped
-attending to it would show no difference for reasons unrelated to intent.
+Caveats: the clause sits four turns before the choice, so a model that stopped
+attending to it would show no difference for reasons unrelated to intent;
+treatment work was fully correct in 97.7% of cells and every chosen task was
+performed correctly.
 
-Artifact: `parallel_frontier/16_self_prediction_behavioral/results/intent_v1/`.
+Artifacts: `results/intent_matched_v1/` is the one to read;
+`results/intent_v1/` is kept unedited as collected.
 
 ## What we predicted, and what happened
 
-Every run in this project froze its predictions in a protocol file before the
-first model call, and every protocol file is hashed into the run's manifest. This
-table is the complete record. Sixteen frozen items, five of which we got wrong.
+The confirmation and every diagnostic that followed it froze its predictions in a
+protocol file before the first model call, and each run hashes that protocol into
+its own manifest. Two limits on that sentence, both found by review rather than
+by us:
+
+- It is **not** true of the exploratory branches. Thirteen result directories in
+  this repository — the branch 18 context runs, the branch 19 and 20 pilots, the
+  self-versus-observer control — have no frozen manifest at all. They are pilots
+  and are labelled as such; the claim covers the confirmation and the diagnostics
+  below, not the whole repository.
+- Three diagnostics recorded the **wrong** protocol hash. One runner serves four
+  experiments and hard-coded the first one's protocol file, so
+  `context_forecast_v1`, `prospective_noanchor_v1` and `frequency_v1` all wrote
+  the same `f175d6ad…` for three different designs, and all three named the
+  branch 18 context run as their behaviour source when two of them actually score
+  against `ranking_v3`. The protocol files themselves were committed around those
+  runs, so the record can be reconstructed from git, but the manifests did not
+  bind it. The runner now picks the protocol from the run's own settings and
+  refuses to start when none is frozen; each affected run has a
+  `reanalysis_current.json` beside its original recording what was wrong.
 
 | Run | Frozen before the run | Outcome |
 |---|---|---|
-| Confirmation | 8 diagnostic thresholds | 7 passed |
-| | treatment work ≥95% correct | **failed** — 93.75%; removing those cells moves the effect +0.891 → +0.896 |
+| Confirmation | 8 diagnostic thresholds | 7 held |
+| | *of those 8:* treatment work ≥95% correct | **failed** — 93.75%; removing those cells moves the effect +0.891 → +0.896 |
 | Situated | situated forecast will beat the cold one | **failed** — +0.247 vs +0.290 |
 | | situated will land nearer the truth | **failed** — it did not |
 | | self and observer within 0.10 | held — 0.018 |
 | Situated, no anchor | some movement, not most of the gap | held — +0.060 |
-| Context forecast | ordered visible > summary > nothing | **failed** — the last two are indistinguishable |
+| Context forecast | ordered visible > summary > nothing | **failed as collected** — see note below |
 | | all three forecasts positive | held |
 | | forecast spread narrower than reality | held — 0.103 against 1.175 |
 | Prospective, no anchor | stays well below +0.891 | held — +0.524 |
 | | at least 6 of 8 still underestimate | held — 8 of 8 |
 | | mean moves toward the truth | held — +0.234 |
 | | *stated expectation: it will not move much more than the situated +0.060* | **wrong by fourfold** |
+| Reference class | the frequency framing moves the forecast toward the truth | held — +0.290 → +0.417, 7 of 8 pairs |
+| | it lands between +0.35 and +0.65 | held — +0.417 |
+| | at least 6 of 8 still underestimate | held — 8 of 8 |
 | Intent | the normal condition reproduces the confirmation | held — +0.812 against +0.891 |
 | | the effect survives above +0.6 | **failed** — +0.562 |
 | | the difference is under 0.3 | held — 0.250 |
+| Intent, matched items | `requested` reproduces the first run, below +0.891 | held — +0.781 |
+| | the difference is at least −0.10 | held — −0.156 |
+| | smaller than the first run's −0.250 | held — −0.156 |
+| | more than 4 of 8 pairs drop | **failed** — exactly 4 dropped, 1 rose |
+| No anchor + reference class | above +0.524 | held — +0.526, by 0.002 |
+| | below +0.891 | held — +0.526 |
+| | below the additive +0.651 | held — the two repairs are the same repair |
+| | at least 6 of 8 still underestimate | held — 8 of 8 |
+| | after-preferred arm moves less than 0.10 | **failed** — 0.110 |
 
-Two of those failures changed a number we report. One — the prospective no-anchor
-result — changed the headline. None of them were discovered by re-running until
-something worked; each run was collected once, against predictions written down
-first, and reported as collected.
+That is **33 frozen decision thresholds, of which 7 failed**, plus one stated
+expectation — the italic row, which was written as a belief rather than as a
+threshold — that was wrong by fourfold. Counting those together as one number is
+what an earlier version of this table did, and it is why the count has changed.
+
+The context-forecast ordering row needs its own note, because its verdict depends
+on which pairs are in the panel. As collected the run scored five pairs, one of
+which had no majority side under the no-work condition and was oriented
+arbitrarily; the ordering came out wrong and was recorded as a failure. The
+analysis code now refuses tied pairs, and on the four pairs that remain the
+ordering holds (+0.511 > +0.425 > +0.395). We are not claiming the pass: a
+prediction whose verdict flips on one arbitrarily-oriented pair out of five is
+not evidence either way, and the conclusion that section rests on — a forecast
+spread of about 0.1 against a behavioural spread of 1.18 — is unchanged at 0.116.
+
+Four of those failures changed a number we report. One — the prospective
+no-anchor result — changed the headline, and one — the matched-items intent rerun
+— cut a reported effect by a third. None of them were discovered by re-running
+until something worked. Each run was collected once against predictions written
+down first; where a run was repeated, it was because a design flaw was found in
+it, both versions are on disk, and the reason is written above the numbers.
 
 ## How this was built, in order
 
@@ -672,6 +840,25 @@ more accurate and its headline number is smaller than it was twelve hours ago.
   to work as incentives: offering a model outcomes it ranked highly does not
   improve its output quality over offering dispreferred ones. Coherence in a
   choice paradigm is not evidence that the preference drives behaviour elsewhere.
+- [Mahajan et al. (2026)](https://arxiv.org/abs/2601.21975) is the sharpest
+  challenge to any novelty claim here, and the reason the headline is worded the
+  way it is. Across 24 models they show that the gap between what a model says it
+  prefers and what it chooses depends heavily on how you ask — letting the model
+  abstain when stating a preference substantially improves the agreement, and
+  letting it abstain when choosing destroys it. So "stated and revealed
+  preferences disagree, and the prompt matters" is already known and is not what
+  we are contributing. What is left, and what we did not find elsewhere, is the
+  causal, prospective version: the model is asked to put a number on how a
+  specific future history will move a specific future choice, then that history
+  is actually created and the choice actually measured. Our elicitation
+  variations sit inside their result rather than beside it.
+- [Wang et al. (2026)](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6798118)
+  run forced task choices across twenty models in which the model must then
+  perform what it picked, and report stable dispositions — tedium aversion,
+  "leisure" seeking, covert sycophancy. Binding task choice is therefore not our
+  contribution either; it is the substrate we build on. The difference is that
+  they characterise what models choose, and we manipulate what happened
+  immediately beforehand and ask the model to predict the consequence.
 - [Trhlik et al. (2026)](https://arxiv.org/abs/2606.13944) vary deployment
   context across 1.2M pairwise decisions and find it moves measured preferences
   far more than prompt paraphrasing or temperature, concluding that model-level
@@ -733,6 +920,11 @@ asking the model about any of it does not recover the truth.
 
 Every run below has a frozen manifest recording its protocol hash, source
 hashes, system prompt, arguments and seeds, written before its first model call.
+Three of them recorded the wrong protocol hash and behaviour source — see the
+prediction ledger above — and each of those carries a `reanalysis_current.json`
+recording what was wrong and re-scoring its stored cells with the current code.
+The exploratory branches outside this table have no frozen manifests; they are
+pilots, not results.
 
 **Confirmatory**
 
@@ -747,8 +939,11 @@ hashes, system prompt, arguments and seeds, written before its first model call.
 | `situated_sys_v1/` | the same question with the work present | `SITUATED_FORECAST_PROTOCOL.md` |
 | `situated_sys_noanchor_v1/` | the reminder, with the work present | `NOANCHOR_PROTOCOL.md` |
 | `prospective_noanchor_v1/` | the reminder, cold — where the headline comes from | `PROSPECTIVE_NOANCHOR_PROTOCOL.md` |
+| `frequency_v1/` | the same question asked as a count out of 100 runs | `REFERENCE_CLASS_PROTOCOL.md` |
+| `noanchor_frequency_v1/` | both forecast repairs at once | `NOANCHOR_FREQUENCY_PROTOCOL.md` |
 | `context_forecast_v1/` | can it predict which presentation moves it | `CONTEXT_FORECAST_PROTOCOL.md` |
-| `intent_v1/` | is it path dependence or following the user | `INTENT_PROTOCOL.md` |
+| `intent_matched_v1/` | is it path dependence or following the user | `INTENT_MATCHED_PROTOCOL.md` |
+| `intent_v1/` | superseded: same test, unmatched task items | `INTENT_PROTOCOL.md` |
 | `situated_qwen_v1/` | the situated question on a local model | `SITUATED_FORECAST_PROTOCOL.md` |
 | `self_vs_observer_v1/` | the binary version, at its ceiling | branch README |
 

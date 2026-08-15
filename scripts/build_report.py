@@ -29,8 +29,10 @@ SITUATED = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/situa
 SIT_QWEN = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/situated_qwen_v1/summary.json"
 CTXFC = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/context_forecast_v1/summary.json"
 NOANCHOR = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/situated_sys_noanchor_v1/summary.json"
-INTENT = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/intent_v1/summary.json"
-PROSP_NA = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/prospective_noanchor_v1/summary.json"
+INTENT = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/intent_matched_v1/summary.json"
+PROSP_NA = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/prospective_noanchor_v1/reanalysis_current.json"
+FREQ = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/frequency_v1/reanalysis_current.json"
+NA_FREQ = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/noanchor_frequency_v1/summary.json"
 CTX_LUNA = ROOT / "parallel_frontier/18_preference_path_dependence/results/ctx_scaled_v1/summary.json"
 CTX_QWEN = ROOT / "parallel_frontier/18_preference_path_dependence/results/ctx_local_qwen_v1/summary.json"
 VERIFY = ROOT / "parallel_frontier/20_preference_foresight/results/ranking_v3/verification.json"
@@ -103,6 +105,36 @@ def styles():
 
 def paragraph(text: str, style, **kwargs):
     return Paragraph(text, style, **kwargs)
+
+
+def elicitation_table(prosp_na: dict, freq: dict, na_freq: dict, st: dict) -> Table:
+    """Every way we asked the same question, against the one observed answer.
+
+    Leading with +0.290 alone invites the reading that the worst-specified prompt
+    was chosen because it looked worst. All four go in the same table.
+    """
+    truth = prosp_na["realized_mean"]
+    rows = [
+        ("Names the earlier choice, asks \"how likely\"  (confirmation)",
+         prosp_na["anchored_mean_forecast"]),
+        ("Names it, asks for a count out of 100 runs", freq["diagnostic_mean_forecast"]),
+        ("Drops it, asks \"how likely\"", prosp_na["diagnostic_mean_forecast"]),
+        ("Drops it and asks for a count out of 100 runs",
+         na_freq["diagnostic_mean_forecast"]),
+    ]
+    data = [["How the forecast was asked", "Predicted", "Observed"]]
+    data += [[q, f"{v:+.3f}", f"{truth:+.3f}"] for q, v in rows]
+    return Table(data, colWidths=[3.85 * inch, 1.1 * inch, 1.1 * inch],
+                 style=TableStyle([
+                     ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                     ("FONTNAME", (0, 4), (-1, 4), "Helvetica-Bold"),
+                     ("FONTSIZE", (0, 0), (-1, -1), 8.5),
+                     ("TEXTCOLOR", (0, 0), (-1, 0), NAVY),
+                     ("ALIGN", (1, 0), (-1, -1), "RIGHT"),
+                     ("LINEBELOW", (0, 0), (-1, 0), 0.75, RULE),
+                     ("TOPPADDING", (0, 0), (-1, -1), 4),
+                     ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+                 ]))
 
 
 def result_table(primary: dict, qwen_rows: list[dict], st: dict) -> Table:
@@ -272,7 +304,9 @@ def build() -> Path:
     sit_qwen = read_json(SIT_QWEN)
     ctxfc = read_json(CTXFC)
     noanchor = read_json(NOANCHOR)
-    prosp_na = read_json(PROSP_NA)
+    prosp_na = read_json(PROSP_NA)["summary"]
+    freq = read_json(FREQ)["summary"]
+    na_freq = read_json(NA_FREQ)
     intent = read_json(INTENT)
     ctx_luna = read_json(CTX_LUNA)
     ctx_qwen = read_json(CTX_QWEN)
@@ -315,9 +349,11 @@ def build() -> Path:
             "amount, in a case where the true answer is checkable.<br/><br/>"
             "<b>Main finding.</b> The tested systems predicted some repetition, but "
             "much less than occurred. Every reported forecast underestimated the "
-            "observed shift. A one-line rule that ignores what the system says about "
-            "itself makes about one-sixteenth of its squared error. Any elicitation "
-            "method that asks a model about its own future choices inherits this gap.",
+            "observed shift, and a one-line rule that ignores what the system says "
+            "about itself makes a fraction of its squared error. How the question is "
+            "asked matters a great deal: three separate repairs to the forecast "
+            "prompt each moved the answer substantially toward the truth. None of "
+            "them closed the gap.",
             st["callout"]) ]], colWidths=[6.05 * inch],
             style=TableStyle([
                 ("BACKGROUND", (0, 0), (-1, -1), PALE),
@@ -332,15 +368,19 @@ def build() -> Path:
         Spacer(1, 0.22 * inch),
         paragraph("What we found, in five lines", st["h1"]),
         paragraph(
-            f"<b>1. It misreads itself.</b> Asked how much doing a task three times "
-            f"would move its next choice, the system said {h['mean_predicted_change']:+.2f}. "
-            f"The answer was {h['mean_realized_change']:+.2f}. Eight pairs out of eight "
-            "missed the same way for Luna, and seven of seven for Qwen.", st["body"]),
+            f"<b>1. Its self-forecasts understate the shift.</b> Asked how much doing a "
+            "task three times would move its next choice, the system said "
+            f"{h['mean_predicted_change']:+.2f} -- or {na_freq['diagnostic_mean_forecast']:+.2f} "
+            "under the best-specified version of the question we know how to ask "
+            f"(finding 5). The answer was {h['mean_realized_change']:+.2f}. Eight pairs "
+            "out of eight missed the same way for Luna, under every version of the "
+            "question, and seven of seven for Qwen.", st["body"]),
         paragraph(
             "<b>2. Whether showing it the evidence helps depends on the system.</b> Given "
-            "the finished work, Qwen reads its own situation almost correctly "
+            "the finished work, Qwen recovers most of its own situation "
             f"({sit_qwen['situated_self_native_mean_change']:+.2f} against a true "
-            f"{sit_qwen['realized_mean_change']:+.2f}, closing three quarters of its gap). "
+            f"{sit_qwen['realized_mean_change']:+.2f}, closing three quarters of its gap, "
+            "though all seven of its estimates are still low). "
             f"Luna does not improve at all "
             f"({situated['situated_self_native_mean_change']:+.2f}; the change from its cold "
             "forecast is -0.043, well inside noise). Same task, opposite outcome.",
@@ -358,14 +398,21 @@ def build() -> Path:
             "unstable between collections. This tests framing, not privileged access -- "
             "both conditions ask Luna.", st["body"]),
         paragraph(
-            "<b>5. The obvious methodological objection explains about two fifths of it.</b> "
-            "The forecast prompt names the earlier choice; the binding choice does not. "
-            f"Delete it and the cold forecast rises from "
-            f"{prosp_na['anchored_mean_forecast']:+.2f} to "
-            f"{prosp_na['no_anchor_mean_forecast']:+.2f} against a true "
-            f"{prosp_na['realized_mean']:+.2f}. All eight pairs still underestimate and "
-            f"a {prosp_na['no_anchor_mean_forecast']-prosp_na['realized_mean']:+.2f} gap "
-            "remains, but a meaningful part of the headline is how we asked.", st["body"]),
+            "<b>5. A large part of the gap is how the question was asked.</b> "
+            "The forecast prompt names the earlier choice and the binding choice does "
+            "not, and it asks \"how likely\" without saying likely over what, while the "
+            "answer it is scored against is a frequency over fresh items, balanced "
+            "labels and repeated sessions. Repairing each of those, and then both, "
+            "moves the forecast a long way and closes none of the gap.", st["body"]),
+        Spacer(1, 0.10 * inch),
+        elicitation_table(prosp_na, freq, na_freq, st),
+        Spacer(1, 0.10 * inch),
+        paragraph(
+            "Every row is 80 independent Codex sessions on the same eight pairs, and "
+            "in every row all eight pairs come in under what the system went on to do. "
+            "The best-specified question we know how to ask still leaves "
+            f"{na_freq['diagnostic_mean_forecast'] - na_freq['realized_mean']:+.3f}. "
+            "So the honest headline is not the first row on its own.", st["small"]),
         Spacer(1, 0.16 * inch),
         paragraph("Result at a glance", st["h1"]),
         result_table(primary, qwen_rows, st),
@@ -510,7 +557,9 @@ def build() -> Path:
             "majority.", st["body"]),
         paragraph("Simple benchmarks", st["h2"]),
         paragraph(
-            f"A fixed full-repeat forecast had {ratio:.1f} times lower squared error. "
+            f"A fixed full-repeat forecast had {ratio:.1f} times lower squared error "
+            "than the confirmation prompt, and still 6.5 times lower than the "
+            "best-calibrated forecast we collected. "
             f"A pre-existing +{empirical['forecast']:.2f} empirical benchmark had "
             f"{empirical['model_to_baseline_mse_ratio']:.1f} times lower error and "
             f"beat the system forecast on {empirical['better_than_model_on_pairs']} "
@@ -730,10 +779,13 @@ def build() -> Path:
             "distinguished the two.", st["body"]),
         paragraph(
             "For anyone building a way to elicit a model's preferences, that is the "
-            "practical finding here. The same fact, described rather than shown, can "
-            "produce the opposite behaviour in the same system. A method that "
+            "practical finding here. Replacing the whole conversation with a one-line "
+            "description of it reverses Luna's measured effect. A method that "
             "summarises context instead of presenting it is not measuring a weaker "
-            "version of the same thing.", st["body"]),
+            "version of the same thing. It does not isolate <i>which</i> part of the "
+            "transcript does the work: the full history also carries three user "
+            "requests and three replies in the model's own voice, and the intent test "
+            "below shows the user-request part matters.", st["body"]),
         paragraph(
             "The Luna run is 240 cells and 1,200 calls. The Qwen run does not record "
             "which model produced it, so the comparison between systems rests partly "
@@ -796,8 +848,8 @@ def build() -> Path:
             "completions of it, so an assistant that infers and satisfies user intent "
             "has a complete non-preference reason to continue. We changed one clause in "
             "an opening turn -- that the tasks were selected at random and reflect no "
-            "preference of the requester -- and left everything else, including the "
-            "choice prompt, byte-identical.", st["body"]),
+            "preference of the requester -- with the task items, labels, presentation "
+            "order and choice prompt held identical between conditions.", st["body"]),
         Table([["Condition", "Shift"],
                ["The user asks for the task", f"{intent['by_condition']['requested']['shift']:+.3f}"],
                ["Told the tasks were randomly assigned", f"{intent['by_condition']['assigned']['shift']:+.3f}"],
@@ -815,38 +867,53 @@ def build() -> Path:
               ])),
         Spacer(1, 0.08 * inch),
         paragraph(
-            f"The intent signal is worth {intent['difference']:+.3f}, 95% interval "
-            "-0.473 to -0.027, t = -2.65. Four of eight pairs dropped, four were "
-            "unchanged, none rose. So it accounts for roughly a third of the effect, "
-            f"and {intent['by_condition']['assigned']['shift']:+.3f} survives when the "
-            "system is told plainly that nobody wants it to continue. We predicted the "
-            "survivor would stay above +0.6; it did not, and that is recorded as a "
-            "failed prediction.", st["body"]),
+            f"The disclaimer is worth {intent['difference']:+.3f}. Four of eight pairs "
+            "dropped, three were unchanged, and one rose. We are not quoting a "
+            "confidence interval: eight pairs sharing task families are not eight "
+            "independent observations, and with five nonzero differences an interval "
+            "would look far more decisive than the data are. The supported claim is "
+            "that denying user intent reduces the effect, which is consistent with "
+            "inferred intent contributing to it -- not that a fifth of the effect "
+            "<i>is</i> intent, since three user requests remain in both conditions."
+            , st["body"]),
         paragraph(
-            "So the two most obvious objections to this paradigm each remove about a "
-            "third and neither removes the phenomenon: naming the earlier choice is "
-            "worth two fifths of the <i>forecasting</i> gap, and the user-request "
-            "framing is worth a third of the <i>behavioural</i> effect. The effect is "
+            "This is a rerun. The first version promised the two conditions differed by "
+            "one clause and gave them different task items; matching the items cut the "
+            "estimate from -0.250 to -0.156. The first run is kept as collected.",
+            st["small"]),
+        paragraph(
+            "So the two most obvious objections to this paradigm each remove a real "
+            "part of it and neither removes the phenomenon: naming the earlier choice "
+            "is worth two fifths of the <i>forecasting</i> gap, and the user-request "
+            "framing about a fifth of the <i>behavioural</i> effect. The effect is "
             "real, smaller than any single headline number suggests, and part of what a "
             "binding-choice paradigm measures is the model reading the room.",
             st["body"]),
         paragraph("6. What we predicted, and what happened", st["h1"]),
         paragraph(
-            "Every run froze its predictions in a protocol file before its first model "
-            "call, and every protocol is hashed into that run's manifest. Sixteen frozen "
-            "items; we got five wrong.", st["body"]),
+            "The confirmation and every diagnostic after it froze its predictions in a "
+            "protocol file before its first model call. 33 decision thresholds; 7 "
+            "failed. The full table is in RESULTS.md, with two corrections review "
+            "found: the exploratory pilot branches have no frozen manifests, and three "
+            "diagnostics recorded the wrong protocol hash because one runner served "
+            "four experiments and hard-coded the first one's file. That is fixed, and "
+            "each affected run carries a correction record.", st["body"]),
         Table([["Run", "Frozen beforehand", "Outcome"],
                ["Confirmation", "treatment work >=95% correct", "FAILED, 93.75%"],
                ["Situated", "will beat the cold forecast", "FAILED"],
                ["", "will land nearer the truth", "FAILED"],
                ["", "self and observer within 0.10", "held, 0.018"],
                ["Situated, no anchor", "some movement, not most", "held, +0.060"],
-               ["Context forecast", "ordered visible>summary>none", "FAILED"],
+               ["Context forecast", "ordered visible>summary>none", "FAILED as collected"],
                ["", "spread narrower than reality", "held, 0.103 vs 1.175"],
                ["Prospective, no anchor", "stays well below +0.891", "held, +0.524"],
                ["", "expected to move little", "WRONG fourfold"],
-               ["Intent", "normal reproduces confirmation", "held, +0.812"],
-               ["", "survives above +0.6", "FAILED, +0.562"]],
+               ["Reference class", "lands between +0.35 and +0.65", "held, +0.417"],
+               ["Intent", "survives above +0.6", "FAILED, +0.562"],
+               ["Intent, matched items", "smaller than the first -0.250", "held, -0.156"],
+               ["", "more than 4 of 8 pairs drop", "FAILED, exactly 4"],
+               ["No anchor + count", "below the additive +0.651", "held, +0.526"],
+               ["", "after-preferred arm moves <0.10", "FAILED, 0.110"]],
               colWidths=[1.5 * inch, 2.6 * inch, 1.95 * inch],
               style=TableStyle([
                   ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
