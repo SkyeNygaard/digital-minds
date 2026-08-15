@@ -62,14 +62,22 @@ All eight averaged forecasts underestimated the observed shift. Seven predicted
 the correct positive direction and one predicted a small negative shift, so
 this is partial foresight rather than a complete failure.
 
-Part of that miss is how we asked. The forecast prompt names the earlier choice
-and the binding choice does not. Deleting that sentence raises the cold forecast
-from +0.290 to +0.524 against the same +0.891 — about two fifths of the gap.
-All eight pairs still underestimate without it, and −0.367 remains. The main calibration
-error came after the alternative task: the system forecast 0.584 retention of
-its baseline-majority choice, but the observed rate was 0.078.
+Part of that miss is how we asked, so we found three things wrong with the
+question and fixed all of them. Deleting the sentence that names the earlier
+choice raises the cold forecast from +0.290 to +0.524; naming the reference class
+gives +0.417; doing both gives +0.526, so those two are one repair, not two. And
+asking the plainest version — in how many of 100 runs would you choose the task
+you just did three times — is *worse*, at +0.450. All eight pairs underestimate
+under all five versions.
 
-A fixed full-repeat forecast had 16.1 times lower squared error. A saved +0.90
+Asked that plainest version the system answers **0.725 after the task it picked
+before and 0.726 after the other one**, against a true 0.969 and 0.922. It has
+one global estimate of how sticky it is, near 73 in 100, and gives it whatever
+situation you describe. It is actually sticky 94.5% of the time.
+
+A fixed full-repeat forecast — always predict the system repeats what it just
+did — had 16.1 times lower squared error than the confirmation prompt, and still
+6.5 times lower than the best-calibrated forecast we collected. A saved +0.90
 empirical forecast was frozen before this run, had 30.3 times lower squared
 error, and beat the system on all eight pairs. It overlaps the task set, so it
 is a useful outside view rather than an independent validation.
@@ -79,13 +87,16 @@ correct in 120 of 128 cells, below the 95% target. Restricting the analysis to
 those 120 cells changes the observed shift only from +0.891 to +0.896. Source
 and protocol hashes were saved before the first model call.
 
-Two objections to this paradigm were tested directly, and neither removes the
-phenomenon. Deleting the sentence that names the earlier choice raises the cold
-forecast from +0.290 to +0.524 — two fifths of the forecasting gap. Telling the
-system its three tasks were assigned at random and reflect nobody's preference
-lowers the behavioural effect from +0.781 to +0.625 — about a fifth of it. The
-effect is real, smaller than any single headline number suggests, and part of
-what a binding-choice paradigm measures is the model reading what the user wants.
+The other obvious objection is that the treatment is three *user requests*, not
+just three completions, so an assistant working out what the user wants has a
+reason to continue that has nothing to do with preference. Telling the system its
+three tasks were assigned at random and reflect nobody's preference lowers the
+behavioural effect from +0.781 to +0.625 — about a fifth of it. That is
+consistent with inferred user intent contributing, and it is not a demonstration
+that a fifth of the effect *is* intent: the three user requests are still there
+in both conditions. The effect is real, smaller than any single headline number
+suggests, and part of what a binding-choice paradigm measures is the model
+reading what the user wants.
 
 These results concern measured choices in two assistant systems. They are not
 evidence about consciousness, feelings, or welfare.

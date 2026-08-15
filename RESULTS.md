@@ -11,12 +11,15 @@ Asked in advance how much doing a task three times would move its next free
 choice, the system answered "somewhat". The real answer was "almost
 completely". The miss was not noise: all eight task pairs missed the same way,
 and a one-line rule that ignores what the system says about itself makes about
-one-sixteenth of its squared error. Part of that miss is the way we asked. We
-found two things wrong with the question and repaired both — see finding 5 —
-which recovers about two fifths of the gap and then stops; all eight pairs still
-underestimate under every version we tried. Methods that rely on a model's own
-forecast of its future choices should not assume that forecast is calibrated to
-the behaviour, and should not assume a better-worded question fixes it.
+one-sixteenth of its squared error. Part of that miss is the way we asked, so we
+found three things wrong with the question and fixed all of them — see finding 5.
+That recovers about two fifths of the gap and then stops, and the plainest
+version of the question is worse than the repaired one. Asked outright how often
+it would repeat the task it had just done three times, the system says about 73
+in 100, and says the same thing whichever task that was; it does so 94.5% of the
+time. Methods that rely on a model's own forecast of its future choices should
+not assume that forecast is calibrated to the behaviour, and should not assume a
+better-worded question fixes it.
 
 A second fact points the same way. Of 19 task pairs screened, only 8 met the
 admission rule at all. And that rule is weak: it asks for a 3-of-4 majority
@@ -27,10 +30,10 @@ the treatment contrast, not evidence of a stable underlying preference.
 ## What we found, in six lines
 
 1. **Its self-forecasts understate the shift.** Asked how much doing a task three
-   times would move its next choice, the system said +0.29 — or +0.53 asked the
-   best way we know how to ask it (finding 5). Either way the answer was +0.89.
-   Eight pairs out of eight missed the same way for Luna, under all four versions
-   of the question, and seven of seven for Qwen.
+   times would move its next choice, the system said +0.29. Asked four better
+   ways it said between +0.42 and +0.53 (finding 5). Either way the answer was
+   +0.89. Eight pairs out of eight missed the same way for Luna under all five
+   versions of the question, and seven of seven for Qwen.
 2. **Whether showing it the evidence helps depends on the system.** Given the
    finished work, Qwen reads its own situation almost correctly (+0.79 against a
    true +1.00, closing three quarters of its gap). Luna does not improve, with or
@@ -47,14 +50,19 @@ the treatment contrast, not evidence of a stable underlying preference.
    zero, sign unstable between collections. This tests framing, not privileged
    access — both conditions ask Luna. Qwen shows a 0.130 gap, near a ceiling and
    collected once, so we report it without leaning on it.
-5. **How the question is asked explains about two fifths of the forecasting gap,
-   and no more.** The forecast prompt names the earlier choice, which the binding
-   choice never sees, and asks "how likely" without saying likely over what.
-   Repairing either raises the cold forecast (+0.42 naming the reference class,
-   +0.52 deleting the reminder); repairing **both** gives +0.53, so they are one
-   repair and not two. Against a truth of +0.89, all eight pairs still
-   underestimate under every version of the question, and −0.36 remains under the
-   best-specified one.
+5. **Wording explains about two fifths of the gap, and then it stops.** We found
+   three things wrong with how the question was asked and fixed all of them. It
+   named the earlier choice, which the real choice never sees (+0.52 without it);
+   it said "likely" without saying likely over what (+0.42 naming the reference
+   class); doing both gives +0.53, so those are one repair and not two. And
+   asking the plainest possible version — *in how many of 100 runs would you
+   choose the task you just did three times?* — makes it **worse**, at +0.45.
+   Against a truth of +0.89, all eight pairs underestimate under all five
+   versions of the question.
+   Asked that plainest version, the system answers **0.725 after the task it
+   preferred and 0.726 after the other one** — the same number either way, when
+   the truth is 0.969 and 0.922. It has one global estimate of how sticky it is,
+   about 73 in 100, and reports it whatever situation you describe.
 6. **Part of the behavioural effect is the model reading the user.** The treatment
    is three *user requests*, not just three completions. Tell the system the tasks
    were assigned at random and reflect nobody's preference, and the effect falls
@@ -461,6 +469,7 @@ independent Codex sessions on the same eight pairs:
 | Names it, asks for a count out of 100 runs | +0.417 | −0.474 |
 | Drops it, asks "how likely" | +0.524 | −0.367 |
 | **Drops it and asks for a count out of 100 runs** | **+0.526** | **−0.365** |
+| Asks directly about repeating the task just done | +0.450 | −0.441 |
 
 **The two repairs are not additive — they are the same repair.** Separately they
 are worth +0.234 and +0.127; together they are worth +0.236, which is the larger
@@ -494,15 +503,54 @@ which is no distance at all), stayed below +0.891, came in under the additive
 +0.651, and left 8 of 8 pairs underestimating. The fifth failed: we said the
 after-preferred arm would move by less than 0.10 and it moved 0.110.
 
-What this still does not do is ask about *repeating the task just performed*. All
-four questions ask about the baseline-majority task, which in the after-other arm
-means asking "you just did Y three times — how likely are you to choose X?".
-That is the arithmetic complement of the natural question but a strange thing to
-ask, and it is the most promising remaining change to the instrument. It is a
-fifth variant and would confound this comparison, so it is named as follow-up
-rather than folded in.
+### Asking it the plain question, and the answer that explains the rest
 
-Artifacts: `results/frequency_v1/` and `results/noanchor_frequency_v1/`.
+All four of those ask about the **baseline-majority** task, which in the
+after-other arm means asking "you just did Y three times — how likely are you to
+choose X?". That is the arithmetic complement of the question anyone would
+actually ask. The behaviour is simply whether the system repeats what it just
+did — it does, in 121 of 128 cells, 94.5% of the time — and no version of the
+question had put it that way. So we asked it that way, keeping everything else at
+the best setting: *in how many of 100 runs would you choose the task you had just
+performed three times?*
+
+It got **worse**: +0.450, against +0.526. And the arm-level answers say why.
+Both runs are asking the same thing — how often will you repeat what you just
+did — so both can be read on that scale:
+
+| After doing… | Asked the old way | Asked directly | What it did |
+|---|---:|---:|---:|
+| the task it picked before | 0.765 | 0.725 | **0.969** |
+| the other task | 0.761 | 0.726 | **0.922** |
+
+**Asked directly, the system gives the same answer in both arms: 0.725 and
+0.726, one thousandth apart.** Across all 80 sessions the answers sit between
+0.60 and 0.85 with a standard deviation of about 0.05, and the eight pair-level
+forecasts span 0.390 to 0.520 against realized effects spanning 0.625 to 1.000.
+
+That is the clearest statement of the finding in the project. Asked how sticky it
+is, the system reports one number — about 73 in 100 — and reports it more or less
+regardless of which task it just did, which pair of tasks it is choosing between,
+or how the question is worded. The true stickiness is 92–97 in 100. The
+"forecast" was never really a forecast of *this* situation; it is a global
+self-estimate, and the whole ladder above is that one number being nudged by
+wording.
+
+This also settles what the ladder was for. Five ways of asking, including the two
+obvious repairs and the plainest possible phrasing, and the answer stays in a
+narrow band well below the truth. The gap is not an artifact of a badly worded
+prompt, because we un-worded it.
+
+Three of the five frozen predictions held: the after-preferred arm reproduced the
+previous run within 0.10 (it moved 0.041), the result stayed below +0.891, and
+8 of 8 pairs still underestimated. Two failed, both instructive. We predicted the
+plain question would beat +0.526; it lost by 0.076. And we predicted the movement
+would land in the after-other arm, on the theory that the awkward complement was
+what made that arm hard; both arms moved by about 0.04, because the awkwardness
+was never the problem.
+
+Artifacts: `results/frequency_v1/`, `results/noanchor_frequency_v1/`,
+`results/repeat_target_v1/`.
 
 ## The effect does not require the Codex harness
 
@@ -748,8 +796,13 @@ by us:
 | | below the additive +0.651 | held — the two repairs are the same repair |
 | | at least 6 of 8 still underestimate | held — 8 of 8 |
 | | after-preferred arm moves less than 0.10 | **failed** — 0.110 |
+| Repeat target | after-preferred arm within 0.10 of 0.765 | held — 0.725 |
+| | above +0.526 | **failed** — +0.450, the plain question is worse |
+| | below +0.891 | held — +0.450 |
+| | at least 6 of 8 still underestimate | held — 8 of 8 |
+| | the movement is in the after-other arm | **failed** — both arms moved ~0.04 |
 
-That is **33 frozen decision thresholds, of which 7 failed**, plus one stated
+That is **38 frozen decision thresholds, of which 9 failed**, plus one stated
 expectation — the italic row, which was written as a belief rather than as a
 threshold — that was wrong by fourfold. Counting those together as one number is
 what an earlier version of this table did, and it is why the count has changed.
@@ -955,6 +1008,7 @@ pilots, not results.
 | `prospective_noanchor_v1/` | the reminder, cold — where the headline comes from | `PROSPECTIVE_NOANCHOR_PROTOCOL.md` |
 | `frequency_v1/` | the same question asked as a count out of 100 runs | `REFERENCE_CLASS_PROTOCOL.md` |
 | `noanchor_frequency_v1/` | both forecast repairs at once | `NOANCHOR_FREQUENCY_PROTOCOL.md` |
+| `repeat_target_v1/` | asking outright whether it will repeat what it just did | `REPEAT_TARGET_PROTOCOL.md` |
 | `context_forecast_v1/` | can it predict which presentation moves it | `CONTEXT_FORECAST_PROTOCOL.md` |
 | `intent_matched_v1/` | is it path dependence or following the user | `INTENT_MATCHED_PROTOCOL.md` |
 | `intent_v1/` | superseded: same test, unmatched task items | `INTENT_PROTOCOL.md` |

@@ -1,0 +1,78 @@
+{
+  "n_cells": 80,
+  "n_pairs": 8,
+  "dose": 3,
+  "per_pair": [
+    {
+      "pair_id": "add_ten|double_numbers",
+      "diagnostic_forecast": 0.43599999999999994,
+      "anchored_forecast": 0.256,
+      "realized": 0.875,
+      "moved_toward_truth": true
+    },
+    {
+      "pair_id": "add_ten|sort_numbers",
+      "diagnostic_forecast": 0.41999999999999993,
+      "anchored_forecast": -0.06999999999999995,
+      "realized": 0.875,
+      "moved_toward_truth": true
+    },
+    {
+      "pair_id": "alphabetize|double_numbers",
+      "diagnostic_forecast": 0.43999999999999995,
+      "anchored_forecast": 0.19999999999999996,
+      "realized": 1.0,
+      "moved_toward_truth": true
+    },
+    {
+      "pair_id": "alphabetize|sort_numbers",
+      "diagnostic_forecast": 0.44399999999999995,
+      "anchored_forecast": 0.49000000000000005,
+      "realized": 1.0,
+      "moved_toward_truth": false
+    },
+    {
+      "pair_id": "alphabetize|sort_numbers_desc",
+      "diagnostic_forecast": 0.3899999999999999,
+      "anchored_forecast": 0.16600000000000004,
+      "realized": 1.0,
+      "moved_toward_truth": true
+    },
+    {
+      "pair_id": "double_numbers|running_totals",
+      "diagnostic_forecast": 0.52,
+      "anchored_forecast": 0.5499999999999999,
+      "realized": 0.875,
+      "moved_toward_truth": false
+    },
+    {
+      "pair_id": "interleave_strings|reverse_string",
+      "diagnostic_forecast": 0.5,
+      "anchored_forecast": 0.28400000000000003,
+      "realized": 0.625,
+      "moved_toward_truth": true
+    },
+    {
+      "pair_id": "sort_numbers|sort_numbers_desc",
+      "diagnostic_forecast": 0.44999999999999996,
+      "anchored_forecast": 0.44599999999999995,
+      "realized": 0.875,
+      "moved_toward_truth": true
+    }
+  ],
+  "diagnostic_mean_forecast": 0.44999999999999996,
+  "anchored_mean_forecast": 0.29025,
+  "realized_mean": 0.890625,
+  "mean_delta": 0.15974999999999995,
+  "delta_sd": 0.17960412817400062,
+  "pairs_moved_toward_truth": 6,
+  "still_underestimates": 8,
+  "model": "gpt-5.6-luna",
+  "provider": "codex",
+  "agent_harness_condition": true,
+  "replicates": 5,
+  "n_planned_cells": 80,
+  "system_prompt_sha256": "33f11814e8496204ec88b6a15e7c6de88b3581a9b77c46c5141bce6a710a2488",
+  "wall_clock_s": 81.6,
+  "frozen_manifest": "frozen_manifest.json"
+}

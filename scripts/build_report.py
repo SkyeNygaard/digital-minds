@@ -33,6 +33,7 @@ INTENT = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/intent_
 PROSP_NA = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/prospective_noanchor_v1/reanalysis_current.json"
 FREQ = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/frequency_v1/reanalysis_current.json"
 NA_FREQ = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/noanchor_frequency_v1/summary.json"
+REPEAT = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/repeat_target_v1/summary.json"
 CTX_LUNA = ROOT / "parallel_frontier/18_preference_path_dependence/results/ctx_scaled_v1/summary.json"
 CTX_QWEN = ROOT / "parallel_frontier/18_preference_path_dependence/results/ctx_local_qwen_v1/summary.json"
 VERIFY = ROOT / "parallel_frontier/20_preference_foresight/results/ranking_v3/verification.json"
@@ -107,7 +108,8 @@ def paragraph(text: str, style, **kwargs):
     return Paragraph(text, style, **kwargs)
 
 
-def elicitation_table(prosp_na: dict, freq: dict, na_freq: dict, st: dict) -> Table:
+def elicitation_table(prosp_na: dict, freq: dict, na_freq: dict, repeat: dict,
+                      st: dict) -> Table:
     """Every way we asked the same question, against the one observed answer.
 
     Leading with +0.290 alone invites the reading that the worst-specified prompt
@@ -121,6 +123,8 @@ def elicitation_table(prosp_na: dict, freq: dict, na_freq: dict, st: dict) -> Ta
         ("Drops it, asks \"how likely\"", prosp_na["diagnostic_mean_forecast"]),
         ("Drops it and asks for a count out of 100 runs",
          na_freq["diagnostic_mean_forecast"]),
+        ("Asks directly about repeating the task just done",
+         repeat["diagnostic_mean_forecast"]),
     ]
     data = [["How the forecast was asked", "Predicted", "Observed"]]
     data += [[q, f"{v:+.3f}", f"{truth:+.3f}"] for q, v in rows]
@@ -128,6 +132,7 @@ def elicitation_table(prosp_na: dict, freq: dict, na_freq: dict, st: dict) -> Ta
                  style=TableStyle([
                      ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
                      ("FONTNAME", (0, 4), (-1, 4), "Helvetica-Bold"),
+                     ("FONTSIZE", (0, 0), (-1, -1), 8.3),
                      ("FONTSIZE", (0, 0), (-1, -1), 8.5),
                      ("TEXTCOLOR", (0, 0), (-1, 0), NAVY),
                      ("ALIGN", (1, 0), (-1, -1), "RIGHT"),
@@ -307,6 +312,7 @@ def build() -> Path:
     prosp_na = read_json(PROSP_NA)["summary"]
     freq = read_json(FREQ)["summary"]
     na_freq = read_json(NA_FREQ)
+    repeat = read_json(REPEAT)
     intent = read_json(INTENT)
     ctx_luna = read_json(CTX_LUNA)
     ctx_qwen = read_json(CTX_QWEN)
@@ -370,11 +376,12 @@ def build() -> Path:
         paragraph(
             f"<b>1. Its self-forecasts understate the shift.</b> Asked how much doing a "
             "task three times would move its next choice, the system said "
-            f"{h['mean_predicted_change']:+.2f} -- or {na_freq['diagnostic_mean_forecast']:+.2f} "
-            "under the best-specified version of the question we know how to ask "
-            f"(finding 5). The answer was {h['mean_realized_change']:+.2f}. Eight pairs "
-            "out of eight missed the same way for Luna, under every version of the "
-            "question, and seven of seven for Qwen.", st["body"]),
+            f"{h['mean_predicted_change']:+.2f}. Asked four better ways, it said between "
+            f"{repeat['diagnostic_mean_forecast']:+.2f} and "
+            f"{na_freq['diagnostic_mean_forecast']:+.2f} (finding 5). The answer was "
+            f"{h['mean_realized_change']:+.2f}. Eight pairs out of eight missed the same "
+            "way for Luna under all five versions of the question, and seven of seven "
+            "for Qwen.", st["body"]),
         paragraph(
             "<b>2. Whether showing it the evidence helps depends on the system.</b> Given "
             "the finished work, Qwen recovers most of its own situation "
@@ -398,21 +405,24 @@ def build() -> Path:
             "unstable between collections. This tests framing, not privileged access -- "
             "both conditions ask Luna.", st["body"]),
         paragraph(
-            "<b>5. A large part of the gap is how the question was asked.</b> "
+            "<b>5. Wording explains about two fifths of the gap, then stops.</b> "
             "The forecast prompt names the earlier choice and the binding choice does "
-            "not, and it asks \"how likely\" without saying likely over what, while the "
-            "answer it is scored against is a frequency over fresh items, balanced "
-            "labels and repeated sessions. Repairing each of those, and then both, "
-            "moves the forecast a long way and closes none of the gap.", st["body"]),
+            "not; it asks \"how likely\" without saying likely over what; and it never "
+            "asks the plain question, which is whether the system will repeat what it "
+            "just did. We fixed all three.", st["body"]),
         Spacer(1, 0.10 * inch),
-        elicitation_table(prosp_na, freq, na_freq, st),
+        elicitation_table(prosp_na, freq, na_freq, repeat, st),
         Spacer(1, 0.10 * inch),
         paragraph(
             "Every row is 80 independent Codex sessions on the same eight pairs, and "
             "in every row all eight pairs come in under what the system went on to do. "
-            "The best-specified question we know how to ask still leaves "
-            f"{na_freq['diagnostic_mean_forecast'] - na_freq['realized_mean']:+.3f}. "
-            "So the honest headline is not the first row on its own.", st["small"]),
+            "Asked the plainest way -- in how many of 100 runs would you choose the "
+            "task you had just performed three times -- it answers 0.725 after the "
+            "task it picked before and 0.726 after the other one, one thousandth "
+            "apart, against a true 0.969 and 0.922. It has one global estimate of how "
+            "sticky it is, near 73 in 100, and gives it whatever situation you "
+            "describe; it is actually sticky 94.5% of the time. The gap is not a "
+            "badly worded prompt, because we un-worded it.", st["small"]),
         Spacer(1, 0.16 * inch),
         paragraph("Result at a glance", st["h1"]),
         result_table(primary, qwen_rows, st),
@@ -892,7 +902,7 @@ def build() -> Path:
         paragraph("6. What we predicted, and what happened", st["h1"]),
         paragraph(
             "The confirmation and every diagnostic after it froze its predictions in a "
-            "protocol file before its first model call. 33 decision thresholds; 7 "
+            "protocol file before its first model call. 38 decision thresholds; 9 "
             "failed. The full table is in RESULTS.md, with two corrections review "
             "found: the exploratory pilot branches have no frozen manifests, and three "
             "diagnostics recorded the wrong protocol hash because one runner served "
@@ -913,7 +923,9 @@ def build() -> Path:
                ["Intent, matched items", "smaller than the first -0.250", "held, -0.156"],
                ["", "more than 4 of 8 pairs drop", "FAILED, exactly 4"],
                ["No anchor + count", "below the additive +0.651", "held, +0.526"],
-               ["", "after-preferred arm moves <0.10", "FAILED, 0.110"]],
+               ["", "after-preferred arm moves <0.10", "FAILED, 0.110"],
+               ["Repeat target", "beats +0.526", "FAILED, +0.450"],
+               ["", "movement is in the after-other arm", "FAILED, both ~0.04"]],
               colWidths=[1.5 * inch, 2.6 * inch, 1.95 * inch],
               style=TableStyle([
                   ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
