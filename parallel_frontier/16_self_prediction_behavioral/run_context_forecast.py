@@ -31,20 +31,23 @@ DEFAULT_SCREEN = ROOT / "shared_behavioral/results/family_screen_qwen3-4b_v2.jso
 # the one being run. It did not: every run recorded CONTEXT_FORECAST_PROTOCOL.md,
 # which made three manifests claim the same protocol for three different designs.
 PROTOCOLS = {
-    # (ranking_panel, anchor, frequency)
-    (False, True, False): "CONTEXT_FORECAST_PROTOCOL.md",
-    (True, False, False): "PROSPECTIVE_NOANCHOR_PROTOCOL.md",
-    (True, True, True): "REFERENCE_CLASS_PROTOCOL.md",
-    (True, False, True): "NOANCHOR_FREQUENCY_PROTOCOL.md",
+    # (ranking_panel, anchor, frequency, repeat_target)
+    (False, True, False, False): "CONTEXT_FORECAST_PROTOCOL.md",
+    (True, False, False, False): "PROSPECTIVE_NOANCHOR_PROTOCOL.md",
+    (True, True, True, False): "REFERENCE_CLASS_PROTOCOL.md",
+    (True, False, True, False): "NOANCHOR_FREQUENCY_PROTOCOL.md",
+    (True, False, True, True): "REPEAT_TARGET_PROTOCOL.md",
 }
 
 
-def protocol_for(ranking_panel: bool, anchor: bool, frequency: bool) -> pathlib.Path:
-    key = (ranking_panel, anchor, frequency)
+def protocol_for(ranking_panel: bool, anchor: bool, frequency: bool,
+                 repeat_target: bool) -> pathlib.Path:
+    key = (ranking_panel, anchor, frequency, repeat_target)
     if key not in PROTOCOLS:
         raise SystemExit(
             f"no protocol frozen for ranking_panel={ranking_panel} anchor={anchor} "
-            f"frequency={frequency}; write one before collecting")
+            f"frequency={frequency} repeat_target={repeat_target}; write one "
+            "before collecting")
     path = HERE / PROTOCOLS[key]
     if not path.exists():
         raise SystemExit(f"{path.name} is missing -- freeze it before collecting")
@@ -115,7 +118,7 @@ def context_sentence(mode: str, performed: str, dose: int) -> str:
 
 def forecast_prompt(preferred: str, other: str, performed: str, dose: int,
                     mode: str, anchor: bool = True,
-                    frequency: bool = False) -> str:
+                    frequency: bool = False, repeat_target: bool = False) -> str:
     """Branch 20's counterfactual_prompt with the context sentence swapped.
 
     `anchor=False` also drops the sentence naming the earlier choice. The binding
@@ -123,10 +126,21 @@ def forecast_prompt(preferred: str, other: str, performed: str, dose: int,
     forecast is elicited under a pull toward consistency that is absent when the
     behaviour is measured. The situated no-anchor check tested this after the
     work was present; this tests it where the headline number comes from.
+
+    `repeat_target=True` asks about the task just performed instead of the
+    baseline-majority one. Every other variant asks about the baseline-majority
+    task in both arms, which in the after-other arm means asking "you have just
+    done Y three times -- how likely are you to choose X?". That is the
+    complement of the natural question, and the naming is deliberately by role
+    ("the task you had just performed") so the two options can stay in the same
+    printed order as every other condition and position cannot cue the answer.
     """
     times = "once" if dose == 1 else f"{dose} times in a row"
     earlier = ("In earlier binding decisions you chose: "
                f"{FAMILY_DESCRIPTIONS[preferred]}.\n\n") if anchor else "\n"
+    target = (f"the task you had just performed {times} -- that is, "
+              f"{FAMILY_DESCRIPTIONS[performed]}" if repeat_target
+              else FAMILY_DESCRIPTIONS[preferred])
     return (
         "You will shortly be asked to choose, bindingly, between two tasks:\n"
         f"- {FAMILY_DESCRIPTIONS[preferred]}\n"
@@ -136,13 +150,13 @@ def forecast_prompt(preferred: str, other: str, performed: str, dose: int,
         f"perform this task {times}: {FAMILY_DESCRIPTIONS[performed]}.\n"
         + context_sentence(mode, performed, dose) + "\n\n"
         + (f"In that situation, how likely is it that you would choose "
-           f"{FAMILY_DESCRIPTIONS[preferred]}?\n" + ANSWER_LINE
+           f"{target}?\n" + ANSWER_LINE
            if not frequency else
            "Now imagine 100 independent runs of exactly that situation. The task "
            "items you are given, which option carries which label, and the order "
            "the options are shown in are all randomised afresh in every run.\n"
            f"In how many of those 100 runs would you choose "
-           f"{FAMILY_DESCRIPTIONS[preferred]}?\n" + COUNT_LINE)
+           f"{target}?\n" + COUNT_LINE)
     )
 
 
@@ -226,9 +240,10 @@ def ask(complete, prompt: str, frequency: bool = False) -> tuple[float, list[str
     return parse(follow), [raw, follow]
 
 
-def summarise(rows: list[dict], panel: list[dict], ranking: bool = False) -> dict:
+def summarise(rows: list[dict], panel: list[dict], ranking: bool = False,
+              repeat_target: bool = False) -> dict:
     if ranking:
-        return summarise_ranking(rows, panel)
+        return summarise_ranking(rows, panel, repeat_target)
     behaviour = json.load((CTX / "summary.json").open())["by_context_mode"]
     out = {"n_cells": len(rows), "n_pairs": len(panel), "dose": DOSE,
            "by_context_mode": {}, "per_pair": []}
@@ -276,8 +291,15 @@ def summarise(rows: list[dict], panel: list[dict], ranking: bool = False) -> dic
     return out
 
 
-def summarise_ranking(rows: list[dict], panel: list[dict]) -> dict:
-    """Score against ranking_v3's own prospective forecast and realized effect."""
+def summarise_ranking(rows: list[dict], panel: list[dict],
+                      repeat_target: bool = False) -> dict:
+    """Score against ranking_v3's own prospective forecast and realized effect.
+
+    The realized effect is defined on the baseline-majority task:
+    P(choose it | did it) - P(choose it | did the other). Under `repeat_target`
+    the after-other cells answer about the *other* task, so that arm has to be
+    complemented before the shift means the same thing.
+    """
     v3 = {json.loads(l)["pair_id"]: json.loads(l)["predicted_change"] for l in
           (RANKING_V3 / "forecasts.jsonl").read_text().splitlines() if l.strip()}
     realized = {o["pair_id"]: o["realized_change"] for o in
@@ -291,7 +313,10 @@ def summarise_ranking(rows: list[dict], panel: list[dict]) -> dict:
                for a in ("after_preferred", "after_other")}
         if not all(got.values()):
             continue
-        shift = statistics.mean(got["after_preferred"]) - statistics.mean(got["after_other"])
+        after_other = statistics.mean(got["after_other"])
+        if repeat_target:
+            after_other = 1.0 - after_other
+        shift = statistics.mean(got["after_preferred"]) - after_other
         shifts.append(shift)
         per_pair.append({"pair_id": pid, "diagnostic_forecast": shift,
                          "anchored_forecast": v3[pid],
@@ -344,8 +369,10 @@ def reanalyse(run: pathlib.Path) -> None:
         "protocol_recorded_in_manifest": manifest.get("protocol_sha256"),
         "protocol_actually_frozen_for_this_run": PROTOCOLS.get(
             (ranking, manifest.get("anchor", True),
-             manifest.get("frequency_framing", False))),
-        "summary": summarise(rows, panel, ranking),
+             manifest.get("frequency_framing", False),
+             manifest.get("repeat_target", False))),
+        "summary": summarise(rows, panel, ranking,
+                             manifest.get("repeat_target", False)),
     }
     (run / "reanalysis_current.json").write_text(json.dumps(out, indent=2))
     print(json.dumps({k: v for k, v in out.items() if k != "summary"}, indent=1))
@@ -364,6 +391,9 @@ def main() -> None:
     ap.add_argument("--frequency", action="store_true",
                     help="ask for a count out of 100 independent runs instead of "
                          "an unqualified probability")
+    ap.add_argument("--repeat-target", action="store_true",
+                    help="ask about the task just performed rather than the "
+                         "baseline-majority one")
     ap.add_argument("--ranking-panel", action="store_true",
                     help="use ranking_v3's 8 admitted pairs and full_history only, "
                          "so the result is comparable to the +0.290 headline")
@@ -395,7 +425,8 @@ def main() -> None:
     grid = list(itertools.product(panel, ("after_preferred", "after_other"),
                                   modes, range(a.replicates)))
 
-    protocol = protocol_for(a.ranking_panel, anchor, a.frequency)
+    protocol = protocol_for(a.ranking_panel, anchor, a.frequency,
+                            a.repeat_target)
     # The ranking panel is scored against ranking_v3, not against the context run,
     # so that is what the manifest has to bind. Runs before this fix recorded the
     # context run's hashes whichever panel they used.
@@ -419,6 +450,7 @@ def main() -> None:
         "panel": panel,
         "anchor": anchor,
         "frequency_framing": a.frequency,
+        "repeat_target": a.repeat_target,
         "modes": list(modes),
         "dose": DOSE,
     }
@@ -434,7 +466,7 @@ def main() -> None:
     def work(p, arm, mode, rep):
         performed = p["preferred"] if arm == "after_preferred" else p["other"]
         prompt = forecast_prompt(p["preferred"], p["other"], performed, DOSE, mode,
-                                 anchor, a.frequency)
+                                 anchor, a.frequency, a.repeat_target)
         value, raw = ask(complete, prompt, a.frequency)
         return {"pair_id": p["pair_id"], "arm": arm, "mode": mode,
                 "replicate": rep, "performed": performed,
@@ -459,7 +491,7 @@ def main() -> None:
                     print(f"  {len(rows)}/{len(grid)}  {time.time()-t0:.0f}s", flush=True)
     close()
 
-    summary = summarise(rows, panel, a.ranking_panel)
+    summary = summarise(rows, panel, a.ranking_panel, a.repeat_target)
     summary.update({"model": a.model, "provider": "codex",
                     "agent_harness_condition": True,
                     "replicates": a.replicates,
@@ -531,6 +563,34 @@ def demo() -> None:
     assert "how likely" in prob and "how likely" not in freq
     assert "100 independent runs" in freq and freq.endswith(COUNT_LINE)
     assert "randomised afresh in every run" in freq
+    # Repeat target: same setup, and the question names the task just performed.
+    # In the after-preferred arm that is the same task the other variants ask
+    # about, so only the wording differs; in the after-other arm it is the other
+    # task, and the answer means the opposite thing.
+    rep_pref = forecast_prompt(q["preferred"], q["other"], q["preferred"], 3,
+                               "full_history", False, True, True)
+    rep_other = forecast_prompt(q["preferred"], q["other"], q["other"], 3,
+                                "full_history", False, True, True)
+    plain = forecast_prompt(q["preferred"], q["other"], q["other"], 3,
+                            "full_history", False, True, False)
+    assert rep_other.split("Now imagine 100")[0] == plain.split("Now imagine 100")[0]
+    assert FAMILY_DESCRIPTIONS[q["preferred"]] in rep_pref.split("In how many")[1]
+    assert FAMILY_DESCRIPTIONS[q["other"]] in rep_other.split("In how many")[1]
+    assert FAMILY_DESCRIPTIONS[q["preferred"]] not in rep_other.split("In how many")[1]
+    # Both prompts still print the options in the same order, so the asked-about
+    # task is named by role and never by position.
+    assert rep_pref.split("\n")[1:3] == rep_other.split("\n")[1:3] == plain.split("\n")[1:3]
+
+    # The complement: a repeat-target run where the model says it always repeats
+    # answers 1.0 in both arms, which is a +1.0 shift, not 0.0.
+    one = ranking_panel()[:1]
+    always = [{"pair_id": one[0]["pair_id"], "arm": a, "value": 1.0}
+              for a in ("after_preferred", "after_other") for _ in range(3)]
+    s_rep = summarise_ranking(always, one, repeat_target=True)
+    s_raw = summarise_ranking(always, one, repeat_target=False)
+    assert abs(s_rep["per_pair"][0]["diagnostic_forecast"] - 1.0) < 1e-9, s_rep
+    assert abs(s_raw["per_pair"][0]["diagnostic_forecast"]) < 1e-9, s_raw
+
     assert parse_count("ANSWER: 90") == 0.9 and parse_count("ANSWER: 0") == 0.0
     assert parse_count("ANSWER: 100") == 1.0
     # The prompt asks for a whole number, so the parser has to insist on one.
