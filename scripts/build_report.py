@@ -34,6 +34,7 @@ PROSP_NA = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/prosp
 FREQ = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/frequency_v1/reanalysis_current.json"
 NA_FREQ = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/noanchor_frequency_v1/summary.json"
 REPEAT = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/repeat_target_v1/summary.json"
+SIT_REPEAT = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/situated_repeat_v1/summary.json"
 CTX_LUNA = ROOT / "parallel_frontier/18_preference_path_dependence/results/ctx_scaled_v1/summary.json"
 CTX_QWEN = ROOT / "parallel_frontier/18_preference_path_dependence/results/ctx_local_qwen_v1/summary.json"
 VERIFY = ROOT / "parallel_frontier/20_preference_foresight/results/ranking_v3/verification.json"
@@ -331,6 +332,7 @@ def build() -> Path:
     freq = read_json(FREQ)["summary"]
     na_freq = read_json(NA_FREQ)
     repeat = read_json(REPEAT)
+    sit_repeat = read_json(SIT_REPEAT)
     intent = read_json(INTENT)
     ctx_luna = read_json(CTX_LUNA)
     ctx_qwen = read_json(CTX_QWEN)
@@ -374,13 +376,14 @@ def build() -> Path:
             "it, or you can watch it. Preference and welfare work has to know when those "
             "two methods disagree. Here they disagree in one direction, by a large "
             "amount, in a case where the behavioural answer is directly measurable.<br/><br/>"
-            "<b>Main finding.</b> The tested systems predicted some repetition, but "
-            "much less than occurred. Every reported forecast underestimated the "
-            "observed shift, and a one-line rule that ignores what the system says "
-            "about itself makes a fraction of its squared error. How the question is "
-            "asked matters a great deal: three separate repairs to the forecast "
-            "prompt each moved the answer substantially toward the truth. None of "
-            "them closed the gap.",
+            "<b>Main finding.</b> Asked outright how often it would repeat a task it "
+            "had just performed three times, the system answered <b>0.725</b> after "
+            "one task and <b>0.726</b> after the other &mdash; the same estimate "
+            "whichever task it had just done. It went on to repeat that task "
+            "<b>96.9%</b> and <b>92.2%</b> of the time. Five different wordings of "
+            "the question, including both repairs to its two known defects, all land "
+            "in a narrow band well under what happens. A one-line rule that ignores "
+            "what the system says about itself makes a fraction of its squared error.",
             st["callout"]) ]], colWidths=[6.05 * inch],
             style=TableStyle([
                 ("BACKGROUND", (0, 0), (-1, -1), PALE),
@@ -409,7 +412,11 @@ def build() -> Path:
             f"({sit_qwen['situated_self_native_mean_change']:+.2f} against a true "
             f"{sit_qwen['realized_mean_change']:+.2f}, closing three quarters of its gap, "
             "though all seven of its estimates are still low). "
-            f"Luna does not improve at all "
+            f"Luna does not improve under any wording, and under the best one it gets "
+            f"worse: asked the plain repeat question cold it says 0.73, and with the work "
+            f"actually in front of it, 0.57, against the 0.92-0.97 it goes on to do "
+            f"({sit_repeat['situated_self_native_mean_change']:+.2f} as a shift). Under the "
+            f"original wording it is flat "
             f"({situated['situated_self_native_mean_change']:+.2f}; the change from its cold "
             "forecast is -0.043, well inside noise). Same task, opposite outcome.",
             st["body"]),

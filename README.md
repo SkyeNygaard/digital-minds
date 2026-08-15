@@ -13,9 +13,16 @@ instruments rather than about what the system can introspect.
 To find out what an AI system prefers you can ask it, or you can watch it. Work
 on model preferences and model welfare has to know when those two methods
 disagree. Here they disagree in one direction, by a large amount, in a case
-where the behavioural answer is directly measurable. Methods that rely on a model's own forecast
-of its future choices should not assume that forecast is calibrated to the
-behaviour.
+where the behavioural answer is directly measurable. Methods that rely on a
+model's own forecast of its future choices should not assume that forecast is
+calibrated to the behaviour.
+
+The shortest version: asked outright how often it would repeat a task it had just
+performed three times, the system answers **0.725 after one task and 0.726 after
+the other** — the same estimate whichever task it just did. It then repeats that
+task 96.9% and 92.2% of the time. Five different wordings of the question, two of
+them repairing defects we found in it, all land in a narrow band well under what
+happens.
 
 Can an AI system predict how recent work will change its next binding choice?
 
