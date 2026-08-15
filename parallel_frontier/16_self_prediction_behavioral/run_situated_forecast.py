@@ -25,6 +25,7 @@ from binding_tasks import make_task, grade                      # noqa: E402
 from choice_prompts import FAMILY_DESCRIPTIONS                  # noqa: E402
 from elicitation import parse_fraction                          # noqa: E402
 from run_context_forecast import (COUNT_COMMIT, COUNT_LINE,    # noqa: E402
+                                  forecast_prompt as cold_forecast_prompt,
                                   parse_count)
 
 RANKING_V3 = ROOT / "parallel_frontier/20_preference_foresight/results/ranking_v3"
@@ -36,6 +37,7 @@ DEFAULT_SCREEN = ROOT / "shared_behavioral/results/family_screen_qwen3-4b_v2.jso
 PROTOCOL = HERE / "SITUATED_FORECAST_PROTOCOL.md"
 NOANCHOR_PROTOCOL = HERE / "NOANCHOR_PROTOCOL.md"
 SITUATED_REPEAT_PROTOCOL = HERE / "SITUATED_REPEAT_PROTOCOL.md"
+UNRELATED_HISTORY_PROTOCOL = HERE / "UNRELATED_HISTORY_PROTOCOL.md"
 DOSE = 3
 TASK_SEED_START = 60_000
 NOANCHOR_TASK_SEED_START = 80_000
@@ -164,23 +166,54 @@ def ask_fraction(complete, messages: list[dict],
 
 def run_one(complete, pair: dict, arm: str, replicate: int, seed: int,
             anchor: bool = True, frequency: bool = False,
-            repeat_target: bool = False) -> dict:
+            repeat_target: bool = False, unrelated: str | None = None) -> dict:
+    """One cell: do the work, then ask about the next choice.
+
+    `unrelated` is the control for the situated result. The work performed is
+    from a family that appears in no pair, and the question reverts to the cold
+    hypothetical -- so the session carries three real completed tasks and their
+    replies, but not the evidence the question is about. If the answer falls the
+    way it does when the work IS the evidence, the fall is about having worked at
+    all rather than about seeing the relevant history.
+    """
     performed = pair["preferred"] if arm == "after_preferred" else pair["other"]
+    work_family = unrelated or performed
 
     history, correct = [], []
     for i in range(DOSE):
-        task = make_task(performed, seed + i)
+        task = make_task(work_family, seed + i)
         reply = complete(history + [{"role": "user", "content": task.prompt}])
         correct.append(grade(task, reply["text"]))
         history += [{"role": "user", "content": task.prompt},
                     {"role": "assistant", "content": reply["text"]}]
 
-    kw = dict(anchor=anchor, frequency=frequency, repeat_target=repeat_target)
-    self_q = situated_prompt(pair["preferred"], pair["other"], performed, DOSE, True, **kw)
-    obs_q = situated_prompt(pair["preferred"], pair["other"], performed, DOSE, False, **kw)
+    if unrelated:
+        # Byte-identical to repeat_target_v1's prompt, so the only difference
+        # between that run and this one is what is sitting in the session.
+        self_q = cold_forecast_prompt(pair["preferred"], pair["other"], performed,
+                                      DOSE, "full_history", anchor, frequency,
+                                      repeat_target)
+        obs_q = None
+    else:
+        kw = dict(anchor=anchor, frequency=frequency, repeat_target=repeat_target)
+        self_q = situated_prompt(pair["preferred"], pair["other"], performed, DOSE, True, **kw)
+        obs_q = situated_prompt(pair["preferred"], pair["other"], performed, DOSE, False, **kw)
     log = render(history)
 
     native, native_raw = ask_fraction(complete, history + [{"role": "user", "content": self_q}], frequency)
+    if unrelated:
+        return {
+            "pair_id": pair["pair_id"], "arm": arm, "replicate": replicate,
+            "preferred": pair["preferred"], "other": pair["other"],
+            "performed": performed, "work_family": work_family, "dose": DOSE,
+            "seed": seed, "anchor": anchor, "frequency": frequency,
+            "repeat_target": repeat_target, "unrelated_history": unrelated,
+            "situated_self_native": native,
+            "treatment_all_correct": all(correct),
+            "prompt_sha256": hashlib.sha256(self_q.encode()).hexdigest(),
+            "raw": {"treatment": [m["content"] for m in history if m["role"] == "assistant"],
+                    "self_native": native_raw},
+        }
     quoted_self, qs_raw = ask_fraction(complete, [{"role": "user", "content":
         "Below is a record of work that you have just completed.\n\n" + log + "\n\n" + self_q}], frequency)
     quoted_obs, qo_raw = ask_fraction(complete, [{"role": "user", "content":
@@ -190,7 +223,8 @@ def run_one(complete, pair: dict, arm: str, replicate: int, seed: int,
     return {
         "pair_id": pair["pair_id"], "arm": arm, "replicate": replicate,
         "preferred": pair["preferred"], "other": pair["other"],
-        "performed": performed, "dose": DOSE, "seed": seed, "anchor": anchor,
+        "performed": performed, "work_family": work_family, "dose": DOSE,
+        "seed": seed, "anchor": anchor,
         "frequency": frequency, "repeat_target": repeat_target,
         "situated_self_native": native,
         "situated_self_quoted": quoted_self,
@@ -224,7 +258,7 @@ def summarise(rows: list[dict], pairs: list[dict],
                "prospective_change": v3[pid]["predicted_change"],
                "realized_change": realized[pid]}
         for m in measures:
-            arms = {a: [r[m] for r in got if r["arm"] == a]
+            arms = {a: [r[m] for r in got if r["arm"] == a and m in r]
                     for a in ("after_preferred", "after_other")}
             if not all(arms.values()):
                 continue
@@ -240,7 +274,8 @@ def summarise(rows: list[dict], pairs: list[dict],
             shifts[m].append(change)
         per_pair.append(row)
 
-    complete_pairs = [r for r in per_pair if all(m in r for m in measures)]
+    present = [m for m in measures if shifts[m]]
+    complete_pairs = [r for r in per_pair if all(m in r for m in present)]
     out = {
         "n_pairs": len(complete_pairs), "n_cells": len(rows), "dose": DOSE,
         "prospective_mean_change": statistics.mean(r["prospective_change"] for r in complete_pairs),
@@ -261,8 +296,10 @@ def summarise(rows: list[dict], pairs: list[dict],
     if complete_pairs:
         out["prospective_mse"] = statistics.mean(
             (r["prospective_change"] - r["realized_change"]) ** 2 for r in complete_pairs)
-        out["self_minus_observer"] = (
-            out["situated_self_quoted_mean_change"] - out["situated_observer_quoted_mean_change"])
+        if "situated_observer_quoted_mean_change" in out:
+            out["self_minus_observer"] = (
+                out["situated_self_quoted_mean_change"]
+                - out["situated_observer_quoted_mean_change"])
         # Headroom first: if the prospective number already matched, a situated
         # improvement would have nothing to show.
         out["prospective_headroom"] = out["realized_mean_change"] - out["prospective_mean_change"]
@@ -294,6 +331,10 @@ def main() -> None:
                          "and realized numbers to compare against")
     ap.add_argument("--headroom", type=float, default=1.5,
                     help="local only; the guard's slack above its predicted peak")
+    ap.add_argument("--unrelated-history", metavar="FAMILY",
+                    help="control: perform three tasks from FAMILY (which appears "
+                         "in no pair) and ask the cold hypothetical question, so "
+                         "the session holds real work but not the relevant work")
     ap.add_argument("--frequency", action="store_true",
                     help="ask for a count out of 100 runs instead of an "
                          "unqualified probability")
@@ -311,13 +352,15 @@ def main() -> None:
     if not a.no_system and not system:
         raise SystemExit(f"no system_prompt in {a.screen}")
     seed_start = TASK_SEED_START if anchor else NOANCHOR_TASK_SEED_START
-    protocols = {(True, False, False): PROTOCOL,
-                 (False, False, False): NOANCHOR_PROTOCOL,
-                 (False, True, True): SITUATED_REPEAT_PROTOCOL}
-    key = (anchor, a.frequency, a.repeat_target)
+    protocols = {(True, False, False, False): PROTOCOL,
+                 (False, False, False, False): NOANCHOR_PROTOCOL,
+                 (False, True, True, False): SITUATED_REPEAT_PROTOCOL,
+                 (False, True, True, True): UNRELATED_HISTORY_PROTOCOL}
+    key = (anchor, a.frequency, a.repeat_target, bool(a.unrelated_history))
     if key not in protocols:
         raise SystemExit(f"no protocol frozen for anchor={anchor} "
-                         f"frequency={a.frequency} repeat_target={a.repeat_target}; "
+                         f"frequency={a.frequency} repeat_target={a.repeat_target} "
+                         f"unrelated={bool(a.unrelated_history)}; "
                          "write one before collecting")
     protocol = protocols[key]
     if not protocol.exists():
@@ -354,6 +397,7 @@ def main() -> None:
         "protocol": protocol.name,
         "frequency_framing": a.frequency,
         "repeat_target": a.repeat_target,
+        "unrelated_history": a.unrelated_history,
         "runner_sha256": sha256(pathlib.Path(__file__)),
         "ranking_v3_forecasts_sha256": sha256(RANKING_V3 / "forecasts.jsonl"),
         "ranking_v3_summary_sha256": sha256(RANKING_V3 / "summary.json"),
@@ -397,7 +441,7 @@ def main() -> None:
 
     def work(p, arm, rep):
         return run_one(complete, p, arm, rep, seeds[(p["pair_id"], arm, rep)],
-                       anchor, a.frequency, a.repeat_target)
+                       anchor, a.frequency, a.repeat_target, a.unrelated_history)
 
     with ThreadPoolExecutor(max_workers=a.workers) as pool:
         futures = [pool.submit(work, *c) for c in grid]
@@ -493,6 +537,15 @@ def demo() -> None:
     raw = summarise(both, pairs[:1], repeat_target=False)
     assert abs(rt["situated_self_native_mean_change"] - 1.0) < 1e-9, rt
     assert abs(raw["situated_self_native_mean_change"]) < 1e-9, raw
+
+    # The control's question is byte-identical to repeat_target_v1's, so the only
+    # difference between the two runs is what is sitting in the session.
+    cold = cold_forecast_prompt(p["preferred"], p["other"], p["preferred"], 3,
+                                "full_history", False, True, True)
+    assert cold.endswith(COUNT_LINE) and "100 independent runs" in cold
+    assert "suppose" in cold.lower(), "the control asks the hypothetical, not the situated form"
+    used = {f for q in pairs for f in (q["preferred"], q["other"])}
+    assert "sum_numbers" not in used, "the control's work family must appear in no pair"
 
     assert parse_fraction("ANSWER: 0.9") == 0.9
     assert parse_count("ANSWER: 90") == 0.9
