@@ -11,11 +11,12 @@ Asked in advance how much doing a task three times would move its next free
 choice, the system answered "somewhat". The real answer was "almost
 completely". The miss was not noise: all eight task pairs missed the same way,
 and a one-line rule that ignores what the system says about itself makes about
-one-sixteenth of its squared error. Part of that miss is the way we asked — see
-finding 5 — but only about two fifths of it, and all eight pairs still
-underestimate once that part is removed. Methods that rely on a model's own forecast
-of its future choices should not assume that forecast is calibrated to the
-behaviour.
+one-sixteenth of its squared error. Part of that miss is the way we asked. We
+found two things wrong with the question and repaired both — see finding 5 —
+which recovers about two fifths of the gap and then stops; all eight pairs still
+underestimate under every version we tried. Methods that rely on a model's own
+forecast of its future choices should not assume that forecast is calibrated to
+the behaviour, and should not assume a better-worded question fixes it.
 
 A second fact points the same way. Of 19 task pairs screened, only 8 met the
 admission rule at all. And that rule is weak: it asks for a 3-of-4 majority
@@ -25,11 +26,11 @@ the treatment contrast, not evidence of a stable underlying preference.
 
 ## What we found, in six lines
 
-1. **It misreads itself.** Asked how much doing a task three times would move its
-   next choice, the system said +0.29 — or +0.52 once we delete a sentence from
-   the prompt that the real choice never sees (finding 5). Either way the answer
-   was +0.89. Eight pairs out of eight missed the same way for Luna, and seven of
-   seven for Qwen.
+1. **Its self-forecasts understate the shift.** Asked how much doing a task three
+   times would move its next choice, the system said +0.29 — or +0.53 asked the
+   best way we know how to ask it (finding 5). Either way the answer was +0.89.
+   Eight pairs out of eight missed the same way for Luna, under all four versions
+   of the question, and seven of seven for Qwen.
 2. **Whether showing it the evidence helps depends on the system.** Given the
    finished work, Qwen reads its own situation almost correctly (+0.79 against a
    true +1.00, closing three quarters of its gap). Luna does not improve, with or
@@ -46,10 +47,14 @@ the treatment contrast, not evidence of a stable underlying preference.
    zero, sign unstable between collections. This tests framing, not privileged
    access — both conditions ask Luna. Qwen shows a 0.130 gap, near a ceiling and
    collected once, so we report it without leaning on it.
-5. **Naming the earlier choice explains about two fifths of the forecasting gap.**
-   The forecast prompt names it; the binding choice does not. Delete that sentence
-   and the cold forecast rises from +0.29 to +0.52 against a truth of +0.89. All
-   eight pairs still underestimate and −0.37 remains.
+5. **How the question is asked explains about two fifths of the forecasting gap,
+   and no more.** The forecast prompt names the earlier choice, which the binding
+   choice never sees, and asks "how likely" without saying likely over what.
+   Repairing either raises the cold forecast (+0.42 naming the reference class,
+   +0.52 deleting the reminder); repairing **both** gives +0.53, so they are one
+   repair and not two. Against a truth of +0.89, all eight pairs still
+   underestimate under every version of the question, and −0.36 remains under the
+   best-specified one.
 6. **Part of the behavioural effect is the model reading the user.** The treatment
    is three *user requests*, not just three completions. Tell the system the tasks
    were assigned at random and reflect nobody's preference, and the effect falls
@@ -786,20 +791,29 @@ advance. Everything before it is a pilot. It is the source of +0.290 against
 +0.891.
 
 **Diagnostics.** Everything after the confirmation tests it rather than extends
-it: the situated arms, the two no-anchor checks, the context forecast, the intent
-test. Each has its own frozen protocol. None of them are independent
-confirmations and none are presented as such.
+it: the situated arms, the two no-anchor checks, the reference-class and combined
+forecast conditions, the context forecast, the intent test. Each has its own
+frozen protocol. None of them are independent confirmations and none are
+presented as such.
 
-**Corrections.** Two runs were recollected after we found problems, not after we
-disliked results. The situated arms were rerun because they had missed the
+**Corrections.** Three runs were recollected after we found problems, not after
+we disliked results. The situated arms were rerun because they had missed the
 outcome cells' system prompt — which turned out to change reply length from 110
-characters to 12 while moving no conclusion. And an external review found a
-mechanism stated backwards, three report bugs and four overclaims; all were
-verified against the data and corrected, and the two experiments that review
-prompted each changed a number we report.
+characters to 12 while moving no conclusion. An external review found a mechanism
+stated backwards, three report bugs and four overclaims; all were verified
+against the data and corrected, and the two experiments that review prompted each
+changed a number we report. A second review then found that the intent test's two
+conditions had been given different task items despite its protocol promising
+otherwise, and that three diagnostics were recording the wrong protocol hash;
+rerunning the intent test with the items matched cut its effect from −0.250 to
+−0.156, and the provenance bug is fixed with a correction record beside each
+affected run.
 
-That last part is worth stating plainly rather than hiding: the submission is
-more accurate and its headline number is smaller than it was twelve hours ago.
+That last part is worth stating plainly rather than hiding: nearly every check
+run in the last day has made the submission more accurate and some number in it
+smaller. The pattern is worth reading as a claim about the work — this is what it
+looks like when a result is attacked seriously — but also as a warning that the
+remaining numbers have had less adversarial attention than the ones that moved.
 
 ## Relation to other work
 

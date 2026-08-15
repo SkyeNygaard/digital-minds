@@ -12,6 +12,18 @@ so the log and the question Qwen sees are byte-identical to the ones Luna saw.
 Luna's transcripts are replayed from the stored cells; no new Luna calls.
 
     python run_external_predictor.py --out-dir results/external_qwen_v1
+
+NOT RUN, AND NOT PART OF THE SUBMISSION. There is no EXTERNAL_PREDICTOR_PROTOCOL.md
+in this repository, so this file will refuse to start: nothing has been collected
+with it and there are no results to read. Two reasons it is queued rather than
+finished. First, freeze the protocol before collecting, which has not been done.
+Second, the comparison is only half interpretable as written. Qwen3-4B is far
+smaller than Luna, so Luna predicting Luna better than Qwen predicts Luna would be
+explained by general capability and would show nothing about self-access; only the
+other outcome -- a 4B model reading the same transcript and beating Luna at
+predicting Luna -- would say something, and that asymmetry has to be stated in
+advance rather than discovered afterwards. A real privileged-access test needs a
+predictor strong enough that the capability explanation is closed off.
 """
 from __future__ import annotations
 import argparse, hashlib, json, pathlib, statistics, sys, time
