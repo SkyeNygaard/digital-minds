@@ -668,10 +668,11 @@ def build() -> Path:
             "0.078). Both are nearly perfect after the task they already preferred.",
             st["body"]),
         paragraph(
-            "So putting the situation in front of a model and asking is a sound "
-            "elicitation method for one of these systems and a misleading one for the "
-            "other, and the cold forecast does not tell you which you have. It has to "
-            "be checked per model.", st["body"]),
+            "So putting the situation in front of a model and asking recovers most of "
+            "the effect in one of these systems and none of it in the other, and the "
+            "cold forecast does not tell you which you have. It has to be checked per "
+            "model. \"Most\" is not \"enough\" even for Qwen: all seven of its situated "
+            "estimates still come in under what it went on to do.", st["body"]),
         paragraph("What the evidence does to Luna", st["h2"]),
         Table([["", "After preferred", "After alternative"],
                ["Forecast before the work existed", "0.874", "0.584"],
