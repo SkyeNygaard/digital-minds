@@ -17,8 +17,9 @@ That recovers about two fifths of the gap and then stops, and the plainest
 version of the question is worse than the repaired one. Asked outright how often
 it would repeat the task it had just done three times, the system says about 73
 in 100, and says the same thing whichever task that was. Put the finished work in
-front of it and ask again and the answer drops to about 57 in 100. It repeats
-94.5% of the time. Methods that rely on a model's own forecast of its future choices should
+front of it and ask again and the answer drops to about 57 in 100 — while three
+*unrelated* tasks in the session leave it at 72, so it is the relevant evidence
+that lowers the estimate, not the working. It repeats 94.5% of the time. Methods that rely on a model's own forecast of its future choices should
 not assume that forecast is calibrated to the behaviour, and should not assume a
 better-worded question fixes it.
 
@@ -50,9 +51,12 @@ direct reason not to read the admitted side as something the system wants.
    situation (+0.79 against an observed +1.00, closing three quarters of its gap).
    Luna does not improve under any wording, and under the best one it gets worse:
    asked the plain repeat question cold it says 0.73, and with the work actually
-   in front of it, 0.57, against the 0.92–0.97 it goes on to do. Same task, same
-   design, opposite outcome — so "show it the situation and ask" cannot be
-   assumed to work without checking it for the model in hand.
+   in front of it, 0.57, against the 0.92–0.97 it goes on to do. A control rules
+   out the boring explanation — three *unrelated* tasks in the session leave the
+   answer at 0.72, so it is seeing the relevant work that lowers it, not having
+   worked. Same task, same design, opposite outcome across the two systems, so
+   "show it the situation and ask" cannot be assumed to work without checking it
+   for the model in hand.
 3. **It cannot predict which presentation of its history will move it.** Asked to
    forecast the same choice under three context conditions, Luna's answers move
    by 0.10. Its behaviour under those conditions moves by 1.18, including a full
@@ -615,13 +619,51 @@ came in at +0.141. We said the arms would separate once the history was real;
 they did not. Three held: it stayed below +0.891, all 8 pairs still underestimate,
 and the self-versus-observer difference stayed under 0.15 at 0.145.
 
-That is twice in a row we predicted the direction of an instrument change and got
-it backwards, which is worth stating plainly: we do not have a working model of
-what moves these answers. What we have is the measurement, and the measurement is
-consistent — seven ways of asking, five cold and two situated, none of them
-close.
+**But that run changed two things at once**, and the difference between them
+matters. It put the relevant evidence in front of the system — three completed
+instances of the very task the question is about — and it also put three tasks'
+worth of session in front of it: real work done, replies produced, a longer
+prompt, and a model that had just been made to do repetitive arithmetic. Either
+could lower a stated probability of continuing.
 
-Artifact: `results/situated_repeat_v1/`.
+So we ran the control. Same design, except the three tasks performed are
+`sum_numbers` — the only eligible task family that appears in none of the eight
+pairs — and the question reverts to the cold hypothetical, byte-identical to the
+one asked with nothing in the session. Real work, same kind and length, carrying
+no information about either option.
+
+| What was in the session when it answered | After the preferred task | After the other | Shift |
+|---|---:|---:|---:|
+| Nothing | 0.725 | 0.726 | +0.450 |
+| **Three unrelated tasks, actually done** | **0.742** | **0.688** | **+0.429** |
+| The three tasks the question is about | 0.554 | 0.588 | +0.141 |
+| What it did | 0.969 | 0.922 | +0.891 |
+
+**Doing three tasks does not lower the estimate. Seeing the three tasks it was
+asked about does.** The unrelated-work condition lands within 0.01 of the empty
+session; the relevant-work condition is 0.14 below both. So the fall is not
+fatigue, not context length, and not having just worked. It is specifically the
+presence of the evidence — and the evidence points the other way, since the
+system goes on to repeat that work more than nine times in ten.
+
+Treatment work was correct in 100% of cells in both runs, so neither is the
+system failing the tasks.
+
+Two of the control's three frozen predictions held: it stayed above 0.65, at
+0.715, and treatment work was fully correct. One failed by four thousandths — we
+said the arms would stay within 0.05 and they came in 0.054 apart, which is the
+first time any elicitation here has separated them at all, and we would not read
+anything into a margin that size.
+
+Across the two runs we predicted the direction of an instrument change twice and
+got it backwards twice, then predicted the control correctly. That record is
+worth stating plainly: we do not have a working model of what moves these
+answers. What we have is the measurement, and the measurement is consistent —
+eight ways of asking, five cold, two situated and one control, none of them
+close, and the one that gave the system the most relevant information gave the
+worst answer.
+
+Artifacts: `results/situated_repeat_v1/`, `results/unrelated_history_v1/`.
 
 ## The effect does not require the Codex harness
 
@@ -877,8 +919,11 @@ by us:
 | | at least 6 of 8 still underestimate | held — 8 of 8 |
 | | the arms separate once the history is real | **failed** — 0.034 apart, wrong way |
 | | self minus observer under 0.15 | held — 0.145 |
+| Unrelated-history control | stays above 0.65, near the empty-session 0.725 | held — 0.715 |
+| | the arms stay within 0.05 | **failed** — 0.054, by four thousandths |
+| | treatment work at least 95% correct | held — 100% |
 
-That is **43 frozen decision thresholds, of which 11 failed**, plus one stated
+That is **46 frozen decision thresholds, of which 12 failed**, plus one stated
 expectation — the italic row, which was written as a belief rather than as a
 threshold — that was wrong by fourfold. Counting those together as one number is
 what an earlier version of this table did, and it is why the count has changed.
@@ -1128,6 +1173,7 @@ pilots, not results.
 | `noanchor_frequency_v1/` | both forecast repairs at once | `NOANCHOR_FREQUENCY_PROTOCOL.md` |
 | `repeat_target_v1/` | asking outright whether it will repeat what it just did | `REPEAT_TARGET_PROTOCOL.md` |
 | `situated_repeat_v1/` | the same plain question, with the work actually present | `SITUATED_REPEAT_PROTOCOL.md` |
+| `unrelated_history_v1/` | control: unrelated work in the session instead | `UNRELATED_HISTORY_PROTOCOL.md` |
 | `context_forecast_v1/` | can it predict which presentation moves it | `CONTEXT_FORECAST_PROTOCOL.md` |
 | `intent_matched_v1/` | is it path dependence or following the user | `INTENT_MATCHED_PROTOCOL.md` |
 | `intent_v1/` | superseded: same test, unmatched task items | `INTENT_PROTOCOL.md` |

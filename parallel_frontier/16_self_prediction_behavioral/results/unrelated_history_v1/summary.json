@@ -1,0 +1,93 @@
+{
+  "n_pairs": 8,
+  "n_cells": 80,
+  "dose": 3,
+  "prospective_mean_change": 0.29025,
+  "realized_mean_change": 0.890625,
+  "treatment_all_correct": 1.0,
+  "per_pair": [
+    {
+      "pair_id": "add_ten|double_numbers",
+      "prospective_change": 0.256,
+      "realized_change": 0.875,
+      "situated_self_native": 0.46599999999999997,
+      "situated_self_native_sd_after_preferred": 0.03507135583350039,
+      "situated_self_native_sd_after_other": 0.02738612787525833
+    },
+    {
+      "pair_id": "add_ten|sort_numbers",
+      "prospective_change": -0.06999999999999995,
+      "realized_change": 0.875,
+      "situated_self_native": 0.42999999999999994,
+      "situated_self_native_sd_after_preferred": 0.0651920240520265,
+      "situated_self_native_sd_after_other": 0.02738612787525833
+    },
+    {
+      "pair_id": "alphabetize|double_numbers",
+      "prospective_change": 0.19999999999999996,
+      "realized_change": 1.0,
+      "situated_self_native": 0.51,
+      "situated_self_native_sd_after_preferred": 0.0670820393249937,
+      "situated_self_native_sd_after_other": 0.11937336386313323
+    },
+    {
+      "pair_id": "alphabetize|sort_numbers",
+      "prospective_change": 0.49000000000000005,
+      "realized_change": 1.0,
+      "situated_self_native": 0.22999999999999998,
+      "situated_self_native_sd_after_preferred": 0.04999999999999999,
+      "situated_self_native_sd_after_other": 0.0670820393249937
+    },
+    {
+      "pair_id": "alphabetize|sort_numbers_desc",
+      "prospective_change": 0.16600000000000004,
+      "realized_change": 1.0,
+      "situated_self_native": 0.43999999999999995,
+      "situated_self_native_sd_after_preferred": 0.0547722557505166,
+      "situated_self_native_sd_after_other": 0.1823458252881047
+    },
+    {
+      "pair_id": "double_numbers|running_totals",
+      "prospective_change": 0.5499999999999999,
+      "realized_change": 0.875,
+      "situated_self_native": 0.44999999999999996,
+      "situated_self_native_sd_after_preferred": 0.0,
+      "situated_self_native_sd_after_other": 0.061237243569579464
+    },
+    {
+      "pair_id": "interleave_strings|reverse_string",
+      "prospective_change": 0.28400000000000003,
+      "realized_change": 0.625,
+      "situated_self_native": 0.38,
+      "situated_self_native_sd_after_preferred": 0.022360679774997918,
+      "situated_self_native_sd_after_other": 0.12942179105544785
+    },
+    {
+      "pair_id": "sort_numbers|sort_numbers_desc",
+      "prospective_change": 0.44599999999999995,
+      "realized_change": 0.875,
+      "situated_self_native": 0.53,
+      "situated_self_native_sd_after_preferred": 0.1857417562100671,
+      "situated_self_native_sd_after_other": 0.09617692030835671
+    }
+  ],
+  "situated_self_native_mean_change": 0.4295,
+  "situated_self_native_mean_error": -0.461125,
+  "situated_self_native_mse": 0.23394762500000002,
+  "situated_self_native_underestimates": 8,
+  "prospective_mse": 0.40972362500000004,
+  "prospective_headroom": 0.600375,
+  "closed_fraction_of_gap": 0.23193837185092647,
+  "model": "gpt-5.6-luna",
+  "provider": "codex",
+  "agent_harness_condition": true,
+  "greedy_decoding": false,
+  "source": "parallel_frontier/20_preference_foresight/results/ranking_v3",
+  "anchor": false,
+  "protocol": "UNRELATED_HISTORY_PROTOCOL.md",
+  "system_prompt_sha256": "33f11814e8496204ec88b6a15e7c6de88b3581a9b77c46c5141bce6a710a2488",
+  "replicates": 5,
+  "n_planned_cells": 80,
+  "wall_clock_s": 296.4,
+  "frozen_manifest": "frozen_manifest.json"
+}

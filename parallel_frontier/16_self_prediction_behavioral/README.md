@@ -59,7 +59,7 @@ each carry a `reanalysis_current.json` recording the error.
 | `intent_matched_v1` | the intent test with task items matched | +0.781 → +0.625. The disclaimer is worth −0.156, not the −0.250 first reported. |
 | `repeat_target_v1` | cold, asked plainly: will you repeat what you just did? | +0.450. Answers 0.725 and 0.726 — the same either way. |
 | `situated_repeat_v1` | that plain question, with the work actually present | +0.141. Showing it the work makes the estimate **worse**. |
-| `unrelated_history_v1` | control: three *unrelated* tasks, then the cold question | separates "seeing the evidence" from "having worked at all" |
+| `unrelated_history_v1` | control: three *unrelated* tasks, then the cold question | 0.715, within 0.01 of an empty session. Doing work does not lower the estimate; seeing the relevant work does. |
 
 ## Discipline, as actually practised
 
@@ -69,7 +69,7 @@ each carry a `reanalysis_current.json` recording the error.
   which `intent_v1` promised and did not do.
 - **Predictions frozen first.** Every protocol here states its predictions and
   how to read each outcome before collection. The scoreboard across the whole
-  project is 43 thresholds, 11 failed; the failures are in `RESULTS.md` with the
+  project is 46 thresholds, 12 failed; the failures are in `RESULTS.md` with the
   numbers they changed.
 - **Collected once.** Where a run was repeated it was because a design flaw was
   found in it. Both versions stay on disk and the superseded one is labelled.

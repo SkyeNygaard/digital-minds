@@ -35,6 +35,7 @@ FREQ = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/frequency
 NA_FREQ = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/noanchor_frequency_v1/summary.json"
 REPEAT = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/repeat_target_v1/summary.json"
 SIT_REPEAT = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/situated_repeat_v1/summary.json"
+UNREL = ROOT / "parallel_frontier/16_self_prediction_behavioral/results/unrelated_history_v1/summary.json"
 CTX_LUNA = ROOT / "parallel_frontier/18_preference_path_dependence/results/ctx_scaled_v1/summary.json"
 CTX_QWEN = ROOT / "parallel_frontier/18_preference_path_dependence/results/ctx_local_qwen_v1/summary.json"
 VERIFY = ROOT / "parallel_frontier/20_preference_foresight/results/ranking_v3/verification.json"
@@ -333,6 +334,7 @@ def build() -> Path:
     na_freq = read_json(NA_FREQ)
     repeat = read_json(REPEAT)
     sit_repeat = read_json(SIT_REPEAT)
+    unrel = read_json(UNREL)
     intent = read_json(INTENT)
     ctx_luna = read_json(CTX_LUNA)
     ctx_qwen = read_json(CTX_QWEN)
@@ -415,7 +417,10 @@ def build() -> Path:
             f"Luna does not improve under any wording, and under the best one it gets "
             f"worse: asked the plain repeat question cold it says 0.73, and with the work "
             f"actually in front of it, 0.57, against the 0.92-0.97 it goes on to do "
-            f"({sit_repeat['situated_self_native_mean_change']:+.2f} as a shift). Under the "
+            f"({sit_repeat['situated_self_native_mean_change']:+.2f} as a shift). A control "
+            f"rules out the boring explanation: three <i>unrelated</i> tasks in the "
+            f"session leave the answer at 0.72, so it is seeing the relevant work that "
+            f"lowers it, not having worked. Under the "
             f"original wording it is flat "
             f"({situated['situated_self_native_mean_change']:+.2f}; the change from its cold "
             "forecast is -0.043, well inside noise). Same task, opposite outcome.",
@@ -932,7 +937,7 @@ def build() -> Path:
         paragraph("6. What we predicted, and what happened", st["h1"]),
         paragraph(
             "The confirmation and every diagnostic after it froze its predictions in a "
-            "protocol file before its first model call. 38 decision thresholds; 9 "
+            "protocol file before its first model call. 46 decision thresholds; 12 "
             "failed. The full table is in RESULTS.md, with two corrections review "
             "found: the exploratory pilot branches have no frozen manifests, and three "
             "diagnostics recorded the wrong protocol hash because one runner served "
