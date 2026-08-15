@@ -1,5 +1,14 @@
 # AI systems underestimate how strongly recent work shapes their next choice
 
+**Digital Minds Research Sprint, 14–16 August 2026. Anchor track: 4, Preference
+Elicitation Methods.** The project measures one preference two ways — by asking
+and by watching — and spends most of its effort on why the two disagree. Five
+wordings of the verbal question and two versions of the behavioural one are
+compared against the same checkable outcome. It also bears on track 3,
+Introspection & Self-Report Reliability, since the verbal side is the system
+forecasting its own future choice, but the contribution is about the measuring
+instruments rather than about what the system can introspect.
+
 To find out what an AI system prefers you can ask it, or you can watch it. Work
 on model preferences and model welfare has to know when those two methods
 disagree. Here they disagree in one direction, by a large amount, in a case

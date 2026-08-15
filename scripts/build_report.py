@@ -108,40 +108,6 @@ def paragraph(text: str, style, **kwargs):
     return Paragraph(text, style, **kwargs)
 
 
-def elicitation_table(prosp_na: dict, freq: dict, na_freq: dict, repeat: dict,
-                      st: dict) -> Table:
-    """Every way we asked the same question, against the one observed answer.
-
-    Leading with +0.290 alone invites the reading that the worst-specified prompt
-    was chosen because it looked worst. All four go in the same table.
-    """
-    truth = prosp_na["realized_mean"]
-    rows = [
-        ("Names the earlier choice, asks \"how likely\"  (confirmation)",
-         prosp_na["anchored_mean_forecast"]),
-        ("Names it, asks for a count out of 100 runs", freq["diagnostic_mean_forecast"]),
-        ("Drops it, asks \"how likely\"", prosp_na["diagnostic_mean_forecast"]),
-        ("Drops it and asks for a count out of 100 runs",
-         na_freq["diagnostic_mean_forecast"]),
-        ("Asks directly about repeating the task just done",
-         repeat["diagnostic_mean_forecast"]),
-    ]
-    data = [["How the forecast was asked", "Predicted", "Observed"]]
-    data += [[q, f"{v:+.3f}", f"{truth:+.3f}"] for q, v in rows]
-    return Table(data, colWidths=[3.85 * inch, 1.1 * inch, 1.1 * inch],
-                 style=TableStyle([
-                     ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-                     ("FONTNAME", (0, 4), (-1, 4), "Helvetica-Bold"),
-                     ("FONTSIZE", (0, 0), (-1, -1), 8.3),
-                     ("FONTSIZE", (0, 0), (-1, -1), 8.5),
-                     ("TEXTCOLOR", (0, 0), (-1, 0), NAVY),
-                     ("ALIGN", (1, 0), (-1, -1), "RIGHT"),
-                     ("LINEBELOW", (0, 0), (-1, 0), 0.75, RULE),
-                     ("TOPPADDING", (0, 0), (-1, -1), 4),
-                     ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-                 ]))
-
-
 def result_table(primary: dict, qwen_rows: list[dict], st: dict) -> Table:
     h = primary["headline"]
     q_pred = sum(r["predicted_change"] for r in qwen_rows) / len(qwen_rows)
@@ -287,6 +253,58 @@ def pair_chart(rows: list[dict]) -> Drawing:
     return drawing
 
 
+def elicitation_chart(prosp_na: dict, freq: dict, na_freq: dict,
+                      repeat: dict) -> Drawing:
+    """Five ways of asking one question, none of them reaching the answer.
+
+    A table of five numbers makes the reader do the comparison; the point is that
+    they all stop well short of the same line, which is a picture.
+    """
+    width, height = 510, 190
+    left, right, bottom, top = 208, 14, 26, 24
+    plot_w = width - left - right
+    xmin, xmax = 0.0, 1.0
+    truth = prosp_na["realized_mean"]
+
+    def x(v):
+        return left + (v - xmin) / (xmax - xmin) * plot_w
+
+    d = Drawing(width, height)
+    d.add(String(6, height - 11, "Five ways of asking the same question",
+                 fontName="Helvetica-Bold", fontSize=10, fillColor=NAVY))
+    for tick in (0.0, 0.25, 0.5, 0.75, 1.0):
+        d.add(Line(x(tick), bottom, x(tick), height - top, strokeColor=RULE,
+                   strokeWidth=0.7))
+        d.add(String(x(tick), 10, f"{tick:+.2f}", textAnchor="middle",
+                     fontName="Helvetica", fontSize=7, fillColor=MUTED))
+
+    rows = [
+        ("names the earlier choice, \"how likely\"", prosp_na["anchored_mean_forecast"]),
+        ("names it, count out of 100 runs", freq["diagnostic_mean_forecast"]),
+        ("drops it, \"how likely\"", prosp_na["diagnostic_mean_forecast"]),
+        ("drops it, count out of 100 runs", na_freq["diagnostic_mean_forecast"]),
+        ("\"will you repeat what you just did?\"", repeat["diagnostic_mean_forecast"]),
+    ]
+    step = (height - top - bottom) / len(rows)
+    for i, (label, v) in enumerate(rows):
+        y = height - top - (i + 0.5) * step
+        d.add(String(left - 7, y - 2.5, label, textAnchor="end",
+                     fontName="Helvetica", fontSize=7, fillColor=INK))
+        d.add(Line(x(v), y, x(truth), y, strokeColor=colors.HexColor("#AAB7BF"),
+                   strokeWidth=1.2))
+        d.add(Circle(x(v), y, 3.4, fillColor=TEAL, strokeColor=colors.white,
+                     strokeWidth=0.5))
+        d.add(String(x(v), y + 7, f"{v:+.3f}", textAnchor="middle",
+                     fontName="Helvetica-Bold", fontSize=6.8, fillColor=TEAL))
+
+    d.add(Line(x(truth), bottom, x(truth), height - top, strokeColor=ORANGE,
+               strokeWidth=1.4))
+    d.add(String(x(truth) - 4, height - top + 5, f"what it did  {truth:+.3f}",
+                 textAnchor="end", fontName="Helvetica-Bold", fontSize=7.5,
+                 fillColor=ORANGE))
+    return d
+
+
 def footer(canvas, doc):
     canvas.saveState()
     canvas.setTitle("AI Systems Underestimate How Strongly Recent Work Shapes Their Next Choice")
@@ -347,6 +365,9 @@ def build() -> Path:
         paragraph("A behavioral study of self-forecasting and context-dependent choice",
                   st["subtitle"]),
         paragraph("Skye Nygaard", st["body"]),
+        paragraph("Digital Minds Research Sprint, 14-16 August 2026. Anchor track: "
+                  "<b>4, Preference Elicitation Methods</b>; also bears on track 3, "
+                  "Introspection &amp; Self-Report Reliability.", st["small"]),
         Spacer(1, 0.12 * inch),
         Table([[paragraph(
             "<b>Why this matters.</b> To find out what an AI system prefers you can ask "
@@ -411,7 +432,7 @@ def build() -> Path:
             "asks the plain question, which is whether the system will repeat what it "
             "just did. We fixed all three.", st["body"]),
         Spacer(1, 0.10 * inch),
-        elicitation_table(prosp_na, freq, na_freq, repeat, st),
+        elicitation_chart(prosp_na, freq, na_freq, repeat),
         Spacer(1, 0.10 * inch),
         paragraph(
             "Every row is 80 independent Codex sessions on the same eight pairs, and "
