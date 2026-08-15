@@ -1,0 +1,70 @@
+{
+  "reanalysis_of": "context_forecast_v1",
+  "why": "the original summary was produced by code that has since been corrected; nothing was recollected",
+  "original_summary_sha256": "9841f1b66e7957fc7ed7ee6fe27eced63af544045343280139714d04316ef62e",
+  "original_manifest_sha256": "cbbe844b37a78b42090e709a5b0b0e4c0509f1f640135803cf022835c2fc9b8c",
+  "cells_sha256": "442f122323c273c2a04b6005d75d849b66a97d2f807cb29d26bebf58e015ab01",
+  "analysis_runner_sha256": "0bafbafb6d18915b3fa48aef776ab7844bfa4f49e8211d0a27c8fc771f02c597",
+  "pairs_dropped_since": [
+    "add_ten|double_numbers"
+  ],
+  "protocol_recorded_in_manifest": "f175d6ad0d5188b116f16a34e7ec5544c8e0d40da3e491c074b060e41861ad38",
+  "protocol_actually_frozen_for_this_run": "CONTEXT_FORECAST_PROTOCOL.md",
+  "summary": {
+    "n_cells": 150,
+    "n_pairs": 4,
+    "dose": 3,
+    "by_context_mode": {
+      "full_history": {
+        "forecast_shift": 0.5105000000000001,
+        "realized_shift": 0.7250000000000001,
+        "error": -0.21450000000000002,
+        "n_pairs": 4
+      },
+      "summary_only": {
+        "forecast_shift": 0.4245,
+        "realized_shift": -0.45,
+        "error": 0.8745,
+        "n_pairs": 4
+      },
+      "blank_reset": {
+        "forecast_shift": 0.39499999999999996,
+        "realized_shift": -0.02499999999999991,
+        "error": 0.4199999999999999,
+        "n_pairs": 4
+      }
+    },
+    "per_pair": [
+      {
+        "pair_id": "add_ten|running_totals",
+        "full_history": 0.43600000000000005,
+        "summary_only": 0.5499999999999999,
+        "blank_reset": 0.39999999999999997
+      },
+      {
+        "pair_id": "double_numbers|running_totals",
+        "full_history": 0.41000000000000003,
+        "summary_only": 0.252,
+        "blank_reset": 0.346
+      },
+      {
+        "pair_id": "double_numbers|sort_numbers",
+        "full_history": 0.5800000000000001,
+        "summary_only": 0.346,
+        "blank_reset": 0.48
+      },
+      {
+        "pair_id": "sort_numbers|sort_numbers_desc",
+        "full_history": 0.616,
+        "summary_only": 0.5499999999999999,
+        "blank_reset": 0.354
+      }
+    ],
+    "ordering_as_predicted": true,
+    "all_forecasts_positive": true,
+    "anticipated_summary_reversal": false,
+    "forecast_spread": 0.1155000000000001,
+    "realized_spread": 1.175,
+    "spread_ratio": 0.09829787234042561
+  }
+}

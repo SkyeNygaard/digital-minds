@@ -25,8 +25,33 @@ from elicitation import parse_fraction                          # noqa: E402
 
 CTX = ROOT / "parallel_frontier/18_preference_path_dependence/results/ctx_scaled_v1"
 RANKING_V3 = ROOT / "parallel_frontier/20_preference_foresight/results/ranking_v3"
-PROTOCOL = HERE / "CONTEXT_FORECAST_PROTOCOL.md"
 DEFAULT_SCREEN = ROOT / "shared_behavioral/results/family_screen_qwen3-4b_v2.json"
+
+# One runner serves four experiments, so it has to hash the protocol frozen for
+# the one being run. It did not: every run recorded CONTEXT_FORECAST_PROTOCOL.md,
+# which made three manifests claim the same protocol for three different designs.
+PROTOCOLS = {
+    # (ranking_panel, anchor, frequency)
+    (False, True, False): "CONTEXT_FORECAST_PROTOCOL.md",
+    (True, False, False): "PROSPECTIVE_NOANCHOR_PROTOCOL.md",
+    (True, True, True): "REFERENCE_CLASS_PROTOCOL.md",
+    (True, False, True): "NOANCHOR_FREQUENCY_PROTOCOL.md",
+}
+
+
+def protocol_for(ranking_panel: bool, anchor: bool, frequency: bool) -> pathlib.Path:
+    key = (ranking_panel, anchor, frequency)
+    if key not in PROTOCOLS:
+        raise SystemExit(
+            f"no protocol frozen for ranking_panel={ranking_panel} anchor={anchor} "
+            f"frequency={frequency}; write one before collecting")
+    path = HERE / PROTOCOLS[key]
+    if not path.exists():
+        raise SystemExit(f"{path.name} is missing -- freeze it before collecting")
+    return path
+
+
+
 DOSE = 3
 MODES = ("full_history", "summary_only", "blank_reset")
 ANSWER_LINE = ("End your reply with a final line of exactly:\n"
@@ -55,6 +80,8 @@ def parse_count(text: str) -> float:
     if not m:
         raise ValueError(f"no number after ANSWER:: {text[-120:]!r}")
     x = float(m.group(1))
+    if not x.is_integer():
+        raise ValueError(f"count is not a whole number: {m.group(1)!r}")
     if not 0.0 <= x <= 100.0:
         raise ValueError(f"count outside [0,100]: {m.group(1)!r}")
     return x / 100.0
@@ -266,7 +293,7 @@ def summarise_ranking(rows: list[dict], panel: list[dict]) -> dict:
             continue
         shift = statistics.mean(got["after_preferred"]) - statistics.mean(got["after_other"])
         shifts.append(shift)
-        per_pair.append({"pair_id": pid, "no_anchor_forecast": shift,
+        per_pair.append({"pair_id": pid, "diagnostic_forecast": shift,
                          "anchored_forecast": v3[pid],
                          "realized": realized[pid],
                          "moved_toward_truth": abs(shift - realized[pid])
@@ -274,18 +301,56 @@ def summarise_ranking(rows: list[dict], panel: list[dict]) -> dict:
     out = {"n_cells": len(rows), "n_pairs": len(shifts), "dose": DOSE,
            "per_pair": per_pair}
     if shifts:
-        deltas = [r["no_anchor_forecast"] - r["anchored_forecast"] for r in per_pair]
+        deltas = [r["diagnostic_forecast"] - r["anchored_forecast"] for r in per_pair]
         out.update({
-            "no_anchor_mean_forecast": statistics.mean(shifts),
+            "diagnostic_mean_forecast": statistics.mean(shifts),
             "anchored_mean_forecast": statistics.mean(r["anchored_forecast"] for r in per_pair),
             "realized_mean": statistics.mean(r["realized"] for r in per_pair),
             "mean_delta": statistics.mean(deltas),
             "delta_sd": statistics.stdev(deltas) if len(deltas) > 1 else 0.0,
             "pairs_moved_toward_truth": sum(r["moved_toward_truth"] for r in per_pair),
-            "still_underestimates": sum(r["no_anchor_forecast"] < r["realized"]
+            "still_underestimates": sum(r["diagnostic_forecast"] < r["realized"]
                                         for r in per_pair),
         })
     return out
+
+
+def reanalyse(run: pathlib.Path) -> None:
+    """Re-score a finished run with the current code, alongside the original.
+
+    Three runs were collected before this file could name its own protocol, and
+    one before ctx_panel refused tied pairs. Their summaries are what the code
+    said at the time and stay on disk unedited; this writes what the same cells
+    say now, with the original hashes so the two can be told apart.
+    """
+    manifest = json.loads((run / "frozen_manifest.json").read_text())
+    rows = [json.loads(l) for l in
+            (run / "cells.jsonl").read_text().splitlines() if l.strip()]
+    ranking = bool(manifest.get("modes") == ["full_history"]
+                   and len(manifest.get("panel", [])) == 8)
+    panel = ranking_panel() if ranking else ctx_panel()
+    kept = {p["pair_id"] for p in panel}
+    dropped = sorted({p["pair_id"] for p in manifest.get("panel", [])} - kept)
+
+    out = {
+        "reanalysis_of": run.name,
+        "why": "the original summary was produced by code that has since been "
+               "corrected; nothing was recollected",
+        "original_summary_sha256": sha256(run / "summary.json"),
+        "original_manifest_sha256": sha256(run / "frozen_manifest.json"),
+        "cells_sha256": sha256(run / "cells.jsonl"),
+        "analysis_runner_sha256": sha256(pathlib.Path(__file__)),
+        "pairs_dropped_since": dropped,
+        "protocol_recorded_in_manifest": manifest.get("protocol_sha256"),
+        "protocol_actually_frozen_for_this_run": PROTOCOLS.get(
+            (ranking, manifest.get("anchor", True),
+             manifest.get("frequency_framing", False))),
+        "summary": summarise(rows, panel, ranking),
+    }
+    (run / "reanalysis_current.json").write_text(json.dumps(out, indent=2))
+    print(json.dumps({k: v for k, v in out.items() if k != "summary"}, indent=1))
+    print(json.dumps({k: v for k, v in out["summary"].items() if k != "per_pair"},
+                     indent=1))
 
 
 def main() -> None:
@@ -302,8 +367,18 @@ def main() -> None:
     ap.add_argument("--ranking-panel", action="store_true",
                     help="use ranking_v3's 8 admitted pairs and full_history only, "
                          "so the result is comparable to the +0.290 headline")
-    ap.add_argument("--out-dir", required=True)
+    ap.add_argument("--reanalyse", metavar="DIR",
+                    help="re-score a finished run's stored cells with the current "
+                         "code and write DIR/reanalysis_current.json; no model calls, "
+                         "and the original files are not touched")
+    ap.add_argument("--out-dir")
     a = ap.parse_args()
+
+    if a.reanalyse:
+        reanalyse(pathlib.Path(a.reanalyse))
+        return
+    if not a.out_dir:
+        ap.error("--out-dir is required unless --reanalyse is given")
 
     out = pathlib.Path(a.out_dir)
     if (out / "cells.jsonl").exists():
@@ -320,12 +395,22 @@ def main() -> None:
     grid = list(itertools.product(panel, ("after_preferred", "after_other"),
                                   modes, range(a.replicates)))
 
+    protocol = protocol_for(a.ranking_panel, anchor, a.frequency)
+    # The ranking panel is scored against ranking_v3, not against the context run,
+    # so that is what the manifest has to bind. Runs before this fix recorded the
+    # context run's hashes whichever panel they used.
+    src = RANKING_V3 if a.ranking_panel else CTX
+    # summarise_ranking reads forecasts.jsonl and summary.json; ctx reads the
+    # cells. Hash what is actually read, so the manifest binds the comparison.
+    reads = (["admission.jsonl", "forecasts.jsonl", "summary.json"]
+             if a.ranking_panel else ["cells.jsonl", "summary.json"])
+
     frozen = {
-        "protocol_sha256": sha256(PROTOCOL),
+        "protocol": protocol.name,
+        "protocol_sha256": sha256(protocol),
         "runner_sha256": sha256(pathlib.Path(__file__)),
-        "behaviour_source": str(CTX.relative_to(ROOT)),
-        "behaviour_cells_sha256": sha256(CTX / "cells.jsonl"),
-        "behaviour_summary_sha256": sha256(CTX / "summary.json"),
+        "behaviour_source": str(src.relative_to(ROOT)),
+        "behaviour_sha256": {f: sha256(src / f) for f in reads},
         "source_sha256": {str(p.relative_to(ROOT)): sha256(p)
                           for p in sorted(SHARED.glob("*.py"))},
         "system_prompt": system,
@@ -448,7 +533,9 @@ def demo() -> None:
     assert "randomised afresh in every run" in freq
     assert parse_count("ANSWER: 90") == 0.9 and parse_count("ANSWER: 0") == 0.0
     assert parse_count("ANSWER: 100") == 1.0
-    for bad in ("ANSWER: 101", "ANSWER: -5", "no answer here"):
+    # The prompt asks for a whole number, so the parser has to insist on one.
+    for bad in ("ANSWER: 101", "ANSWER: -5", "no answer here", "ANSWER: 80.5",
+                "ANSWER: 0.9"):
         try:
             parse_count(bad); raise AssertionError(f"accepted {bad!r}")
         except ValueError:

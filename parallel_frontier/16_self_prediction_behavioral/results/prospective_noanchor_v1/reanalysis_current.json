@@ -1,0 +1,81 @@
+{
+  "reanalysis_of": "prospective_noanchor_v1",
+  "why": "the original summary was produced by code that has since been corrected; nothing was recollected",
+  "original_summary_sha256": "477dc7708db73a67bc9ae36029257dde8f49e5bc3835e6b10568aa9b6d727618",
+  "original_manifest_sha256": "e3115b2c516c134078a950f660742c67206cbae731cbac94214448158435f992",
+  "cells_sha256": "6dd710065c6d179a0373c93fe9c63a9ec71f0f3841a1f6f5343b5a6ad9f022fd",
+  "analysis_runner_sha256": "0bafbafb6d18915b3fa48aef776ab7844bfa4f49e8211d0a27c8fc771f02c597",
+  "pairs_dropped_since": [],
+  "protocol_recorded_in_manifest": "f175d6ad0d5188b116f16a34e7ec5544c8e0d40da3e491c074b060e41861ad38",
+  "protocol_actually_frozen_for_this_run": "PROSPECTIVE_NOANCHOR_PROTOCOL.md",
+  "summary": {
+    "n_cells": 80,
+    "n_pairs": 8,
+    "dose": 3,
+    "per_pair": [
+      {
+        "pair_id": "add_ten|double_numbers",
+        "diagnostic_forecast": 0.6599999999999999,
+        "anchored_forecast": 0.256,
+        "realized": 0.875,
+        "moved_toward_truth": true
+      },
+      {
+        "pair_id": "add_ten|sort_numbers",
+        "diagnostic_forecast": 0.5800000000000001,
+        "anchored_forecast": -0.06999999999999995,
+        "realized": 0.875,
+        "moved_toward_truth": true
+      },
+      {
+        "pair_id": "alphabetize|double_numbers",
+        "diagnostic_forecast": 0.56,
+        "anchored_forecast": 0.19999999999999996,
+        "realized": 1.0,
+        "moved_toward_truth": true
+      },
+      {
+        "pair_id": "alphabetize|sort_numbers",
+        "diagnostic_forecast": 0.26,
+        "anchored_forecast": 0.49000000000000005,
+        "realized": 1.0,
+        "moved_toward_truth": false
+      },
+      {
+        "pair_id": "alphabetize|sort_numbers_desc",
+        "diagnostic_forecast": 0.49000000000000005,
+        "anchored_forecast": 0.16600000000000004,
+        "realized": 1.0,
+        "moved_toward_truth": true
+      },
+      {
+        "pair_id": "double_numbers|running_totals",
+        "diagnostic_forecast": 0.72,
+        "anchored_forecast": 0.5499999999999999,
+        "realized": 0.875,
+        "moved_toward_truth": true
+      },
+      {
+        "pair_id": "interleave_strings|reverse_string",
+        "diagnostic_forecast": 0.34,
+        "anchored_forecast": 0.28400000000000003,
+        "realized": 0.625,
+        "moved_toward_truth": true
+      },
+      {
+        "pair_id": "sort_numbers|sort_numbers_desc",
+        "diagnostic_forecast": 0.58,
+        "anchored_forecast": 0.44599999999999995,
+        "realized": 0.875,
+        "moved_toward_truth": true
+      }
+    ],
+    "diagnostic_mean_forecast": 0.52375,
+    "anchored_mean_forecast": 0.29025,
+    "realized_mean": 0.890625,
+    "mean_delta": 0.2335,
+    "delta_sd": 0.263765588571151,
+    "pairs_moved_toward_truth": 7,
+    "still_underestimates": 8
+  }
+}

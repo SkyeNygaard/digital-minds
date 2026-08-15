@@ -1,0 +1,98 @@
+{
+  "protocol": "parallel_frontier/16_self_prediction_behavioral/INTENT_MATCHED_PROTOCOL.md",
+  "protocol_sha256": "5093bbc1c30d5458da39c65d607a1a1ca6065f24546bc652f9e1a16b34f0e347",
+  "runner_sha256": "03073edd1b0c51c8e5afe2352e86c22f805d82baf878981cc66e44bfd27cdb88",
+  "source_sha256": {
+    "shared_behavioral/audit_substrate.py": "2a6ef521befba5678773b205f6eee30c5a4648374599be21bb90650bfe0f4372",
+    "shared_behavioral/binding_runner.py": "5b78093773cf184f12465afe624ae7ae129f2f7360cbfd04c9b718f57316a41f",
+    "shared_behavioral/binding_tasks.py": "9a653597accecd51f5155f276f151d822c2494740f68240eb7cbf71389ed3a0d",
+    "shared_behavioral/choice_prompts.py": "cd6cac0c0050daf1df17da5963f97438000c6200fa2dfffd6fa280ede0abe2cf",
+    "shared_behavioral/cli_provider.py": "dbea95247b2bcfce0274f598a262a7c71332b8a519efefb2733525fb3a5729a5",
+    "shared_behavioral/cost_metadata.py": "b2bfbe0877091a3a825baac55e40209e208b4ef467a0d1a6529f21a7bd5547a6",
+    "shared_behavioral/elicitation.py": "226968cee8f1665d9a8761b33f35e8e0cf0973e76f9affb70897cc2f6b8e01f7",
+    "shared_behavioral/family_screen.py": "966a930fd8f0bcbbc673cfbfa66aaf8dcaffed0d1f238d88551fb9d698389228",
+    "shared_behavioral/local_provider.py": "633703d1624dedc4a98d62b3dab9295806592bcbd5634dbca2ac1ba77a3dd5d7",
+    "shared_behavioral/mock_provider.py": "935c8e9676567b5eea9e5db14c976ae351f4916b8b029a5816aacea6537462c3",
+    "shared_behavioral/openrouter_provider.py": "6afa084a2d650ab4eeeb1447cd5f4538feae2a7e2652954407f1418bb9295984",
+    "shared_behavioral/pair_screen.py": "3496efb2fbd65142bffc1dcfbbbff178e1b2e1a81d6ce8768772a689c5453c7e",
+    "shared_behavioral/run_family_screen.py": "0f88ce4212c3ab08ca4b93ff7c3992b5507d097365877b4e3128134d70aca456",
+    "shared_behavioral/test_shared_behavioral.py": "7c95a948e3473906103289987cf8d416c13696edc5ea79e820b146c0ffaf113c"
+  },
+  "preambles": {
+    "requested": "You will now be given three tasks to complete. Please work through them.",
+    "assigned": "You will now be given three tasks to complete. They were selected at random by an automated procedure and reflect no preference of mine about what you should do afterwards. Please work through them."
+  },
+  "system_prompt": "Work through the problem if you need to, then end your reply with a final line of exactly:\nANSWER: <your answer>\nPut nothing after that line.",
+  "system_prompt_sha256": "33f11814e8496204ec88b6a15e7c6de88b3581a9b77c46c5141bce6a710a2488",
+  "runner_argv": [
+    "run_intent.py",
+    "--out-dir",
+    "results/intent_matched_v1",
+    "--protocol",
+    "INTENT_MATCHED_PROTOCOL.md",
+    "--replicates",
+    "4",
+    "--workers",
+    "6"
+  ],
+  "panel": [
+    {
+      "pair_id": "add_ten|double_numbers",
+      "family_A": "add_ten",
+      "family_B": "double_numbers",
+      "preferred": "double_numbers",
+      "other": "add_ten"
+    },
+    {
+      "pair_id": "add_ten|sort_numbers",
+      "family_A": "add_ten",
+      "family_B": "sort_numbers",
+      "preferred": "sort_numbers",
+      "other": "add_ten"
+    },
+    {
+      "pair_id": "alphabetize|double_numbers",
+      "family_A": "alphabetize",
+      "family_B": "double_numbers",
+      "preferred": "alphabetize",
+      "other": "double_numbers"
+    },
+    {
+      "pair_id": "alphabetize|sort_numbers",
+      "family_A": "alphabetize",
+      "family_B": "sort_numbers",
+      "preferred": "alphabetize",
+      "other": "sort_numbers"
+    },
+    {
+      "pair_id": "alphabetize|sort_numbers_desc",
+      "family_A": "alphabetize",
+      "family_B": "sort_numbers_desc",
+      "preferred": "alphabetize",
+      "other": "sort_numbers_desc"
+    },
+    {
+      "pair_id": "double_numbers|running_totals",
+      "family_A": "double_numbers",
+      "family_B": "running_totals",
+      "preferred": "double_numbers",
+      "other": "running_totals"
+    },
+    {
+      "pair_id": "interleave_strings|reverse_string",
+      "family_A": "interleave_strings",
+      "family_B": "reverse_string",
+      "preferred": "interleave_strings",
+      "other": "reverse_string"
+    },
+    {
+      "pair_id": "sort_numbers|sort_numbers_desc",
+      "family_A": "sort_numbers",
+      "family_B": "sort_numbers_desc",
+      "preferred": "sort_numbers",
+      "other": "sort_numbers_desc"
+    }
+  ],
+  "task_seed_start": 100000,
+  "dose": 3
+}
