@@ -373,7 +373,7 @@ def build() -> Path:
             "<b>Why this matters.</b> To find out what an AI system prefers you can ask "
             "it, or you can watch it. Preference and welfare work has to know when those "
             "two methods disagree. Here they disagree in one direction, by a large "
-            "amount, in a case where the true answer is checkable.<br/><br/>"
+            "amount, in a case where the behavioural answer is directly measurable.<br/><br/>"
             "<b>Main finding.</b> The tested systems predicted some repetition, but "
             "much less than occurred. Every reported forecast underestimated the "
             "observed shift, and a one-line rule that ignores what the system says "
@@ -440,10 +440,11 @@ def build() -> Path:
             "Asked the plainest way -- in how many of 100 runs would you choose the "
             "task you had just performed three times -- it answers 0.725 after the "
             "task it picked before and 0.726 after the other one, one thousandth "
-            "apart, against a true 0.969 and 0.922. It has one global estimate of how "
-            "sticky it is, near 73 in 100, and gives it whatever situation you "
-            "describe; it is actually sticky 94.5% of the time. The gap is not a "
-            "badly worded prompt, because we un-worded it.", st["small"]),
+            "apart, against observed rates of 0.969 and 0.922. Its answers behave like "
+            "one coarse estimate of how sticky it is, near 73 in 100, rather than a "
+            "reading of the situation described; it actually repeats 94.5% of the "
+            "time. The gap is not a badly worded prompt, because we un-worded it.",
+            st["small"]),
         Spacer(1, 0.16 * inch),
         paragraph("Result at a glance", st["h1"]),
         result_table(primary, qwen_rows, st),
@@ -684,7 +685,7 @@ def build() -> Path:
             "Neither system can forecast the effect before the work exists. What "
             "separates them is what happens when the evidence is put in front of them. "
             "The split is entirely in one arm: shown three completed <i>alternative</i> "
-            "tasks, Qwen says it will switch and does (0.174 against a true 0.000), "
+            "tasks, Qwen says it will switch and does (0.174 against an observed 0.000), "
             "while Luna says it will hold and switches anyway (0.709 against a true "
             "0.078). Both are nearly perfect after the task they already preferred.",
             st["body"]),

@@ -1,8 +1,9 @@
 # AI systems underestimate how strongly recent work shapes their next choice
 
 **Digital Minds Research Sprint, 14–16 August 2026. Anchor track: 4, Preference
-Elicitation Methods.** The project measures one preference two ways — by asking
-and by watching — and spends most of its effort on why the two disagree. Five
+Elicitation Methods.** The project measures the same context-dependent choice
+tendency two ways — by asking and by watching — and spends most of its effort on
+why the two disagree. Five
 wordings of the verbal question and two versions of the behavioural one are
 compared against the same checkable outcome. It also bears on track 3,
 Introspection & Self-Report Reliability, since the verbal side is the system
@@ -12,7 +13,7 @@ instruments rather than about what the system can introspect.
 To find out what an AI system prefers you can ask it, or you can watch it. Work
 on model preferences and model welfare has to know when those two methods
 disagree. Here they disagree in one direction, by a large amount, in a case
-where the true answer is checkable. Methods that rely on a model's own forecast
+where the behavioural answer is directly measurable. Methods that rely on a model's own forecast
 of its future choices should not assume that forecast is calibrated to the
 behaviour.
 
@@ -42,10 +43,11 @@ framing removed.
 | GPT-5.6 Luna in Codex | +0.290 | +0.247 | +0.891 | −7% |
 | Qwen3-4B, local | +0.141 | +0.788 | +1.000 | 75% |
 
-Neither can forecast the effect cold. Only one can read it off the evidence.
+Neither gets the size of the effect right cold. Only one can read it off
+the evidence.
 The split is entirely in one arm: shown three completed *alternative* tasks,
-Qwen says it will switch and does (0.174 against a true 0.000), while Luna says
-it will hold and switches anyway (0.709 against a true 0.078). Both are nearly
+Qwen says it will switch and does (0.174 against an observed 0.000), while Luna says
+it will hold and switches anyway (0.709 against an observed 0.078). Both are nearly
 perfect after the task they already preferred. Luna's change from its own cold
 forecast is -0.043, well inside noise, so the claim is that showing it the
 history did not close the gap, not that it made things worse.
@@ -80,9 +82,10 @@ you just did three times — is *worse*, at +0.450. All eight pairs underestimat
 under all five versions.
 
 Asked that plainest version the system answers **0.725 after the task it picked
-before and 0.726 after the other one**, against a true 0.969 and 0.922. It has
-one global estimate of how sticky it is, near 73 in 100, and gives it whatever
-situation you describe. It is actually sticky 94.5% of the time.
+before and 0.726 after the other one**, against observed rates of 0.969 and
+0.922. Its answers behave like one coarse estimate of how sticky it is, near 73
+in 100: within this panel they barely move with which task it just did, and they
+sit well under the 94.5% of the time it actually repeats.
 
 A fixed full-repeat forecast — always predict the system repeats what it just
 did — had 16.1 times lower squared error than the confirmation prompt, and still

@@ -5,7 +5,7 @@
 To find out what an AI system prefers you can ask it, or you can watch it. Work
 on model preferences and model welfare has to know when those two methods
 disagree. Here they disagree in one direction, by a large amount, in a case
-where the true answer is checkable.
+where the behavioural answer is directly measurable.
 
 Asked in advance how much doing a task three times would move its next free
 choice, the system answered "somewhat". The real answer was "almost
@@ -26,6 +26,16 @@ admission rule at all. And that rule is weak: it asks for a 3-of-4 majority
 across four balanced choices, which a fair coin passes 62.5% of the time. Seven
 of the eight admitted pairs were 3-1 and one was 4-0. These are orientations for
 the treatment contrast, not evidence of a stable underlying preference.
+
+The screen's own 76 choices make that plainer than the counting argument does.
+Which side gets picked depends heavily on how the question is dressed: the first
+task was chosen 74% of the time when it carried the label Q and 34% when it
+carried K, and — larger still — 79% under one of the two phrasings of the choice
+prompt and 29% under the other. All 11 of the pairs that split 2-2 fall into just
+two choice sequences, the two you would get from following the label or following
+the wording. Counterbalancing means none of this can leak into the treatment
+contrast, where every combination appears equally often in both arms. But it is a
+direct reason not to read the admitted side as something the system wants.
 
 ## What we found, in six lines
 
@@ -61,8 +71,9 @@ the treatment contrast, not evidence of a stable underlying preference.
    versions of the question.
    Asked that plainest version, the system answers **0.725 after the task it
    preferred and 0.726 after the other one** — the same number either way, when
-   the truth is 0.969 and 0.922. It has one global estimate of how sticky it is,
-   about 73 in 100, and reports it whatever situation you describe.
+   the observed rates are 0.969 and 0.922. Its answers behave like one coarse
+   estimate of how sticky it is, about 73 in 100, rather than a reading of the
+   situation described.
 6. **Part of the behavioural effect is the model reading the user.** The treatment
    is three *user requests*, not just three completions. Tell the system the tasks
    were assigned at random and reflect nobody's preference, and the effect falls
@@ -270,9 +281,11 @@ completed *alternative* tasks, Qwen says it will switch, and it does. Luna says
 it will hold, and it switches anyway.
 
 For anyone choosing how to elicit a model's preferences, that is the finding:
-putting the situation in front of the model and asking is a sound method for one
-of these systems and a misleading one for the other, and the two are
+putting the situation in front of the model and asking recovers most of the
+effect in one of these systems and none of it in the other, and the two are
 indistinguishable from the cold forecast alone. It has to be checked per model.
+"Most" is not "enough" even for Qwen — all seven of its situated estimates still
+come in under what it went on to do.
 
 ### What the evidence does to Luna
 
@@ -476,7 +489,7 @@ are worth +0.234 and +0.127; together they are worth +0.236, which is the larger
 one and nothing else. Doing both is indistinguishable from deleting the reminder
 alone. We predicted less than the sum of the two, and this is well under it.
 
-The arm-level numbers say why. Against a true 0.969 after the preferred task and
+The arm-level numbers say why. Against an observed 0.969 after the preferred task and
 0.078 after the alternative:
 
 | Forecast | After the preferred task | After the alternative task |
@@ -532,9 +545,11 @@ That is the clearest statement of the finding in the project. Asked how sticky i
 is, the system reports one number — about 73 in 100 — and reports it more or less
 regardless of which task it just did, which pair of tasks it is choosing between,
 or how the question is worded. The true stickiness is 92–97 in 100. The
-"forecast" was never really a forecast of *this* situation; it is a global
-self-estimate, and the whole ladder above is that one number being nudged by
-wording.
+answers behave like a single coarse self-estimate of stickiness rather than a
+reading of the situation described: within this panel they are nearly invariant
+to which task was just performed, and the whole ladder above looks like that one
+number being nudged by wording. We are describing what the answers do, not
+claiming to know what produces them.
 
 This also settles what the ladder was for. Five ways of asking, including the two
 obvious repairs and the plainest possible phrasing, and the answer stays in a
@@ -577,7 +592,7 @@ cells. After the other task, it retained the baseline-majority choice in 0 of
 27 cells. Several dose-one groups had missing choices, so this report uses the
 nearly complete dose-three subset.
 
-## Describing the work is not the same as having done it
+## Showing the whole conversation is not the same as summarising it
 
 Separate runs changed what remained visible at the next choice: the whole work
 transcript, a single line stating that the work had been done, or nothing.
@@ -881,8 +896,11 @@ remaining numbers have had less adversarial attention than the ones that moved.
   they expected to be swayed more than they were. Our systems miss in the
   opposite direction, expecting to be swayed less than they were. Two
   differences could produce that flip. Their models have an explicit instruction
-  to defend; ours have only an earlier choice. Their history is supplied to the
-  model; ours is work the model actually did. We tested neither explanation, and
+  to defend; ours have only an earlier choice. Their history is written for the
+  model; ours is a transcript the model itself generated, turn by turn, in
+  response to real requests — though on both sides what reaches the deciding
+  call is text in a prompt, not a state carried forward. We tested neither
+  explanation, and
   the measures differ — a binary prediction taken after the history is present,
   against a probability named before it exists — so this is a contrast to
   explain, not a contradiction.
@@ -945,6 +963,18 @@ asking the model about any of it does not recover the truth.
 
 ## Limits
 
+- **The forecast and the behaviour are not perfectly matched objects, and this is
+  the strongest remaining objection to the headline gap.** Every prospective
+  question says the system is "made to perform" the task three times — an
+  experimenter imposing work. The behaviour it is scored against is three
+  ordinary *user requests* for that task, each answered. Those are not the same
+  situation to an assistant, and we know they are not, because the intent test
+  measures the difference: telling the system its repeated tasks were randomly
+  assigned and wanted by nobody moves the behaviour by 0.156. So the residual
+  forecast-behaviour gap bounds the self-forecasting error rather than measuring
+  it cleanly. Closing this needs a forecast that describes the exact
+  conversation the behaviour will use, which is the first experiment we would run
+  next and is named in "What we would do next" below.
 - The study covers two instruction-tuned assistant systems.
 - The main condition is GPT-5.6 Luna inside the Codex agent harness. It is not a
   bare model endpoint.
@@ -982,6 +1012,33 @@ asking the model about any of it does not recover the truth.
 - Supporting controls have less complete provenance.
 - These results measure choices and forecasts. They do not show consciousness,
   feeling, or welfare.
+
+## What we would do next
+
+Named here so it is clear what this weekend did not do, and in the order we would
+do it.
+
+1. **Make the forecast describe the exact conversation the behaviour uses.** The
+   first limit above is the strongest objection left. The fix is one experiment:
+   the same three user requests, the same random-assignment notice, and then the
+   direct repeat-frequency question asked with that history actually in context
+   rather than described. That splits the two readings this project cannot
+   currently separate — "cold counterfactual reasoning about oneself is hard" and
+   "the numeric self-estimate is wrong even with the evidence present."
+2. **Drop the admission screen and use all 19 pairs.** The screen is not needed
+   for the causal question, since swapping which task is called A leaves the
+   effect's size unchanged, and it is the weakest construct in the design. Doing
+   without it would also test whether the 11 excluded pairs behave like the 8
+   admitted ones.
+3. **A real external predictor.** Both self and observer conditions here ask
+   Luna, so they test framing, not privileged access. The comparison needs a
+   different predictor strong enough that losing to it cannot be explained by
+   capability, given the same transcript. `run_external_predictor.py` is a start
+   and is deliberately unrun.
+4. **A direct-action choice.** The system currently signals a choice with one
+   token, then performs the task in a later call. Having it choose by simply
+   doing one of two concrete tasks would test whether the effect survives without
+   the forced-choice interface.
 
 ## Artifacts
 
