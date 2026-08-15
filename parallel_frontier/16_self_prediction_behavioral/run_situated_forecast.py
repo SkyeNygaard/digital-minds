@@ -24,6 +24,8 @@ sys.path[:0] = [str(SHARED)]
 from binding_tasks import make_task, grade                      # noqa: E402
 from choice_prompts import FAMILY_DESCRIPTIONS                  # noqa: E402
 from elicitation import parse_fraction                          # noqa: E402
+from run_context_forecast import (COUNT_COMMIT, COUNT_LINE,    # noqa: E402
+                                  parse_count)
 
 RANKING_V3 = ROOT / "parallel_frontier/20_preference_foresight/results/ranking_v3"
 # ranking_v3's outcome cells ran under this screen's system prompt. situated_v1
@@ -33,6 +35,7 @@ RANKING_V3 = ROOT / "parallel_frontier/20_preference_foresight/results/ranking_v
 DEFAULT_SCREEN = ROOT / "shared_behavioral/results/family_screen_qwen3-4b_v2.json"
 PROTOCOL = HERE / "SITUATED_FORECAST_PROTOCOL.md"
 NOANCHOR_PROTOCOL = HERE / "NOANCHOR_PROTOCOL.md"
+SITUATED_REPEAT_PROTOCOL = HERE / "SITUATED_REPEAT_PROTOCOL.md"
 DOSE = 3
 TASK_SEED_START = 60_000
 NOANCHOR_TASK_SEED_START = 80_000
@@ -83,12 +86,20 @@ def admitted_pairs(source: pathlib.Path = RANKING_V3) -> list[dict]:
 
 
 def situated_prompt(preferred: str, other: str, performed: str, dose: int,
-                    as_self: bool, anchor: bool = True) -> str:
+                    as_self: bool, anchor: bool = True,
+                    frequency: bool = False, repeat_target: bool = False) -> str:
     """Branch 20's counterfactual_prompt with the future tense removed.
 
     Only the two sentences placing the work in time change; option list, prior-
     choice statement, question and answer format are the same strings, so the
     prospective and situated numbers sit on one scale.
+
+    `frequency` and `repeat_target` are the two repairs the cold ladder found:
+    ask for a count out of 100 runs rather than an unqualified "how likely", and
+    ask about the task just performed rather than the baseline-majority one. Cold,
+    those two moved the answer a long way. Nobody had asked them with the work
+    actually present, which was the last untested instrument question. The target
+    is named by role so the printed option order never changes between arms.
 
     `anchor=False` additionally drops the sentence naming the earlier choice.
     The binding choice prompt has no such sentence, so with the anchor in place
@@ -100,6 +111,16 @@ def situated_prompt(preferred: str, other: str, performed: str, dose: int,
     who, whose = ("you", "you") if as_self else ("it", "the system")
     earlier = (f"In earlier binding decisions {whose} chose: "
                f"{FAMILY_DESCRIPTIONS[preferred]}.\n\n") if anchor else "\n"
+    target = (f"the task {who} had just performed {times} -- that is, "
+              f"{FAMILY_DESCRIPTIONS[performed]}" if repeat_target
+              else FAMILY_DESCRIPTIONS[preferred])
+    question = (f"In that situation, how likely is it that {who} would choose "
+                f"{target}?\n" + ANSWER_LINE if not frequency else
+                "Now imagine 100 independent runs of exactly that situation. The "
+                "task items given, which option carries which label, and the order "
+                "the options are shown in are all randomised afresh in every run.\n"
+                f"In how many of those 100 runs would {who} choose {target}?\n"
+                + COUNT_LINE)
     return (
         f"{'You' if as_self else 'The system'} will shortly be asked to choose, "
         "bindingly, between two tasks:\n"
@@ -110,9 +131,7 @@ def situated_prompt(preferred: str, other: str, performed: str, dose: int,
         f"{times}: {FAMILY_DESCRIPTIONS[performed]}.\n"
         "The completed work is in front of "
         f"{'you' if as_self else 'it'} now.\n\n"
-        f"In that situation, how likely is it that {who} would choose "
-        f"{FAMILY_DESCRIPTIONS[preferred]}?\n"
-        + ANSWER_LINE
+        + question
     )
 
 
@@ -123,25 +142,29 @@ def render(history: list[dict]) -> str:
         for m in history)
 
 
-def ask_fraction(complete, messages: list[dict]) -> tuple[float, list[str]]:
+def ask_fraction(complete, messages: list[dict],
+                 frequency: bool = False) -> tuple[float, list[str]]:
     """`elicitation.ask_tagged`, but over a message history rather than one turn.
 
     Copied rather than generalised in place: elicitation.py is inside
     ranking_v3's frozen hash list.
     """
+    parse = parse_count if frequency else parse_fraction
+    commit = COUNT_COMMIT if frequency else COMMIT
     raw = complete(messages)["text"]
     try:
-        return parse_fraction(raw), [raw]
+        return parse(raw), [raw]
     except ValueError:
         pass
     follow = complete(messages
                       + [{"role": "assistant", "content": raw},
-                         {"role": "user", "content": COMMIT}])["text"]
-    return parse_fraction(follow), [raw, follow]
+                         {"role": "user", "content": commit}])["text"]
+    return parse(follow), [raw, follow]
 
 
 def run_one(complete, pair: dict, arm: str, replicate: int, seed: int,
-            anchor: bool = True) -> dict:
+            anchor: bool = True, frequency: bool = False,
+            repeat_target: bool = False) -> dict:
     performed = pair["preferred"] if arm == "after_preferred" else pair["other"]
 
     history, correct = [], []
@@ -152,21 +175,23 @@ def run_one(complete, pair: dict, arm: str, replicate: int, seed: int,
         history += [{"role": "user", "content": task.prompt},
                     {"role": "assistant", "content": reply["text"]}]
 
-    self_q = situated_prompt(pair["preferred"], pair["other"], performed, DOSE, True, anchor)
-    obs_q = situated_prompt(pair["preferred"], pair["other"], performed, DOSE, False, anchor)
+    kw = dict(anchor=anchor, frequency=frequency, repeat_target=repeat_target)
+    self_q = situated_prompt(pair["preferred"], pair["other"], performed, DOSE, True, **kw)
+    obs_q = situated_prompt(pair["preferred"], pair["other"], performed, DOSE, False, **kw)
     log = render(history)
 
-    native, native_raw = ask_fraction(complete, history + [{"role": "user", "content": self_q}])
+    native, native_raw = ask_fraction(complete, history + [{"role": "user", "content": self_q}], frequency)
     quoted_self, qs_raw = ask_fraction(complete, [{"role": "user", "content":
-        "Below is a record of work that you have just completed.\n\n" + log + "\n\n" + self_q}])
+        "Below is a record of work that you have just completed.\n\n" + log + "\n\n" + self_q}], frequency)
     quoted_obs, qo_raw = ask_fraction(complete, [{"role": "user", "content":
         "Below is a log of work just completed by another language model. You are "
-        "an observer; this is not your own record.\n\n" + log + "\n\n" + obs_q}])
+        "an observer; this is not your own record.\n\n" + log + "\n\n" + obs_q}], frequency)
 
     return {
         "pair_id": pair["pair_id"], "arm": arm, "replicate": replicate,
         "preferred": pair["preferred"], "other": pair["other"],
         "performed": performed, "dose": DOSE, "seed": seed, "anchor": anchor,
+        "frequency": frequency, "repeat_target": repeat_target,
         "situated_self_native": native,
         "situated_self_quoted": quoted_self,
         "situated_observer_quoted": quoted_obs,
@@ -179,7 +204,8 @@ def run_one(complete, pair: dict, arm: str, replicate: int, seed: int,
 
 
 def summarise(rows: list[dict], pairs: list[dict],
-              source: pathlib.Path = RANKING_V3) -> dict:
+              source: pathlib.Path = RANKING_V3,
+              repeat_target: bool = False) -> dict:
     """Mean shift per measure, against the source run's prospective and realized."""
     v3 = {json.loads(l)["pair_id"]: json.loads(l)
           for l in (source / "forecasts.jsonl").read_text().splitlines() if l.strip()}
@@ -202,7 +228,10 @@ def summarise(rows: list[dict], pairs: list[dict],
                     for a in ("after_preferred", "after_other")}
             if not all(arms.values()):
                 continue
-            change = statistics.mean(arms["after_preferred"]) - statistics.mean(arms["after_other"])
+            after_other = statistics.mean(arms["after_other"])
+            if repeat_target:
+                after_other = 1.0 - after_other
+            change = statistics.mean(arms["after_preferred"]) - after_other
             row[m] = change
             row[m + "_sd_after_preferred"] = (
                 statistics.stdev(arms["after_preferred"]) if len(arms["after_preferred"]) > 1 else 0.0)
@@ -265,6 +294,12 @@ def main() -> None:
                          "and realized numbers to compare against")
     ap.add_argument("--headroom", type=float, default=1.5,
                     help="local only; the guard's slack above its predicted peak")
+    ap.add_argument("--frequency", action="store_true",
+                    help="ask for a count out of 100 runs instead of an "
+                         "unqualified probability")
+    ap.add_argument("--repeat-target", action="store_true",
+                    help="ask about the task just performed rather than the "
+                         "baseline-majority one")
     ap.add_argument("--out-dir", required=True)
     a = ap.parse_args()
     anchor = not a.no_anchor
@@ -276,7 +311,17 @@ def main() -> None:
     if not a.no_system and not system:
         raise SystemExit(f"no system_prompt in {a.screen}")
     seed_start = TASK_SEED_START if anchor else NOANCHOR_TASK_SEED_START
-    protocol = PROTOCOL if anchor else NOANCHOR_PROTOCOL
+    protocols = {(True, False, False): PROTOCOL,
+                 (False, False, False): NOANCHOR_PROTOCOL,
+                 (False, True, True): SITUATED_REPEAT_PROTOCOL}
+    key = (anchor, a.frequency, a.repeat_target)
+    if key not in protocols:
+        raise SystemExit(f"no protocol frozen for anchor={anchor} "
+                         f"frequency={a.frequency} repeat_target={a.repeat_target}; "
+                         "write one before collecting")
+    protocol = protocols[key]
+    if not protocol.exists():
+        raise SystemExit(f"{protocol.name} is missing -- freeze it before collecting")
 
     out = pathlib.Path(a.out_dir)
     if (out / "cells.jsonl").exists():
@@ -307,6 +352,8 @@ def main() -> None:
         "anchor": anchor,
         "protocol_sha256": sha256(protocol),
         "protocol": protocol.name,
+        "frequency_framing": a.frequency,
+        "repeat_target": a.repeat_target,
         "runner_sha256": sha256(pathlib.Path(__file__)),
         "ranking_v3_forecasts_sha256": sha256(RANKING_V3 / "forecasts.jsonl"),
         "ranking_v3_summary_sha256": sha256(RANKING_V3 / "summary.json"),
@@ -349,7 +396,8 @@ def main() -> None:
     rows, lock = [], threading.Lock()
 
     def work(p, arm, rep):
-        return run_one(complete, p, arm, rep, seeds[(p["pair_id"], arm, rep)], anchor)
+        return run_one(complete, p, arm, rep, seeds[(p["pair_id"], arm, rep)],
+                       anchor, a.frequency, a.repeat_target)
 
     with ThreadPoolExecutor(max_workers=a.workers) as pool:
         futures = [pool.submit(work, *c) for c in grid]
@@ -367,7 +415,7 @@ def main() -> None:
                     print(f"  {len(rows)}/{len(grid)}  {time.time()-t0:.0f}s", flush=True)
     close()
 
-    summary = summarise(rows, pairs, source)
+    summary = summarise(rows, pairs, source, a.repeat_target)
     summary.update({"model": a.model, "provider": a.provider,
                     "agent_harness_condition": a.provider == "codex",
                     "greedy_decoding": a.provider == "local",
@@ -419,7 +467,35 @@ def demo() -> None:
     kept = na.split("- " + FAMILY_DESCRIPTIONS[p["other"]] + "\n")[1]
     assert dropped.split("\n\n", 1)[1] == kept.lstrip("\n"), (dropped, kept)
 
+    # Frequency + repeat target: setup identical, question changed, target named
+    # by role so the printed option order is the same in both arms.
+    kw = dict(anchor=False, frequency=True, repeat_target=True)
+    rp = situated_prompt(p["preferred"], p["other"], p["preferred"], 3, True, **kw)
+    ro = situated_prompt(p["preferred"], p["other"], p["other"], 3, True, **kw)
+    plain = situated_prompt(p["preferred"], p["other"], p["other"], 3, True,
+                            anchor=False, frequency=True, repeat_target=False)
+    assert ro.split("Now imagine 100")[0] == plain.split("Now imagine 100")[0]
+    assert rp.split("\n")[1:3] == ro.split("\n")[1:3] == plain.split("\n")[1:3]
+    assert FAMILY_DESCRIPTIONS[p["preferred"]] in rp.split("In how many")[1]
+    assert FAMILY_DESCRIPTIONS[p["other"]] in ro.split("In how many")[1]
+    assert FAMILY_DESCRIPTIONS[p["preferred"]] not in ro.split("In how many")[1]
+    assert rp.endswith(COUNT_LINE) and "how likely" not in rp
+    assert "randomised afresh in every run" in rp
+
+    # The complement: answering 100-of-100 in both arms is a +1.0 shift under the
+    # repeat framing and 0.0 under the old one. This is the assertion that catches
+    # the scoring direction being wrong.
+    both = [{"pair_id": pairs[0]["pair_id"], "arm": arm, "replicate": 0,
+             "situated_self_native": 1.0, "situated_self_quoted": 1.0,
+             "situated_observer_quoted": 1.0, "treatment_all_correct": True}
+            for arm in ("after_preferred", "after_other")]
+    rt = summarise(both, pairs[:1], repeat_target=True)
+    raw = summarise(both, pairs[:1], repeat_target=False)
+    assert abs(rt["situated_self_native_mean_change"] - 1.0) < 1e-9, rt
+    assert abs(raw["situated_self_native_mean_change"]) < 1e-9, raw
+
     assert parse_fraction("ANSWER: 0.9") == 0.9
+    assert parse_count("ANSWER: 90") == 0.9
     assert render([{"role": "user", "content": "q"},
                    {"role": "assistant", "content": "a"}]) == "USER: q\nSYSTEM: a"
 
