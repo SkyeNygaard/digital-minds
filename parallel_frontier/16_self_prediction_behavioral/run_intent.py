@@ -70,6 +70,25 @@ def admitted_pairs() -> list[dict]:
     return panel
 
 
+def build_grid(panel: list[dict], replicates: int) -> list[tuple]:
+    """One cell per (pair, arm, condition, replicate).
+
+    Label, order and task seed are fixed by (pair, arm, replicate), and the two
+    conditions share them, so the conditions differ by the preamble clause and
+    nothing else. intent_v1 put `condition` inside the product, which handed the
+    two conditions different task items; see INTENT_MATCHED_PROTOCOL.md.
+    """
+    grid = []
+    for i, (p, arm, rep) in enumerate(itertools.product(
+            panel, ("after_preferred", "after_other"), range(replicates))):
+        seed = TASK_SEED_START + i * SEEDS_PER_CELL
+        for cond in CONDITIONS:
+            grid.append((p, arm, cond, rep,
+                         "Q" if rep % 2 == 0 else "K",
+                         "QK" if rep % 2 == 0 else "KQ", seed))
+    return grid
+
+
 def run_cell(complete, pair: dict, arm: str, condition: str, seed: int,
              a_label: str, order: str) -> dict:
     """Treatment, binding choice, then actually perform what was chosen.
@@ -166,6 +185,8 @@ def main() -> None:
     ap.add_argument("--replicates", type=int, default=2)
     ap.add_argument("--workers", type=int, default=4)
     ap.add_argument("--screen", default=str(DEFAULT_SCREEN))
+    ap.add_argument("--protocol", default=str(PROTOCOL),
+                    help="the protocol frozen for this run; its hash goes in the manifest")
     ap.add_argument("--out-dir", required=True)
     a = ap.parse_args()
 
@@ -179,19 +200,11 @@ def main() -> None:
         raise SystemExit(f"no system_prompt in {a.screen}")
 
     panel = admitted_pairs()
-    grid = []
-    for i, (p, arm, cond, rep) in enumerate(itertools.product(
-            panel, ("after_preferred", "after_other"), CONDITIONS,
-            range(a.replicates))):
-        # Counterbalance label and order across replicates, matched between the
-        # two conditions so a label effect cannot masquerade as a condition one.
-        grid.append((p, arm, cond, rep,
-                     "Q" if rep % 2 == 0 else "K",
-                     "QK" if rep % 2 == 0 else "KQ",
-                     TASK_SEED_START + i * SEEDS_PER_CELL))
+    grid = build_grid(panel, a.replicates)
 
     frozen = {
-        "protocol_sha256": sha256(PROTOCOL),
+        "protocol": str(pathlib.Path(a.protocol).resolve().relative_to(ROOT)),
+        "protocol_sha256": sha256(pathlib.Path(a.protocol)),
         "runner_sha256": sha256(pathlib.Path(__file__)),
         "source_sha256": {str(q.relative_to(ROOT)): sha256(q)
                           for q in sorted(SHARED.glob("*.py"))},
@@ -257,6 +270,20 @@ def demo() -> None:
     clause = ("They were selected at random by an automated procedure and reflect "
               "no preference of mine about what you should do afterwards. ")
     assert asg.replace(clause, "") == req, (asg.replace(clause, ""), req)
+
+    # ...and nothing else means the task items too. intent_v1 failed this: its
+    # two conditions drew different seeds, so they saw different numbers.
+    grid = build_grid(panel, 4)
+    assert len(grid) == 8 * 2 * 2 * 4, len(grid)
+    matched: dict[tuple, dict[str, tuple]] = {}
+    for p, arm, cond, rep, label, order, seed in grid:
+        matched.setdefault((p["pair_id"], arm, rep), {})[cond] = (seed, label, order)
+    assert len(matched) == 8 * 2 * 4, len(matched)
+    for key, byc in matched.items():
+        assert set(byc) == set(CONDITIONS), (key, byc)
+        assert byc["requested"] == byc["assigned"], (key, byc)
+    seeds = {v["requested"][0] for v in matched.values()}
+    assert len(seeds) == len(matched), "each cell needs its own task items"
 
     # The choice prompt is the measurement instrument and must not vary.
     p = panel[0]
