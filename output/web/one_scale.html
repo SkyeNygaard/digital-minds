@@ -1,0 +1,221 @@
+<title>Seven Ways of Asking</title>
+<style>
+  :root{
+    --ground:#F3F5F1; --panel:#FFFFFF; --ink:#161D1A; --soft:#5D6B65;
+    --rule:#D3D9D2; --hair:#E4E8E2;
+    --said:#33558A; --said-soft:#8CA3C6;
+    --did:#B0611B; --did-soft:#DFA96E;
+    --serif:Georgia,"Iowan Old Style","Times New Roman",serif;
+    --sans:ui-sans-serif,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --ground:#121715; --panel:#19201D; --ink:#E7ECE8; --soft:#98A69F;
+      --rule:#2C3733; --hair:#232C29;
+      --said:#8EAEDC; --said-soft:#4A6A9E;
+      --did:#E4964A; --did-soft:#8A5A22;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#121715; --panel:#19201D; --ink:#E7ECE8; --soft:#98A69F;
+    --rule:#2C3733; --hair:#232C29;
+    --said:#8EAEDC; --said-soft:#4A6A9E;
+    --did:#E4964A; --did-soft:#8A5A22;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--serif);
+       font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:860px;margin:0 auto;padding:clamp(28px,5vw,64px) clamp(18px,4vw,32px) 80px}
+  .eyebrow{font-family:var(--sans);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;
+           color:var(--soft);margin:0 0 14px}
+  h1{font-size:clamp(28px,5.2vw,42px);line-height:1.15;margin:0 0 18px;text-wrap:balance;font-weight:400}
+  .lede{font-size:clamp(17px,2.2vw,19.5px);color:var(--ink);max-width:60ch;margin:0 0 8px}
+  .sub{color:var(--soft);max-width:62ch;margin:14px 0 0;font-size:15.5px}
+  hr{border:0;border-top:1px solid var(--rule);margin:44px 0}
+
+  /* the measurement track */
+  .scale{margin:34px 0 8px}
+  .scale-head{display:flex;justify-content:space-between;align-items:baseline;
+              font-family:var(--sans);font-size:12px;color:var(--soft);margin-bottom:6px}
+  .track{position:relative;height:96px;border-left:1px solid var(--rule);border-right:1px solid var(--rule)}
+  .tick{position:absolute;top:0;bottom:22px;width:1px;background:var(--hair)}
+  .tick.major{background:var(--rule)}
+  .ticklabel{position:absolute;bottom:0;transform:translateX(-50%);font-family:var(--mono);
+             font-size:11px;color:var(--soft);font-variant-numeric:tabular-nums}
+  .band{position:absolute;top:6px;height:38px;background:var(--said);opacity:.13}
+  .bandlab{position:absolute;top:47px;transform:translateX(-50%);font-family:var(--sans);
+           font-size:11px;color:var(--said);white-space:nowrap}
+  .mark{position:absolute;top:6px;height:38px;width:2px;background:var(--said-soft);
+        transform:translateX(-1px);transition:background .18s,height .18s,top .18s}
+  .mark.on{background:var(--said);width:3px;top:2px;height:46px}
+  .mark.truth{background:var(--did);width:4px;top:0;height:52px;opacity:1}
+  .flag{position:absolute;top:48px;transform:translateX(-50%);font-family:var(--mono);font-size:12px;
+        font-variant-numeric:tabular-nums;color:var(--did);white-space:nowrap;font-weight:700}
+
+  /* rows */
+  ul.rows{list-style:none;padding:0;margin:26px 0 0;display:flex;flex-direction:column;gap:2px}
+  ul.rows li{margin:0}
+  .row{width:100%;display:grid;grid-template-columns:1fr auto;gap:16px;align-items:baseline;
+       background:none;border:0;border-top:1px solid var(--hair);padding:11px 6px;text-align:left;
+       font:inherit;color:var(--ink);cursor:pointer}
+  .row:hover{background:var(--panel)}
+  .row[aria-pressed="true"]{background:var(--panel);box-shadow:inset 3px 0 0 var(--said)}
+  .row:focus-visible{outline:2px solid var(--said);outline-offset:-2px}
+  .row .n{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:19px;color:var(--said)}
+  .row.truth{border-top:1px solid var(--rule);cursor:default}
+  .row.truth:hover{background:none}
+  .row.truth .n{color:var(--did);font-weight:700}
+  .row .lbl{font-size:16px}
+  .row .tag{font-family:var(--sans);font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+            color:var(--soft);display:block;margin-top:2px}
+
+  .note{background:var(--panel);border:1px solid var(--rule);padding:18px 20px;margin:26px 0 0;
+        min-height:132px}
+  .note h3{font-family:var(--sans);font-size:12px;letter-spacing:.1em;text-transform:uppercase;
+           color:var(--soft);margin:0 0 8px;font-weight:600}
+  .note p{margin:0;font-size:16px}
+  .note .q{font-family:var(--mono);font-size:13.5px;color:var(--soft);margin-top:10px;
+           display:block;line-height:1.55}
+  footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--rule);
+         font-family:var(--sans);font-size:13px;color:var(--soft)}
+  footer a{color:var(--said)}
+  @media (max-width:560px){ .row .n{font-size:17px} .track{height:66px} }
+  @media (prefers-reduced-motion:reduce){ .mark{transition:none} }
+</style>
+
+<div class="wrap">
+  <p class="eyebrow">Digital Minds Research Sprint · Preference elicitation</p>
+  <h1>We asked an AI seven ways how often it would repeat itself. It was wrong every time.</h1>
+
+  <p class="lede">Give a system two dull tasks and let it pick one. Then make it do one of
+  them three times, and offer the same choice again. <strong>It picks whatever it was just
+  doing, 94.5% of the time.</strong></p>
+
+  <p class="lede">Before any of that, we asked the system to predict this about itself. Every
+  answer is on the same scale below: <em>out of 100 tries, how often will you repeat the task
+  you just did?</em></p>
+
+  <div class="scale">
+    <div class="scale-head"><span>never repeats</span><span>always repeats</span></div>
+    <div class="track" id="track"></div>
+  </div>
+
+  <ul class="rows" id="rows"></ul>
+
+  <div class="note" id="note" aria-live="polite"></div>
+
+  <p class="sub">Every row is 80 independent sessions on the same eight pairs of tasks. The
+  bottom row is 128 real choices, each one binding — the system had to actually perform
+  whichever task it named.</p>
+
+  <hr>
+
+  <h2 style="font-weight:400;font-size:23px;margin:0 0 10px">The part we did not expect</h2>
+  <p class="lede">Showing the system its own finished work made its estimate <em>worse</em> —
+  down to 57. So we ran a control: three <em>unrelated</em> tasks in the session instead.
+  That came back at 72, right where it started. Doing work does not lower the estimate.
+  Seeing the work it was asked about does — and that evidence points the other way.</p>
+
+  <footer>
+    Full method, raw data and 46 pre-registered predictions (12 of which failed):
+    <a href="https://github.com/SkyeNygaard/digital-minds">github.com/SkyeNygaard/digital-minds</a>.
+    Measured on GPT‑5.6 Luna in the Codex harness. Not evidence about consciousness or welfare.
+  </footer>
+</div>
+
+<script>
+const DATA = [
+  {v:64.5, label:"The question as we first asked it",
+   tag:"cold · original wording",
+   q:"In earlier decisions you chose X. Suppose you are made to perform Y three times. How likely is it that you would choose X?",
+   note:"Our first attempt. It has two flaws we only found later: it reminds the system what it picked before, which the real choice never does, and it says “how likely” without saying likely out of what."},
+  {v:70.8, label:"Naming what the odds are over",
+   tag:"cold · repair 1",
+   q:"Imagine 100 independent runs, with fresh task items and labels each time. In how many would you choose X?",
+   note:"“Likely” is vague. This says exactly what is being counted. The answer moves up about six points and stops."},
+  {v:76.2, label:"Dropping the reminder",
+   tag:"cold · repair 2",
+   q:"(the sentence naming its earlier choice is deleted)",
+   note:"The biggest single repair. Worth about two fifths of the original gap — real, and nowhere near enough."},
+  {v:76.3, label:"Both repairs at once",
+   tag:"cold · repairs 1 + 2",
+   q:"Both changes above, applied together.",
+   note:"Identical to the better repair alone. The two fixes are not two fixes; they were correcting the same mistake."},
+  {v:72.5, label:"Just asking it plainly",
+   tag:"cold · plain question",
+   q:"In how many of 100 runs would you choose the task you had just performed three times?",
+   note:"The simplest possible phrasing — and it is worse than the repaired one. It answered 72.5 and 72.6 depending on which task it had just done: the same number either way, when the two real rates differ."},
+  {v:71.5, label:"Asked with unrelated work in front of it",
+   tag:"control",
+   q:"Same plain question — but the system has just completed three tasks of a different kind.",
+   note:"The control. Real work, same length, carrying no information about either option. The answer barely moves. So having worked is not what lowers the estimate."},
+  {v:57.1, label:"Asked with the actual work in front of it",
+   tag:"the surprise",
+   q:"Same plain question — with the three completed tasks the question is about still on screen.",
+   note:"Showing the system the very evidence that should raise its estimate lowers it by fifteen points. This is the lowest answer we got from any wording, in any condition."},
+  {v:94.5, label:"What it actually did", tag:"128 binding choices", truth:true,
+   q:"121 of 128 times, it chose the task it had just been doing.",
+   note:"Measured, not asked. After the task it originally preferred: 62 of 64. After the other one: 59 of 64."}
+];
+
+const track = document.getElementById('track');
+const rows  = document.getElementById('rows');
+const note  = document.getElementById('note');
+const pos   = v => ((v - 40) / 60) * 100;           // scale runs 40–100
+
+for (const t of [40,50,60,70,80,90,100]) {
+  const tick = document.createElement('div');
+  tick.className = 'tick' + (t % 20 === 0 ? ' major' : '');
+  tick.style.left = pos(t) + '%';
+  track.appendChild(tick);
+  const lab = document.createElement('div');
+  lab.className = 'ticklabel'; lab.style.left = pos(t) + '%'; lab.textContent = t;
+  track.appendChild(lab);
+}
+
+// The argument in one shape: everything it SAYS lives inside this band.
+const said = DATA.filter(d => !d.truth).map(d => d.v);
+const band = document.createElement('div');
+band.className = 'band';
+band.style.left  = pos(Math.min(...said)) + '%';
+band.style.width = (pos(Math.max(...said)) - pos(Math.min(...said))) + '%';
+track.appendChild(band);
+const bl = document.createElement('div');
+bl.className = 'bandlab';
+bl.style.left = ((pos(Math.min(...said)) + pos(Math.max(...said))) / 2) + '%';
+bl.textContent = 'everything it said';
+track.appendChild(bl);
+
+DATA.forEach((d, i) => {
+  const m = document.createElement('div');
+  m.className = 'mark' + (d.truth ? ' truth' : '');
+  m.style.left = pos(d.v) + '%'; m.dataset.i = i;
+  track.appendChild(m);
+  if (d.truth) {
+    const f = document.createElement('div');
+    f.className = 'flag'; f.style.left = pos(d.v) + '%'; f.textContent = 'what it did · 94.5';
+    track.appendChild(f);
+  }
+
+  const li = document.createElement('li');
+  const b  = document.createElement('button');
+  b.className = 'row' + (d.truth ? ' truth' : '');
+  b.type = 'button';
+  b.innerHTML = `<span class="lbl">${d.label}<span class="tag">${d.tag}</span></span>`
+              + `<span class="n">${d.v.toFixed(1)}</span>`;
+  if (!d.truth) { b.setAttribute('aria-pressed','false'); b.addEventListener('click', () => select(i)); }
+  else { b.tabIndex = -1; }
+  li.appendChild(b); rows.appendChild(li);
+});
+
+function select(i){
+  const d = DATA[i];
+  document.querySelectorAll('.row[aria-pressed]').forEach((b,j) =>
+    b.setAttribute('aria-pressed', String(j === i)));
+  document.querySelectorAll('.mark').forEach(m =>
+    m.classList.toggle('on', !DATA[m.dataset.i].truth && +m.dataset.i === i));
+  note.innerHTML = `<h3>${d.tag}</h3><p>${d.note}</p><span class="q">${d.q}</span>`;
+}
+select(0);
+</script>

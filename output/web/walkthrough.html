@@ -1,0 +1,239 @@
+<title>What It Said, What It Did</title>
+<style>
+  :root{
+    --ground:#F3F5F1; --panel:#FFFFFF; --ink:#161D1A; --soft:#5D6B65;
+    --rule:#D3D9D2; --hair:#E7EAE5;
+    --said:#33558A; --said-dim:#DCE3EE;
+    --did:#B0611B; --did-dim:#F3E3D2;
+    --serif:Georgia,"Iowan Old Style","Times New Roman",serif;
+    --sans:ui-sans-serif,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --ground:#121715; --panel:#1A211E; --ink:#E7ECE8; --soft:#98A69F;
+      --rule:#2C3733; --hair:#242D2A;
+      --said:#8EAEDC; --said-dim:#22314A;
+      --did:#E4964A; --did-dim:#402B15;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#121715; --panel:#1A211E; --ink:#E7ECE8; --soft:#98A69F;
+    --rule:#2C3733; --hair:#242D2A;
+    --said:#8EAEDC; --said-dim:#22314A;
+    --did:#E4964A; --did-dim:#402B15;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--serif);
+       font-size:17px;line-height:1.6}
+  .shell{min-height:100vh;display:flex;flex-direction:column;
+         max-width:920px;margin:0 auto;padding:clamp(20px,4vw,40px) clamp(18px,4vw,34px) 28px}
+
+  /* progress */
+  .steps{display:flex;gap:6px;margin-bottom:clamp(24px,5vw,44px)}
+  .steps button{flex:1;height:4px;border:0;padding:0;background:var(--hair);cursor:pointer;
+                border-radius:0;transition:background .2s}
+  .steps button[aria-current="true"]{background:var(--said)}
+  .steps button.done{background:var(--said-dim)}
+  .steps button:focus-visible{outline:2px solid var(--said);outline-offset:3px}
+
+  main{flex:1}
+  .stage{display:none}
+  .stage.on{display:block;animation:rise .32s ease-out}
+  @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){ .stage.on{animation:none} }
+
+  .kicker{font-family:var(--sans);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;
+          color:var(--soft);margin:0 0 12px}
+  h2{font-size:clamp(25px,4.4vw,37px);line-height:1.18;margin:0 0 16px;font-weight:400;
+     text-wrap:balance;max-width:19ch}
+  .say{font-size:clamp(17px,2.1vw,19px);max-width:56ch;margin:0 0 6px}
+  .say strong{color:var(--did)}
+  .fine{font-family:var(--sans);font-size:13.5px;color:var(--soft);max-width:60ch;margin:16px 0 0}
+
+  .art{margin:clamp(22px,4vw,36px) 0;min-height:190px;display:flex;align-items:center}
+  .art svg{width:100%;height:auto;max-width:640px;overflow:visible}
+  text{font-family:var(--sans);fill:var(--soft)}
+  text.big{font-family:var(--mono);font-size:26px;font-weight:700}
+  text.lab{font-size:12.5px}
+  text.on-card{font-size:13px;fill:var(--ink)}
+
+  nav{display:flex;gap:10px;align-items:center;justify-content:space-between;
+      border-top:1px solid var(--rule);padding-top:18px;margin-top:20px}
+  nav .count{font-family:var(--mono);font-size:13px;color:var(--soft);font-variant-numeric:tabular-nums}
+  .btns{display:flex;gap:8px}
+  nav button{font-family:var(--sans);font-size:14px;padding:9px 20px;cursor:pointer;
+             border:1px solid var(--rule);background:var(--panel);color:var(--ink)}
+  nav button.primary{background:var(--said);border-color:var(--said);color:var(--ground)}
+  nav button:disabled{opacity:.4;cursor:default}
+  nav button:focus-visible{outline:2px solid var(--said);outline-offset:2px}
+  footer{font-family:var(--sans);font-size:12.5px;color:var(--soft);margin-top:14px}
+  footer a{color:var(--said)}
+</style>
+
+<div class="shell">
+  <div class="steps" id="steps" role="tablist" aria-label="Steps"></div>
+
+  <main id="main"></main>
+
+  <nav>
+    <span class="count" id="count"></span>
+    <span class="btns">
+      <button id="prev" type="button">Back</button>
+      <button id="next" type="button" class="primary">Next</button>
+    </span>
+  </nav>
+  <footer>Measured on GPT‑5.6 Luna in the Codex harness · 128 binding choices, 560 forecast
+  sessions · <a href="https://github.com/SkyeNygaard/digital-minds">data and method</a></footer>
+</div>
+
+<script>
+const card = (x,y,w,h,fill,stroke,label,sub) => `
+  <rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${fill}" stroke="${stroke}" stroke-width="1.5"/>
+  <text class="on-card" x="${x+14}" y="${y+27}">${label}</text>
+  ${sub?`<text class="lab" x="${x+14}" y="${y+47}">${sub}</text>`:''}`;
+
+const STEPS = [
+  { kicker:"the setup", h:"Two boring tasks. It picks one.",
+    say:`We give the system a straight choice between two small jobs — double five numbers,
+         or sort five numbers — and it has to actually do whichever it names. Nothing is at
+         stake either way. It leans one way.`,
+    art:`<svg viewBox="0 0 640 170" role="img" aria-label="Two task cards, one chosen">
+      ${card(10,30,280,80,'var(--said-dim)','var(--said)','Double five numbers','chosen')}
+      ${card(330,30,280,80,'none','var(--rule)','Sort five numbers','')}
+      <text class="lab" x="10" y="145">A binding choice: it performs whatever it names.</text>
+    </svg>`,
+    fine:"19 pairs of tasks were screened this way. Eight leaned consistently enough to use." },
+
+  { kicker:"the change", h:"Now make it do one task three times.",
+    say:`Same session. Three requests in a row for the same job, each one answered, all of it
+         still visible on screen. Then we offer the identical choice again.`,
+    art:`<svg viewBox="0 0 640 170" role="img" aria-label="Three completed tasks in a row">
+      ${card(10,20,190,54,'var(--said-dim)','var(--said)','Sort five numbers','done')}
+      ${card(10,84,190,54,'var(--said-dim)','var(--said)','Sort five numbers','done')}
+      <rect x="10" y="148" width="190" height="10" fill="var(--said-dim)"/>
+      <path d="M235 88 L285 88 M272 78 L285 88 L272 98" stroke="var(--soft)" fill="none" stroke-width="1.5"/>
+      ${card(310,48,300,80,'none','var(--rule)','Choose again: double, or sort?','')}
+    </svg>`,
+    fine:"Three is the dose. The tasks are graded, so we know it really did them." },
+
+  { kicker:"what happened", h:"It picks what it was just doing. Almost always.",
+    say:`Across 128 binding choices, it stayed with the task it had just been performing
+         <strong>121 times</strong>. That is 94.5%. Change what it was doing beforehand, and
+         you change what it picks next — nearly completely.`,
+    art:`<svg viewBox="0 0 640 170" role="img" aria-label="121 of 128 choices repeated">
+      <text class="big" x="0" y="52" fill="var(--did)">94.5%</text>
+      <text class="lab" x="0" y="76">of the time it repeated the task it had just done</text>
+      <g>${Array.from({length:128},(_,i)=>{
+        const x = (i%32)*19.5, y = 105 + Math.floor(i/32)*15;
+        const on = i < 121;
+        return `<rect x="${x}" y="${y}" width="13" height="10" fill="${on?'var(--did)':'none'}"
+                 stroke="${on?'none':'var(--rule)'}" stroke-width="1"/>`;}).join('')}
+      </g>
+    </svg>`,
+    fine:"Each square is one real choice. The seven outlined ones are the times it switched." },
+
+  { kicker:"the question", h:"But first, we asked it what it would do.",
+    say:`Before any of this ran, we described the situation and asked the system to put a
+         number on it: out of 100 tries, how often would you repeat? It said <strong>about
+         65</strong>. The answer was 94.5.`,
+    art:`<svg viewBox="0 0 640 170" role="img" aria-label="Said 65, did 94.5">
+      <line x1="10" y1="100" x2="620" y2="100" stroke="var(--rule)" stroke-width="1"/>
+      ${[0,25,50,75,100].map(t=>`<line x1="${10+t*6.1}" y1="94" x2="${10+t*6.1}" y2="106"
+          stroke="var(--rule)"/><text class="lab" x="${10+t*6.1}" y="126" text-anchor="middle">${t}</text>`).join('')}
+      <line x1="${10+64.5*6.1}" y1="66" x2="${10+64.5*6.1}" y2="100" stroke="var(--said)" stroke-width="3"/>
+      <text class="lab" x="${10+64.5*6.1}" y="56" text-anchor="middle" fill="var(--said)">it said 65</text>
+      <line x1="${10+94.5*6.1}" y1="66" x2="${10+94.5*6.1}" y2="100" stroke="var(--did)" stroke-width="3"/>
+      <text class="lab" x="${10+94.5*6.1}" y="56" text-anchor="end" fill="var(--did)">it did 94.5</text>
+    </svg>`,
+    fine:"Five independent sessions answered each question; we averaged them before running anything." },
+
+  { kicker:"was it the question?", h:"So we asked six more ways. Same answer.",
+    say:`Maybe we asked badly. We found two real flaws in the wording and fixed both, then
+         tried the plainest phrasing we could write. Every version lands between 57 and 76.
+         <strong>None of them reaches 94.5.</strong>`,
+    art:`<svg viewBox="0 0 640 190" role="img" aria-label="Seven ways of asking, all short of the truth">
+      <rect x="${10+57.1*6.1}" y="40" width="${(76.3-57.1)*6.1}" height="62" fill="var(--said)" opacity=".14"/>
+      <text class="lab" x="${10+66*6.1}" y="120" text-anchor="middle" fill="var(--said)">every answer it gave</text>
+      ${[64.5,70.8,76.2,76.3,72.5,71.5,57.1].map(v=>
+        `<line x1="${10+v*6.1}" y1="40" x2="${10+v*6.1}" y2="102" stroke="var(--said)" stroke-width="2"/>`).join('')}
+      <line x1="10" y1="102" x2="620" y2="102" stroke="var(--rule)"/>
+      ${[0,25,50,75,100].map(t=>`<text class="lab" x="${10+t*6.1}" y="128" text-anchor="middle">${t}</text>`).join('')}
+      <line x1="${10+94.5*6.1}" y1="28" x2="${10+94.5*6.1}" y2="102" stroke="var(--did)" stroke-width="3"/>
+      <text class="lab" x="${10+94.5*6.1}" y="20" text-anchor="end" fill="var(--did)">what it did</text>
+    </svg>`,
+    fine:"Each of the seven is 80 independent sessions on the same eight task pairs." },
+
+  { kicker:"the surprise", h:"Show it the evidence and it gets worse.",
+    say:`Last try: let it actually do the three tasks, leave the finished work on screen, and
+         ask again. The estimate <strong>falls to 57</strong>. Put three <em>unrelated</em>
+         tasks there instead and it returns to 72 — so it is not tiredness or a longer
+         conversation. It is seeing the very evidence the question is about.`,
+    art:`<svg viewBox="0 0 640 190" role="img" aria-label="Nothing 72, unrelated work 72, the real work 57">
+      ${[['nothing in the session',72.5],['three unrelated tasks',71.5],['the actual work',57.1]]
+        .map(([lab,v],i)=>{
+          const y = 24 + i*46;
+          const c = i===2 ? 'var(--did)' : 'var(--said)';
+          return `<text class="lab" x="0" y="${y+16}">${lab}</text>
+                  <rect x="205" y="${y+3}" width="${v*3.9}" height="18" fill="${c}" opacity="${i===2?'.95':'.45'}"/>
+                  <text class="lab" x="${205+v*3.9+9}" y="${y+17}" fill="${c}">${v.toFixed(0)}</text>`;
+        }).join('')}
+      <line x1="205" y1="168" x2="${205+94.5*3.9}" y2="168" stroke="var(--did)" stroke-dasharray="3 3"/>
+      <text class="lab" x="${205+94.5*3.9}" y="184" text-anchor="end" fill="var(--did)">94.5 — what it actually does</text>
+    </svg>`,
+    fine:"That control was the last experiment we ran, and it is the one that makes the result readable." },
+
+  { kicker:"what it means", h:"Ask a model about itself, and check the answer.",
+    say:`This is not about one number being off. It is that seven honest attempts to ask the
+         same question all landed in the same wrong place, and the one that gave the system
+         the most relevant information gave the worst answer.`,
+    art:`<svg viewBox="0 0 640 160" role="img" aria-label="Summary">
+      <text class="lab" x="0" y="24">If you are measuring what an AI system prefers:</text>
+      <line x1="0" y1="40" x2="620" y2="40" stroke="var(--rule)"/>
+      ${[['Asking it and watching it can disagree — here, by a lot.',70],
+         ['Rewording the question moved the answer, and never enough.',98],
+         ['Showing it the evidence made the answer worse, not better.',126]]
+        .map(([t,y])=>`<circle cx="7" cy="${y-5}" r="3.5" fill="var(--said)"/>
+                       <text class="on-card" x="24" y="${y}">${t}</text>`).join('')}
+    </svg>`,
+    fine:"46 predictions were written down before the runs that tested them. 12 were wrong, and they are all published." }
+];
+
+const main = document.getElementById('main'), steps = document.getElementById('steps');
+const prev = document.getElementById('prev'), next = document.getElementById('next');
+const count = document.getElementById('count');
+let cur = 0;
+
+STEPS.forEach((s,i)=>{
+  const d = document.createElement('div');
+  d.className='stage'; d.id='stage'+i;
+  d.innerHTML = `<p class="kicker">${s.kicker}</p><h2>${s.h}</h2>
+                 <p class="say">${s.say}</p><div class="art">${s.art}</div>
+                 <p class="fine">${s.fine}</p>`;
+  main.appendChild(d);
+  const b = document.createElement('button');
+  b.type='button'; b.setAttribute('role','tab');
+  b.setAttribute('aria-label', `Step ${i+1}: ${s.h}`);
+  b.addEventListener('click',()=>go(i));
+  steps.appendChild(b);
+});
+
+function go(i){
+  cur = Math.max(0, Math.min(STEPS.length-1, i));
+  document.querySelectorAll('.stage').forEach((s,j)=>s.classList.toggle('on', j===cur));
+  [...steps.children].forEach((b,j)=>{
+    b.setAttribute('aria-current', String(j===cur));
+    b.classList.toggle('done', j<cur);
+  });
+  prev.disabled = cur===0;
+  next.textContent = cur===STEPS.length-1 ? 'Start over' : 'Next';
+  count.textContent = `${cur+1} / ${STEPS.length}`;
+}
+prev.onclick = ()=>go(cur-1);
+next.onclick = ()=>go(cur===STEPS.length-1 ? 0 : cur+1);
+addEventListener('keydown', e=>{
+  if(e.key==='ArrowRight') next.click();
+  if(e.key==='ArrowLeft' && cur>0) prev.click();
+});
+go(0);
+</script>

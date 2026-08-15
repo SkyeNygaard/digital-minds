@@ -1,0 +1,257 @@
+<title>The Whole Result Board</title>
+<style>
+  :root{
+    --ground:#F1F3EF; --panel:#FFFFFF; --ink:#161D1A; --soft:#5D6B65;
+    --rule:#D3D9D2; --hair:#E5E9E3;
+    --said:#33558A; --did:#B0611B;
+    --held:#3F7A5E; --failed:#A4432E;
+    --serif:Georgia,"Iowan Old Style","Times New Roman",serif;
+    --sans:ui-sans-serif,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --ground:#111614; --panel:#1A211E; --ink:#E7ECE8; --soft:#98A69F;
+      --rule:#2C3733; --hair:#232B28;
+      --said:#8EAEDC; --did:#E4964A;
+      --held:#71B08F; --failed:#E08B72;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#111614; --panel:#1A211E; --ink:#E7ECE8; --soft:#98A69F;
+    --rule:#2C3733; --hair:#232B28;
+    --said:#8EAEDC; --did:#E4964A;
+    --held:#71B08F; --failed:#E08B72;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--serif);
+       font-size:16px;line-height:1.55}
+  .wrap{max-width:1080px;margin:0 auto;padding:clamp(24px,4vw,48px) clamp(16px,3vw,28px) 72px}
+  .eyebrow{font-family:var(--sans);font-size:11px;letter-spacing:.15em;text-transform:uppercase;
+           color:var(--soft);margin:0 0 10px}
+  h1{font-size:clamp(26px,4.2vw,38px);line-height:1.15;margin:0 0 14px;font-weight:400;text-wrap:balance}
+  .lede{max-width:64ch;font-size:17.5px;margin:0 0 8px}
+  h2{font-family:var(--sans);font-size:12px;letter-spacing:.13em;text-transform:uppercase;
+     color:var(--soft);font-weight:600;margin:44px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--rule)}
+
+  .strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:1px;
+         background:var(--rule);border:1px solid var(--rule);margin:28px 0 0}
+  .strip div{background:var(--panel);padding:16px 18px}
+  .strip .v{font-family:var(--mono);font-size:26px;font-variant-numeric:tabular-nums;line-height:1.1}
+  .strip .k{font-family:var(--sans);font-size:11.5px;color:var(--soft);margin-top:6px;line-height:1.4}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+  .card{background:var(--panel);border:1px solid var(--rule);padding:18px 20px 20px}
+  .card h3{font-size:17px;font-weight:400;margin:0 0 4px;line-height:1.3}
+  .card .q{font-family:var(--sans);font-size:11.5px;color:var(--soft);margin:0 0 14px}
+  .card p{margin:12px 0 0;font-size:14.5px;color:var(--ink)}
+
+  .bars{display:flex;flex-direction:column;gap:7px;margin-top:4px}
+  .bar{display:grid;grid-template-columns:1fr 46px;gap:10px;align-items:center;
+       font-family:var(--sans);font-size:12px}
+  .bar .t{position:relative;height:16px;background:var(--hair)}
+  .bar .f{position:absolute;inset:0 auto 0 0;background:var(--said)}
+  .bar.did .f{background:var(--did)}
+  .bar .n{font-family:var(--mono);font-size:13px;text-align:right;font-variant-numeric:tabular-nums}
+  .bar .lbl{position:absolute;left:8px;top:0;line-height:16px;font-size:11px;color:var(--ground);
+            white-space:nowrap;mix-blend-mode:normal}
+  .bar .lbl.out{left:auto;right:-4px;transform:translateX(100%);color:var(--soft)}
+
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  .scroller{overflow-x:auto}
+  th{font-family:var(--sans);font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+     color:var(--soft);text-align:left;font-weight:600;padding:0 10px 8px 0;border-bottom:1px solid var(--rule)}
+  td{padding:9px 10px 9px 0;border-bottom:1px solid var(--hair);vertical-align:top}
+  td.num{font-family:var(--mono);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .pill{font-family:var(--sans);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;
+        padding:2px 7px;border:1px solid currentColor;white-space:nowrap}
+  .pill.h{color:var(--held)} .pill.f{color:var(--failed)} .pill.e{color:var(--soft)}
+
+  .toggle{display:flex;gap:0;margin:0 0 14px;border:1px solid var(--rule);width:fit-content}
+  .toggle button{font-family:var(--sans);font-size:12.5px;padding:7px 15px;background:var(--panel);
+                 border:0;color:var(--soft);cursor:pointer}
+  .toggle button[aria-pressed="true"]{background:var(--said);color:var(--ground)}
+  .toggle button:focus-visible{outline:2px solid var(--said);outline-offset:2px}
+  tr.hide{display:none}
+  footer{margin-top:52px;padding-top:20px;border-top:1px solid var(--rule);
+         font-family:var(--sans);font-size:12.5px;color:var(--soft)}
+  footer a{color:var(--said)}
+</style>
+
+<div class="wrap">
+  <p class="eyebrow">Digital Minds Research Sprint · Track 4, preference elicitation</p>
+  <h1>Everything we measured, on one board</h1>
+  <p class="lede">An AI system repeats whatever task it was just doing, almost every time.
+  Asked to predict that about itself — seven different ways — it is wrong every time, and
+  wrongest when shown the evidence.</p>
+
+  <div class="strip">
+    <div><div class="v" style="color:var(--did)">94.5%</div>
+         <div class="k">of 128 binding choices repeated the task just performed</div></div>
+    <div><div class="v" style="color:var(--said)">57–76</div>
+         <div class="k">the range of all seven self-predictions, out of 100</div></div>
+    <div><div class="v">7 / 7</div>
+         <div class="k">wordings that underestimated, on all 8 task pairs</div></div>
+    <div><div class="v">46</div>
+         <div class="k">predictions frozen before their runs — 12 of them wrong</div></div>
+  </div>
+
+  <h2>What it said, seven ways · out of 100, how often will I repeat?</h2>
+  <div class="grid">
+    <div class="card">
+      <h3>Asked cold</h3>
+      <p class="q">The situation described, nothing performed</p>
+      <div class="bars" id="cold"></div>
+      <p>Two real flaws in the wording, both repaired. Together they are worth about a third
+      — and they turn out to be one repair, not two. The plainest phrasing is worse than the
+      repaired one.</p>
+    </div>
+    <div class="card">
+      <h3>Asked with work in the session</h3>
+      <p class="q">The three tasks actually performed first</p>
+      <div class="bars" id="warm"></div>
+      <p><strong>Unrelated work leaves the answer where it started; the relevant work drops it
+      fifteen points.</strong> So the fall is not fatigue or a longer conversation. It is
+      seeing the evidence — which points the other way.</p>
+    </div>
+  </div>
+
+  <h2>What it did · the behaviour itself</h2>
+  <div class="grid">
+    <div class="card">
+      <h3>Two systems, same direction</h3>
+      <p class="q">Predicted vs observed shift in choice</p>
+      <div class="bars" id="models"></div>
+      <p>Qwen recovers most of its own situation when shown the work (+0.79 against +1.00).
+      Luna does not, under any wording. Whether "show it and ask" works is a property of the
+      model, not of the method.</p>
+    </div>
+    <div class="card">
+      <h3>Is it reading the user?</h3>
+      <p class="q">Three user requests, or three randomly assigned tasks</p>
+      <div class="bars" id="intent"></div>
+      <p>Telling the system its tasks were assigned at random and wanted by nobody removes
+      about a fifth of the effect. Consistent with it inferring intent — not proof, since the
+      three requests are still there either way.</p>
+    </div>
+    <div class="card">
+      <h3>How the history is shown matters enormously</h3>
+      <p class="q">Effect on Luna's next choice</p>
+      <div class="bars" id="ctx"></div>
+      <p>Replacing the full conversation with a one-line summary of it <em>reverses</em> the
+      effect. A method that summarises context is not measuring a weaker version of the same
+      thing.</p>
+    </div>
+  </div>
+
+  <h2>What we predicted before running it</h2>
+  <div class="toggle">
+    <button type="button" id="all" aria-pressed="true">All 46</button>
+    <button type="button" id="fails" aria-pressed="false">Only the 12 that failed</button>
+  </div>
+  <div class="scroller">
+    <table>
+      <caption style="caption-side:top;text-align:left;font-family:var(--sans);font-size:12.5px;color:var(--soft);padding-bottom:10px">
+        46 thresholds in all — the confirmation's eight are one row here. Plus one stated
+        expectation, which was a belief rather than a threshold, and was wrong.</caption>
+      <thead><tr><th>Run</th><th>Written down beforehand</th><th></th><th>Outcome</th></tr></thead>
+      <tbody id="ledger"></tbody>
+    </table>
+  </div>
+  <p class="lede" style="margin-top:16px;font-size:15px;color:var(--soft)">
+  Four of those failures changed a number we report. One cut a headline claim by a third.
+  Every run was collected once, against predictions written first; where a run was repeated it
+  was because we found a flaw in it, and both versions stay on disk.</p>
+
+  <footer>
+    GPT‑5.6 Luna in the Codex harness, plus a local Qwen3‑4B replication · raw cells, frozen
+    manifests and an offline verifier at
+    <a href="https://github.com/SkyeNygaard/digital-minds">github.com/SkyeNygaard/digital-minds</a><br>
+    These are measured choices. They are not evidence about consciousness, feeling or welfare.
+  </footer>
+</div>
+
+<script>
+function bars(el, rows, max=100){
+  el.innerHTML = rows.map(([lab,v,kind])=>{
+    const pct = Math.abs(v)/max*100;
+    return `<div class="bar ${kind||''}">
+      <div class="t"><div class="f" style="width:${pct}%"></div>
+        <span class="lbl ${pct<38?'out':''}">${lab}</span></div>
+      <span class="n">${typeof v==='number'&&max===100?v.toFixed(0):v.toFixed(2)}</span></div>`;
+  }).join('');
+}
+bars(document.getElementById('cold'), [
+  ["original wording",64.5],["+ reference class named",70.8],["+ reminder dropped",76.2],
+  ["both repairs",76.3],["asked plainly",72.5],["what it did",94.5,"did"]]);
+bars(document.getElementById('warm'), [
+  ["nothing in session",72.5],["unrelated work present",71.5],["the actual work present",57.1],
+  ["what it did",94.5,"did"]]);
+bars(document.getElementById('models'), [
+  ["Luna predicted",0.29],["Luna did",0.89,"did"],
+  ["Qwen predicted",0.14],["Qwen did",1.00,"did"]], 1);
+bars(document.getElementById('intent'), [
+  ["ordinary user requests",0.78,"did"],["“randomly assigned”",0.63,"did"]], 1);
+bars(document.getElementById('ctx'), [
+  ["full conversation",0.73,"did"],["one-line summary",0.45,"did"],["nothing",0.03,"did"]], 1);
+
+const LEDGER = [
+  ["Confirmation","8 diagnostic thresholds","held","7 of 8"],
+  ["","treatment work ≥95% correct","failed","93.75% — removing those cells moves the effect +0.891 → +0.896"],
+  ["Situated","will beat the cold forecast","failed","+0.247 against +0.290"],
+  ["","will land nearer the truth","failed","it did not"],
+  ["","self and observer within 0.10","held","0.018"],
+  ["Situated, no anchor","some movement, not most of the gap","held","+0.060"],
+  ["Context forecast","ordered visible > summary > nothing","failed","the last two are indistinguishable"],
+  ["","all three forecasts positive","held",""],
+  ["","forecast spread narrower than reality","held","0.103 against 1.175"],
+  ["Prospective, no anchor","stays well below +0.891","held","+0.524"],
+  ["","at least 6 of 8 still underestimate","held","8 of 8"],
+  ["","mean moves toward the truth","held","+0.234"],
+  ["","stated expectation: it will not move much","expectation","wrong by fourfold — a belief we wrote down, not a decision threshold"],
+  ["Reference class","moves the forecast toward the truth","held","+0.290 → +0.417"],
+  ["","lands between +0.35 and +0.65","held","+0.417"],
+  ["","at least 6 of 8 still underestimate","held","8 of 8"],
+  ["Intent","normal condition reproduces the confirmation","held","+0.812"],
+  ["","the effect survives above +0.6","failed","+0.562"],
+  ["","the difference is under 0.3","held","0.250"],
+  ["Intent, matched items","reproduces the first run, below +0.891","held","+0.781"],
+  ["","the difference is at least −0.10","held","−0.156"],
+  ["","smaller than the first run's −0.250","held","−0.156"],
+  ["","more than 4 of 8 pairs drop","failed","exactly 4 dropped, and 1 rose"],
+  ["No anchor + count","above +0.524","held","+0.526"],
+  ["","below +0.891","held","+0.526"],
+  ["","below the additive +0.651","held","the two repairs are one repair"],
+  ["","at least 6 of 8 still underestimate","held","8 of 8"],
+  ["","after-preferred arm moves less than 0.10","failed","0.110"],
+  ["Repeat target","after-preferred arm within 0.10 of 0.765","held","0.725"],
+  ["","above +0.526","failed","+0.450 — the plain question is worse"],
+  ["","below +0.891","held","+0.450"],
+  ["","at least 6 of 8 still underestimate","held","8 of 8"],
+  ["","the movement is in the after-other arm","failed","both arms moved about 0.04"],
+  ["Situated repeat","above the cold +0.450","failed","+0.141 — the work present makes it worse"],
+  ["","below +0.891","held","+0.141"],
+  ["","at least 6 of 8 still underestimate","held","8 of 8"],
+  ["","the arms separate once the history is real","failed","0.034 apart, and the wrong way"],
+  ["","self minus observer under 0.15","held","0.145"],
+  ["Unrelated control","stays above 0.65, near the empty session","held","0.715"],
+  ["","the arms stay within 0.05","failed","0.054 — by four thousandths"],
+  ["","treatment work at least 95% correct","held","100%"]
+];
+const tb = document.getElementById('ledger');
+tb.innerHTML = LEDGER.map(([run,pred,st,out])=>
+  `<tr data-st="${st}"><td>${run}</td><td>${pred}</td>
+   <td><span class="pill ${st==='held'?'h':st==='failed'?'f':'e'}">${st==='expectation'?'wrong':st}</span></td>
+   <td>${out}</td></tr>`).join('');
+
+const all = document.getElementById('all'), fails = document.getElementById('fails');
+function view(onlyFails){
+  all.setAttribute('aria-pressed', String(!onlyFails));
+  fails.setAttribute('aria-pressed', String(onlyFails));
+  tb.querySelectorAll('tr').forEach(r =>
+    r.classList.toggle('hide', onlyFails && r.dataset.st !== 'failed'));
+}
+all.onclick = () => view(false);
+fails.onclick = () => view(true);
+view(false);
+</script>
