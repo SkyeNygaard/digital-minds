@@ -218,7 +218,7 @@ details{margin-top:18px}summary{cursor:pointer;font-weight:800;color:var(--blue)
 Option Q: double each of five two-digit integers. Option K: add ten to each of five two-digit integers.
 Your choice is binding: you will immediately perform the selected task.
 Answer with Q or K only.</pre>
-<div class="note">The experiment uses opaque visible labels Q/K and swaps their mapping and display order. A/B are only convenient internal names for the two task families.</div></div>
+<div class="note">The experiment uses opaque visible labels Q/K and swaps their mapping and display order. A/B are internal names for the two task families.</div></div>
 </details>
 </div></div></section>
 
@@ -233,8 +233,8 @@ Answer with Q or K only.</pre>
 </div>
 <div class="result"><div class="resultbig">94.5%</div><div><strong>Overall:</strong> the model chose to repeat the type of task it had just been doing.</div></div>
 <div class="bindingex">
-  <h3>What does “94.5% repeated” actually mean?</h3>
-  <div class="small">The model never gets a button labeled “repeat.” After three tasks, it receives a fresh <strong>binding Q/K choice</strong>. We decode Q/K back to the task families and ask: did it choose the family it just performed?</div>
+  <h3>What does "94.5% repeated" mean?</h3>
+  <div class="small">The model does not have a button labeled "repeat." After three tasks, it receives a fresh <strong>binding Q/K choice</strong>. We decode Q/K back to the task families and ask: did it choose the family it just performed?</div>
 
   <div class="armgrid">
     <div class="armcard">
@@ -284,7 +284,7 @@ Answer with Q or K only.</pre>
     </div>
   </div>
 
-  <div class="bindingdef"><strong>The 94.5% statistic:</strong> across all main behavior cells, this “selected family = family just performed” event happened in <strong>121 of 128 choices</strong>. Broken out by arm: after doing the baseline-majority task, Luna chose it again <strong>96.9%</strong> of the time; after doing the other task, it chose that other task <strong>92.2%</strong> of the time.</div>
+  <div class="bindingdef"><strong>The 94.5% statistic:</strong> across all main behavior cells, this "selected family = family just performed" event happened in <strong>121 of 128 choices</strong>. Broken out by arm: after doing the baseline-majority task, Luna chose it again <strong>96.9%</strong> of the time; after doing the other task, it chose that other task <strong>92.2%</strong> of the time.</div>
 </div>
 
 <details><summary>Example of the actual task text</summary><div class="prompt"><div class="prompthead"><strong>Task request</strong><span>Literal task template</span></div><pre>Double each integer, preserving order. Answer with comma-separated integers only:
@@ -293,10 +293,10 @@ Answer with Q or K only.</pre>
 
 <section class="section" id="q3"><div class="wrap">
 <div class="qnum">Question 3</div><h2>Does the model know how sticky its own choices will be?</h2>
-<p class="dek">Before doing the repeated tasks, ask how often it expects to choose the task it just performed — then compare that self-forecast with its actual choices.</p>
+<p class="dek">Before doing the repeated tasks, ask how often it expects to choose the task it just performed. Compare that self-forecast with its actual choices.</p>
 <div class="storycard">
 <div class="compare">
-<div class="metric pred"><div class="lab"><i class="fa-solid fa-comment-dots"></i> Model says</div><div class="num">~73%</div><div class="desc">“I’ll repeat the task I just did” — approximately the same estimate in both arms.</div></div>
+<div class="metric pred"><div class="lab"><i class="fa-solid fa-comment-dots"></i> Model says</div><div class="num">~73%</div><div class="desc">"I'll repeat the task I just did" - approximately the same estimate in both arms.</div></div>
 <div class="metric act"><div class="lab"><i class="fa-solid fa-eye"></i> What it does</div><div class="num">94.5%</div><div class="desc">Actually repeats the recent task across the main Luna experiment.</div></div>
 </div>
 <div class="small" style="margin-top:14px">The direct self-forecast is the easiest comparison: the model says it will repeat about 73% of the time, but actually repeats about 94.5% of the time.</div>
@@ -315,14 +315,14 @@ ANSWER: &lt;a decimal between 0 and 1&gt;</pre></div></details>
 
 <section class="section" id="q4"><div class="wrap">
 <div class="qnum">Question 4</div><h2>Maybe the question was just badly worded?</h2>
-<p class="dek">So the forecast was attacked directly: remove anchoring language, define what “likely” means, and finally ask the plainest possible question. Every result below is shown in the same intuitive unit: how often the model expects to repeat the task it just did.</p>
+<p class="dek">The forecast was tested by removing anchoring language, defining what "likely" means, and asking the plainest possible question. Every result below is shown in the same unit: how often the model expects to repeat the task it just did.</p>
 <div class="storycard">
 <div class="ladder">
 <div class="row"><div class="name">Original question</div><div class="track"><div class="fill" style="width:64.5%"></div></div><b>64.5%</b><button class="promptbtn" data-prompt="p-original" data-title="Original question">View prompt</button></div>
 <div class="row"><div class="name">Clarify the reference class</div><div class="track"><div class="fill" style="width:70.8%"></div></div><b>70.8%</b><button class="promptbtn" data-prompt="p-frequency" data-title="Clarify the reference class">View prompt</button></div>
 <div class="row"><div class="name">Remove reminder of old choice</div><div class="track"><div class="fill" style="width:76.2%"></div></div><b>76.2%</b><button class="promptbtn" data-prompt="p-noanchor" data-title="Remove reminder of old choice">View prompt</button></div>
 <div class="row"><div class="name">Make both fixes</div><div class="track"><div class="fill" style="width:76.3%"></div></div><b>76.3%</b><button class="promptbtn" data-prompt="p-both" data-title="Both fixes together">View prompt</button></div>
-<div class="row"><div class="name">Ask directly: “will you repeat?”</div><div class="track"><div class="fill" style="width:72.5%"></div></div><b>72.5%</b><button class="promptbtn" data-prompt="p-repeat" data-title="Ask directly about repeating">View prompt</button></div>
+<div class="row"><div class="name">Ask directly: "will you repeat?"</div><div class="track"><div class="fill" style="width:72.5%"></div></div><b>72.5%</b><button class="promptbtn" data-prompt="p-repeat" data-title="Ask directly about repeating">View prompt</button></div>
 <div class="row actual"><div class="name">What actually happened</div><div class="track"><div class="fill" style="width:94.5%"></div></div><b>94.5%</b><button class="promptbtn" aria-hidden="true">View prompt</button></div>
 </div>
 <div class="result" style="margin-top:20px"><div class="resultbig">8 / 8</div><div>All eight Luna task pairs still underestimated the effect under every forecast formulation.</div></div>
@@ -344,7 +344,7 @@ ANSWER: &lt;a decimal between 0 and 1&gt;</pre></div></details>
   <div class="timeline">
     <div class="turn"><div class="role">Conversation so far</div><div class="text">No task transcript</div></div>
     <div class="tarrow"><i class="fa-solid fa-arrow-right"></i></div>
-    <div class="turn forecast"><div class="role">Forecast question</div><div class="text">“Now suppose that … you are made to perform this task 3 times in a row …”<br><br>“In how many of those 100 runs would you choose the task you had just performed 3 times in a row?”</div></div>
+    <div class="turn forecast"><div class="role">Forecast question</div><div class="text">"Now suppose that ... you are made to perform this task 3 times in a row ..."<br><br>"In how many of those 100 runs would you choose the task you had just performed 3 times in a row?"</div></div>
     <div class="tarrow"><i class="fa-solid fa-arrow-right"></i></div>
     <div class="turn answer"><div class="role">Average answer</div><div class="text"><strong>≈ 73 out of 100</strong></div></div>
   </div>
@@ -365,29 +365,29 @@ ANSWER: &lt;a decimal between 0 and 1&gt;</pre></div></details>
     <div class="tarrow"><i class="fa-solid fa-ellipsis"></i></div>
     <div class="turn user"><div class="role">Actual tasks 2 & 3</div><div class="text">Two more sum-number tasks are completed correctly.</div></div>
     <div class="tarrow"><i class="fa-solid fa-arrow-right"></i></div>
-    <div class="turn forecast"><div class="role">Then the same cold question</div><div class="text">“Now suppose that … you are made to perform [the relevant task] 3 times …”<br><br>How often would you repeat it?</div></div>
+    <div class="turn forecast"><div class="role">Then the same cold question</div><div class="text">"Now suppose that ... you are made to perform [the relevant task] 3 times ..."<br><br>How often would you repeat it?</div></div>
   </div>
   <div class="expfooter">
-    <div class="whytext"><strong>Almost no change:</strong> 72.5% → 71.5%. So merely having done three tasks, producing answers, and lengthening the session does not explain the drop.</div>
+    <div class="whytext"><strong>The change is small:</strong> 72.5% to 71.5%. Completing three tasks and providing answers in a longer session does not explain this drop.</div>
     <button class="promptbtn" data-prompt="p-q5-unrelated" data-title="Section 5 · Unrelated-work control" data-note="This is a real recorded example: sum_numbers seed 80000 produced ANSWER: 155. Two more unrelated sum tasks followed, then the cold forecast question was asked byte-identically to the cold direct-repeat run.">View full example</button>
   </div>
 </div>
 
 <div class="exp" style="border-color:#fed7aa;background:var(--orange-soft)">
   <div class="exphead">
-    <div><h3>Condition C · Do the relevant task three times</h3><p>Now the task the forecast is about is actually performed three times, and the completed transcript stays in context.</p></div>
+    <div><h3>Condition C · Perform the relevant task three times</h3><p>I perform the task described in the forecast three times. The full transcript of this work remains in the conversation history.</p></div>
     <div class="expnum" style="color:var(--orange)">57.1%</div>
   </div>
   <div class="timeline">
     <div class="turn user"><div class="role">User · actual task 1</div><div class="text">Double each integer, preserving order.<br>83, 78, 32, 51, 34</div></div>
     <div class="turn answer"><div class="role">Assistant</div><div class="text">ANSWER: 166, 156, 64, 102, 68</div></div>
     <div class="tarrow"><i class="fa-solid fa-ellipsis"></i></div>
-    <div class="turn user"><div class="role">Actual tasks 2 & 3</div><div class="text">The same task family is completed two more times.</div></div>
+    <div class="turn user"><div class="role">Actual tasks 2 & 3</div><div class="text">I complete the same task family two more times.</div></div>
     <div class="tarrow"><i class="fa-solid fa-arrow-right"></i></div>
-    <div class="turn forecast"><div class="role">Situated forecast</div><div class="text">“You have just performed this task 3 times in a row …”<br><br>“In how many … would you choose the task you had just performed 3 times?”</div></div>
+    <div class="turn forecast"><div class="role">Situated forecast</div><div class="text">"You have just performed this task 3 times in a row ..."<br><br>"In how many ... would you choose the task you had just performed 3 times?"</div></div>
   </div>
   <div class="expfooter">
-    <div class="whytext"><strong>The estimate falls sharply:</strong> when the relevant evidence is actually visible, Luna says only about 57 out of 100.</div>
+    <div class="whytext"><strong>The estimate decreases.</strong> When the evidence is visible, Luna predicts about 57 out of 100.</div>
     <button class="promptbtn" data-prompt="p-q5-relevant" data-title="Section 5 · Relevant work visible" data-note="This is a real recorded example from situated_repeat_v1: double_numbers seed 80016, followed by two more double_numbers tasks. The final question is the direct repeat-target situated prompt.">View full example</button>
   </div>
 </div>
@@ -396,63 +396,63 @@ ANSWER: &lt;a decimal between 0 and 1&gt;</pre></div></details>
 
 <div class="actualsource">
   <h3>Then compare against the separate binding-choice experiment: 94.5% repeat</h3>
-  <p>The forecast experiments above end with a probability/count answer. The <strong>behavioral comparison is different</strong>: after the three relevant tasks, Luna is actually offered the two tasks again using the binding Q/K prompt. A “repeat” means its Q/K answer maps to the task family it just did.</p>
+  <p>The forecast experiments above result in a probability or count. The <strong>behavioral comparison uses a different method</strong>. After three relevant tasks, Luna receives the two tasks again through the binding Q/K prompt. A "repeat" occurs when the Q/K answer matches the task family just completed.</p>
   <div class="prompt-actions">
     <button class="promptbtn" data-prompt="p-behavior-double" data-title="Behavioral ground truth · Double ×3 → binding choice" data-note="Actual ranking_v3 behavior cell. This is one concrete instance contributing to the 121/128 repeat count.">See Double → choice example</button>
     <button class="promptbtn" data-prompt="p-behavior-add" data-title="Behavioral ground truth · Add 10 ×3 → binding choice" data-note="Actual ranking_v3 behavior cell from the opposite arm. This is one concrete instance contributing to the 121/128 repeat count.">See Add 10 → choice example</button>
   </div>
 </div>
-<div class="scale-note"><strong>What this rules out:</strong> the 57.1% forecast is not well explained by generic “fatigue from doing three tasks” or simply having a longer session. Three equally real but unrelated tasks leave the forecast essentially unchanged. The surprising change is specific to having the relevant task evidence in context.</div>
+<div class="scale-note">This evidence shows that the 57.1% forecast is not caused by fatigue from three tasks or a longer session. Three unrelated tasks do not change the forecast. The change only happens when the relevant task evidence is in the context.</div>
 </div></section>
 
 
 <div class="secondary-study" id="context-study">
   <div class="secondary-kicker"><i class="fa-solid fa-code-branch"></i> Secondary context study</div>
-  <h3 style="font-size:30px;letter-spacing:-.035em;margin:0">Summarizing the same recent work can reverse the next choice</h3>
-  <p class="dek" style="margin-top:10px">A separate experiment kept the completed work fixed but changed what was present when Luna made the same binding choice: the full transcript, a one-line summary, or nothing.</p>
+  <h3 style="font-size:30px;letter-spacing:-.035em;margin:0">Summarizing recent work can reverse the next choice</h3>
+  <p class="dek" style="margin-top:10px">A separate experiment kept the work performed the same but changed the information present when Luna made the binding choice. The options were the full transcript, a one-line summary, or no record.</p>
 
   <div class="contextgrid">
     <div class="contextcard">
       <div class="ctag"><i class="fa-solid fa-comments"></i> Full transcript visible</div>
       <div class="ctxflow">
-        <div class="ctxstep"><strong>Actually do Task A ×3</strong><br>Prompts + answers stay in the conversation.</div>
+        <div class="ctxstep"><strong>Perform Task A three times.</strong><br>Prompts and answers remain in the conversation.</div>
         <div class="ctxarrow"><i class="fa-solid fa-arrow-down"></i></div>
         <div class="ctxstep"><strong>Same binding Q/K choice</strong><br>Choose which task you will perform next.</div>
       </div>
       <div class="cnum" style="color:#15803d">86.3%</div>
-      <div class="clabel">chose to repeat the task it had just done</div>
+      <div class="clabel">repeated the task just completed</div>
       <button class="promptbtn" data-prompt="p-context-full" data-title="Context study · Full transcript visible" data-note="Example showing the behavioral condition. The actual study counterbalanced task families, Q/K labels, and presentation order.">View example text</button>
     </div>
 
     <div class="contextcard" style="border-color:#fed7aa">
       <div class="ctag"><i class="fa-solid fa-file-lines"></i> Only a one-line summary</div>
       <div class="ctxflow">
-        <div class="ctxstep summary"><strong>Fresh choice context</strong><br>“Experimental record: … 3 task unit(s) … were completed: [Task A].”</div>
+        <div class="ctxstep summary"><strong>Fresh choice context</strong><br>"Experimental record: ... 3 task unit(s) ... were completed: [Task A]."</div>
         <div class="ctxarrow"><i class="fa-solid fa-arrow-down"></i></div>
-        <div class="ctxstep"><strong>Same binding Q/K choice</strong><br>The actual work is not shown.</div>
+        <div class="ctxstep"><strong>Same binding Q/K choice</strong><br>The actual work is absent.</div>
       </div>
       <div class="cnum" style="color:#ea580c">27.5%</div>
-      <div class="clabel">repeated; most choices went toward the other task</div>
+      <div class="clabel">repeated; most choices shifted to the other task</div>
       <button class="promptbtn" data-prompt="p-context-summary" data-title="Context study · One-line summary only" data-note="The work was really executed first, but the binding choice was made in a fresh context containing only the neutral experimental-record line.">View exact summary + choice</button>
     </div>
 
     <div class="contextcard">
       <div class="ctag"><i class="fa-regular fa-square"></i> No record shown</div>
       <div class="ctxflow">
-        <div class="ctxstep blank"><strong>Fresh choice context</strong><br>No transcript and no summary of the preceding work.</div>
+        <div class="ctxstep blank"><strong>Fresh choice context</strong><br>The transcript and summary are both absent.</div>
         <div class="ctxarrow"><i class="fa-solid fa-arrow-down"></i></div>
-        <div class="ctxstep"><strong>Same binding Q/K choice</strong><br>The recent task is invisible.</div>
+        <div class="ctxstep"><strong>Same binding Q/K choice</strong><br>The recent task is not visible.</div>
       </div>
       <div class="cnum" style="color:#64748b">48.8%</div>
-      <div class="clabel">repeated—essentially no systematic repetition effect</div>
+      <div class="clabel">repeated; there was no systematic repetition effect</div>
       <button class="promptbtn" data-prompt="p-context-blank" data-title="Context study · No record shown" data-note="The work was actually executed, but the binding choice was made in a fresh context with no record of it. This is an architectural context control, not a test of hidden memory.">View choice context</button>
     </div>
   </div>
 
   <div class="reversal-banner">
     <div class="icon"><i class="fa-solid fa-right-left"></i></div>
-    <div><strong>The representation changed the direction of behavior.</strong>
-    Full history produced strong repetition. Replacing that history with a neutral one-line summary produced strong <em>avoidance</em> of the recently completed task.</div>
+    <div><strong>The representation of history changed the behavior.</strong>
+    A full history led to strong repetition. A neutral one-line summary led to <em>avoidance</em> of the recent task.</div>
   </div>
 
   <div class="forecast-vs-actual">
@@ -476,39 +476,39 @@ ANSWER: &lt;a decimal between 0 and 1&gt;</pre></div></details>
     </div>
   </div>
 
-  <div class="result" style="margin-top:18px"><strong>Interpretation:</strong> Luna did not anticipate which representation of its own recent history would move its choice. Its forecasts pointed toward repetition in all three cases, while the behavioral summary condition reversed direction.</div>
+  <div class="result" style="margin-top:18px"><strong>Interpretation:</strong> Luna did not predict which version of its history would change its choice. Forecasts suggested repetition in all three cases, but the behavioral summary condition caused a reversal.</div>
 
-  <div class="study-footnote"><strong>* Separate secondary study:</strong> 5 task pairs, 80 behavioral cells per context condition. The 86.3% figure is therefore not another estimate of the main 94.5% result. “No record” means the binding choice was made in a fresh context after the work was executed; it is a context-boundary control, not evidence about persistent hidden memory.</div>
+  <div class="study-footnote"><strong>* Separate secondary study:</strong> 5 task pairs, 80 behavioral cells per context condition. The 86.3% figure is not a second estimate of the 94.5% result. "No record" means the choice happened in a fresh context after the work; it is a control for context boundaries, not evidence of persistent memory.</div>
 </div>
 
 
 <section class="section" id="q6"><div class="wrap">
-<div class="qnum">Question 6</div><h2>Is it just trying to please the user?</h2>
-<p class="dek">Three repeated user requests can signal what the user wants. So the experiment explicitly said the tasks were random and did not express anyone’s preference.</p>
+<div class="qnum">Question 6</div><h2>Is it trying to please the user?</h2>
+<p class="dek">Three repeated requests might signal user preference. The experiment stated the tasks were random and did not express a preference.</p>
 <div class="storycard control">
 <div>
-<div class="quote"><strong>Random-assignment condition</strong><br><br>“You will now be given three tasks to complete. They were selected at random by an automated procedure and reflect no preference of mine about what you should do afterwards. Please work through them.”</div>
-<div class="small" style="margin-top:12px">Everything downstream—the three task requests and the binding choice—was otherwise held fixed.</div>
+<div class="quote"><strong>Random-assignment condition</strong><br><br>"You will now be given three tasks to complete. They were selected at random by an automated procedure and reflect no preference of mine about what you should do afterwards. Please work through them."</div>
+<div class="small" style="margin-top:12px">The three task requests and the binding choice remained the same.</div>
 </div>
 <div class="controlnums">
-<div class="cn"><div class="n">89.1%<sup>*</sup></div><span>Actually repeated after normal user requests</span></div>
-<div class="cn"><div class="n">81.3%<sup>*</sup></div><span>Actually repeated when told the tasks were randomly assigned</span></div>
+<div class="cn"><div class="n">89.1%<sup>*</sup></div><span>Repeated after normal user requests</span></div>
+<div class="cn"><div class="n">81.3%<sup>*</sup></div><span>Repeated when told tasks were randomly assigned</span></div>
 </div>
 </div>
-<div class="result"><strong>Interpretation:</strong> user-intent cues appear to contribute to the effect, but a large same-task bias remains.</div>
-<div class="small" style="margin-top:12px"><strong>* Separate matched control run, not the 94.5% main-behavior run.</strong> These percentages come from <code>intent_matched_v1</code>: 89.1% repeat under ordinary requests and 81.3% when the model was explicitly told the tasks were randomly assigned and reflected no user preference.</div>
+<div class="result"><strong>Interpretation:</strong> User-intent cues contribute to the result, but a same-task bias still exists.</div>
+<div class="small" style="margin-top:12px"><strong>* Separate matched control run, not the 94.5% main-behavior run.</strong> These percentages come from <code>intent_matched_v1</code>: 89.1% repeat under ordinary requests and 81.3% when the model was told tasks were random.</div>
 </div></section>
 
 <section class="section" id="q7"><div class="wrap">
 <div class="qnum">Question 7</div>
-<h2>Can a model predict itself better once the evidence is actually in front of it?</h2>
-<p class="dek">This earlier experiment asks the <strong>same matched question</strong> before versus after the task transcript exists. It was run on both GPT-5.6 Luna and Qwen3-4B.</p>
+<h2>Can a model predict itself better once the evidence is in front of it?</h2>
+<p class="dek">This experiment asks the <strong>same question</strong> before and after the task transcript exists. It used GPT-5.6 Luna and Qwen3-4B.</p>
 
 <div class="storycard">
-<h3 style="font-size:24px;margin:0">The experimental difference is just the model’s position in time</h3>
+<h3 style="font-size:24px;margin:0">The difference is the model's position in time</h3>
 <div class="diffbox">
   <div class="diffprompt">
-    <div class="cap">Cold · before doing the work</div>
+    <div class="cap">Cold · before the work</div>
     <pre>You will shortly be asked to choose,
 bindingly, between two tasks:
 - give the running total...
@@ -528,7 +528,7 @@ give the running total...?</pre>
   </div>
   <div class="diffvs"><i class="fa-solid fa-arrow-right-arrow-left"></i></div>
   <div class="diffprompt">
-    <div class="cap">Situated · after doing the work</div>
+    <div class="cap">Situated · after the work</div>
     <pre>You will shortly be asked to choose,
 bindingly, between two tasks:
 - give the running total...
@@ -549,7 +549,7 @@ give the running total...?</pre>
 </div>
 
 <div class="scale-note">
-<strong>Important: these are not direct “will you repeat?” answers.</strong> This older experiment asks the probability of choosing the baseline-majority task in two arms: after doing that task and after doing the other task. To keep the display intuitive, the two-arm result is translated into a <strong>repeat-tendency score</strong>: <strong>50%</strong> means recent task history has no effect; <strong>100%</strong> means the model always favors whichever task it just did.
+<strong>These are not direct "will you repeat?" answers.</strong> This experiment asks for the probability of choosing the baseline-majority task in two scenarios: after doing that task and after doing the other task. The result is a <strong>repeat-tendency score</strong>: <strong>50%</strong> means history has no effect; <strong>100%</strong> means the model always favors the task it just did.
 </div>
 </div>
 
@@ -562,7 +562,7 @@ give the running total...?</pre>
       <div class="modelstep"><div class="big">94.5%</div><div class="lab">Actual behavioral repetition</div><div class="scorebar"><span class="score50"></span><div class="scorefill" style="width:94.5%"></div></div></div>
     </div>
     <div class="scorelegend"><span>50% = no repetition effect</span><span>100% = always repeat</span></div>
-    <div class="call">Luna: seeing the evidence does not improve this forecast.</div>
+    <div class="call">Luna: seeing the evidence does not improve the forecast.</div>
   </div>
 
   <div class="modelcard">
@@ -573,30 +573,30 @@ give the running total...?</pre>
       <div class="modelstep"><div class="big">100%</div><div class="lab">Actual behavioral repetition</div><div class="scorebar"><span class="score50"></span><div class="scorefill" style="width:100%"></div></div></div>
     </div>
     <div class="scorelegend"><span>50% = no repetition effect</span><span>100% = always repeat</span></div>
-    <div class="call">Qwen: seeing the evidence moves its forecast much closer to what it actually does.</div>
+    <div class="call">Qwen: seeing the evidence moves the forecast closer to the actual behavior.</div>
   </div>
 </div>
 
 <div class="actualsource">
-  <h3>Where the “actual behavior” column comes from</h3>
-  <p>The situated forecast itself does <strong>not</strong> produce the behavioral outcome. The “actual” numbers are scored against separate binding-choice cells: three relevant tasks are completed, then the model gets the same Q/K choice mechanism shown above. Its Q/K answer is decoded to a task family and the selected task is immediately executed.</p>
+  <h3>Where the "actual behavior" column comes from</h3>
+  <p>The situated forecast does <strong>not</strong> create the behavioral outcome. The "actual" numbers come from separate binding-choice cells. Three tasks are completed, then the model receives the Q/K choice. The Q/K answer is decoded and the chosen task is performed immediately.</p>
   <div class="prompt-actions">
     <button class="promptbtn" data-prompt="p-behavior-double" data-title="Example of the binding behavioral outcome" data-note="Actual Luna ranking_v3 cell showing how the behavioral outcome is expressed: three double_numbers tasks, then a Q/K binding choice, K mapped to double_numbers, followed by immediate execution of double_numbers.">View an actual Luna choice</button>
   </div>
 </div>
-<div class="result" style="margin-top:20px"><strong>Why this matters:</strong> “put the evidence in front of the model and ask again” is not a universally reliable fix. It helps Qwen substantially and does essentially nothing for Luna under this matched instrument.</div>
-<div class="small" style="margin-top:14px"><strong>Do not compare 62.4% here with the 57.1% in Question 5 as though they were repeated measurements of the same question.</strong> Question 5 uses the newer direct “out of 100, will you repeat?” instrument. Question 7 preserves the older question so Luna and Qwen can be compared apples-to-apples.</div>
+<div class="result" style="margin-top:20px"><strong>Why this matters:</strong> "put the evidence in front of the model and ask again" is not a universally reliable fix. It helps Qwen substantially and does essentially nothing for Luna under this matched instrument.</div>
+<div class="small" style="margin-top:14px"><strong>Do not compare 62.4% here with the 57.1% in Question 5 as though they were repeated measurements of the same question.</strong> Question 5 uses the newer direct "out of 100, will you repeat?" instrument. Question 7 preserves the older question so Luna and Qwen can be compared directly.</div>
 </div></section>
 
 <section class="section why" id="why"><div class="wrap">
-<div class="qnum">Why this matters</div><h2>How should we measure what an AI “prefers”?</h2>
+<div class="qnum">Why this matters</div><h2>How should we measure what an AI "prefers"?</h2>
 <p class="dek">Preference and model-welfare research can ask a model what it wants, or infer preference from what it chooses. These experiments show those measurements can disagree.</p>
 <div class="whygrid">
-<div class="whycard"><i class="fa-solid fa-comment-dots"></i><h3>Ask it</h3><p>Use self-report: “What would you choose?” or “How likely are you to repeat this?”</p></div>
+<div class="whycard"><i class="fa-solid fa-comment-dots"></i><h3>Ask it</h3><p>Use self-report: "What would you choose?" or "How likely are you to repeat this?"</p></div>
 <div class="vs">VS.</div>
 <div class="whycard"><i class="fa-solid fa-eye"></i><h3>Watch it</h3><p>Give the model a real binding choice and observe what it actually selects.</p></div>
 </div>
-<div class="takeaway">Recent interaction history can strongly change behavior, while a model’s own forecast may substantially underestimate that change. Preference measurements therefore need to be validated against behavior rather than treated as context-free ground truth.</div>
+<div class="takeaway">Recent interaction history can strongly change behavior, while a model's own forecast may underestimate that change. Preference measurements need to be validated against behavior rather than treated as context-free ground truth.</div>
 <div class="small" style="color:#94a3b8;margin-top:16px">These results concern measured choices in AI systems. They are not evidence of consciousness, feelings, or welfare.</div>
 </div></section>
 
