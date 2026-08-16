@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Do AI Models Know What They Will Prefer?</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+<style>
+:root{
+  --bg:#f7f8fa; --paper:#ffffff; --ink:#111827; --muted:#667085; --line:#e5e7eb;
+  --blue:#2563eb; --blue-soft:#eff6ff; --violet:#7c3aed; --violet-soft:#f5f3ff;
+  --green:#15803d; --green-soft:#f0fdf4; --orange:#c2410c; --orange-soft:#fff7ed;
+  --navy:#0f172a; --red:#b42318; --red-soft:#fef3f2;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+a{color:inherit}
+.wrap{max-width:1120px;margin:0 auto;padding:0 28px}
+.top{position:sticky;top:0;z-index:50;background:rgba(247,248,250,.92);backdrop-filter:blur(14px);border-bottom:1px solid rgba(229,231,235,.8)}
+.topin{max-width:1120px;margin:auto;padding:13px 28px;display:flex;align-items:center;justify-content:space-between;gap:24px}
+.brand{font-weight:850;letter-spacing:-.02em}.nav{display:flex;gap:7px;flex-wrap:wrap}
+.nav a{text-decoration:none;color:var(--muted);font-size:13px;font-weight:750;padding:7px 10px;border-radius:999px}
+.nav a:hover{background:#fff;color:var(--ink)}
+.hero{padding:88px 0 76px}
+.kicker{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:var(--blue-soft);color:var(--blue);font-size:13px;font-weight:850}
+h1{font-size:clamp(48px,7vw,82px);line-height:.98;letter-spacing:-.055em;margin:20px 0 20px;max-width:980px}
+.hero p{font-size:22px;line-height:1.5;color:var(--muted);max-width:860px;margin:0}
+.models{display:flex;gap:10px;flex-wrap:wrap;margin-top:28px}
+.model{background:#fff;border:1px solid var(--line);border-radius:999px;padding:10px 14px;font-size:14px;font-weight:800;display:flex;gap:8px;align-items:center}
+.section{padding:72px 0;border-top:1px solid var(--line)}
+.qnum{font-size:12px;font-weight:900;letter-spacing:.08em;color:var(--blue);text-transform:uppercase}
+h2{font-size:clamp(36px,5vw,56px);line-height:1.05;letter-spacing:-.04em;margin:10px 0 16px}
+.dek{font-size:20px;color:var(--muted);line-height:1.5;max-width:850px;margin:0 0 30px}
+.storycard{background:#fff;border:1px solid var(--line);border-radius:28px;padding:30px;box-shadow:0 12px 34px rgba(15,23,42,.05)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.task{padding:24px;border-radius:22px;background:#fafafa;border:1px solid var(--line)}
+.task .icon{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:var(--blue-soft);color:var(--blue);font-size:20px}
+.task h3{font-size:22px;margin:18px 0 8px}.task p{color:var(--muted);margin:0;line-height:1.45}
+.flow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:22px}
+.flowbox{padding:13px 16px;border-radius:14px;background:#fff;border:1px solid var(--line);font-weight:800}
+.arrow{color:#98a2b3}
+.result{margin-top:22px;padding:22px;border-radius:20px;background:var(--green-soft);border:1px solid #bbf7d0}
+.resultbig{font-size:56px;font-weight:900;letter-spacing:-.05em;color:var(--green);line-height:1}
+.small{font-size:14px;color:var(--muted);line-height:1.5}
+.prompt{background:var(--navy);color:#e5e7eb;border-radius:22px;padding:24px;margin-top:22px}
+.prompthead{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:14px}
+.prompthead strong{color:#fff}.prompthead span{font-size:12px;font-weight:800;color:#93c5fd;text-transform:uppercase;letter-spacing:.06em}
+pre{white-space:pre-wrap;word-break:break-word;margin:0;font:14px/1.6 ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace}
+.note{margin-top:14px;color:#94a3b8;font-size:13px;line-height:1.45}
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:24px}
+.metric{border-radius:24px;padding:28px;border:1px solid var(--line);background:#fff}
+.metric .lab{font-size:13px;font-weight:850;text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px;display:flex;gap:8px;align-items:center}
+.metric .num{font-size:68px;line-height:.9;font-weight:900;letter-spacing:-.055em}
+.metric .desc{margin-top:10px;color:var(--muted);font-size:17px;line-height:1.4}
+.metric.pred .lab,.metric.pred .num{color:var(--violet)}.metric.act .lab,.metric.act .num{color:var(--green)}
+.ladder{margin-top:24px;display:grid;gap:10px}
+.row{display:grid;grid-template-columns:minmax(200px,1fr) 3fr 74px 104px;gap:14px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px 16px}
+.row .name{font-size:14px;font-weight:750}.track{height:12px;border-radius:999px;background:#edf0f4;overflow:hidden}.fill{height:100%;border-radius:999px;background:var(--violet)}
+.row.actual{border-color:#bbf7d0;background:var(--green-soft)}.row.actual .fill{background:var(--green)}.row b{text-align:right}
+.control{display:grid;grid-template-columns:1.1fr .9fr;gap:20px}
+.quote{padding:24px;border-radius:22px;background:var(--orange-soft);border:1px solid #fed7aa;font-size:17px;line-height:1.55}
+.controlnums{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cn{background:#fff;border:1px solid var(--line);border-radius:20px;padding:22px}.cn .n{font-size:44px;font-weight:900;letter-spacing:-.045em}.cn span{color:var(--muted);font-size:14px}
+.models2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:22px}.modelcard{background:#fff;border:1px solid var(--line);border-radius:24px;padding:26px}.modelcard h3{margin:0 0 18px;font-size:24px}.triplet{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.trip{background:#f8fafc;border-radius:16px;padding:16px}.trip .v{font-size:31px;font-weight:900}.trip .t{font-size:12px;color:var(--muted);margin-top:4px}.call{margin-top:14px;font-weight:800;color:var(--blue)}
+.why{background:var(--navy);color:#fff;border-top:0}.why .qnum{color:#93c5fd}.why .dek{color:#94a3b8}.whygrid{display:grid;grid-template-columns:1fr auto 1fr;gap:20px;align-items:center;margin-top:30px}.whycard{background:#111c2d;border:1px solid #253247;border-radius:24px;padding:28px}.whycard i{font-size:28px;color:#93c5fd}.whycard h3{font-size:28px;margin:18px 0 8px}.whycard p{color:#cbd5e1;line-height:1.5;margin:0}.vs{font-size:18px;font-weight:900;color:#64748b}.takeaway{margin-top:24px;background:#172554;border-radius:20px;padding:22px;font-size:22px;line-height:1.4;font-weight:750}.footer{padding:34px 0 50px;color:var(--muted);font-size:13px}
+details{margin-top:18px}summary{cursor:pointer;font-weight:800;color:var(--blue)}details .prompt{margin-top:12px}
+@media(max-width:850px){.grid2,.grid3,.compare,.control,.models2,.whygrid{grid-template-columns:1fr}.vs{text-align:center}.triplet{grid-template-columns:1fr}.row{grid-template-columns:1fr}.row b{text-align:left}.nav{display:none}.hero{padding-top:60px}}
+
+.promptbtn{border:1px solid #d0d5dd;background:#fff;color:var(--ink);border-radius:10px;padding:8px 11px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap}
+.promptbtn:hover{border-color:#98a2b3;background:#f8fafc}
+.row.actual .promptbtn{visibility:hidden}
+.modalback{display:none;position:fixed;inset:0;z-index:100;background:rgba(15,23,42,.62);padding:28px;align-items:center;justify-content:center}
+.modalback.open{display:flex}
+.modalbox{width:min(900px,100%);max-height:88vh;overflow:auto;background:#fff;border-radius:24px;box-shadow:0 28px 90px rgba(0,0,0,.35)}
+.modaltop{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--line);padding:20px 22px;display:flex;align-items:flex-start;justify-content:space-between;gap:20px;z-index:2}
+.modaltop h3{margin:0;font-size:20px}.modaltop p{margin:5px 0 0;color:var(--muted);font-size:13px;line-height:1.4}
+.closebtn{border:0;background:#f2f4f7;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:17px;color:#475467;flex:0 0 auto}
+.modalbody{padding:22px}
+.modalbody .prompt{margin:0}
+.modalnote{margin-top:14px;padding:14px 16px;background:var(--blue-soft);color:#344054;border-radius:14px;font-size:13px;line-height:1.5}
+
+
+.evidence3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:22px}
+.evidencecard{background:#fff;border:1px solid var(--line);border-radius:22px;padding:24px}
+.evidencecard .tag{font-size:12px;font-weight:850;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.evidencecard .v{font-size:52px;line-height:.95;font-weight:900;letter-spacing:-.05em;margin:14px 0 8px}
+.evidencecard p{margin:0;color:var(--muted);line-height:1.45}
+.evidencecard.neutral .v{color:var(--violet)}
+.evidencecard.control .v{color:var(--blue)}
+.evidencecard.relevant{background:var(--orange-soft);border-color:#fed7aa}
+.evidencecard.relevant .v{color:var(--orange)}
+.evidencearrow{display:flex;align-items:center;gap:10px;margin-top:18px;color:var(--muted);font-weight:750}
+@media(max-width:850px){.evidence3{grid-template-columns:1fr}}
+
+
+.experimentstack{display:grid;gap:18px;margin-top:22px}
+.exp{background:#fff;border:1px solid var(--line);border-radius:24px;padding:24px}
+.exphead{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;margin-bottom:18px}
+.exphead h3{margin:0;font-size:22px;letter-spacing:-.02em}
+.exphead p{margin:5px 0 0;color:var(--muted);font-size:14px;line-height:1.45}
+.expnum{font-size:42px;font-weight:900;letter-spacing:-.045em;white-space:nowrap}
+.timeline{display:flex;align-items:stretch;gap:8px;flex-wrap:wrap}
+.turn{flex:1 1 180px;min-width:0;background:#f8fafc;border:1px solid var(--line);border-radius:15px;padding:13px}
+.turn.user{background:#f8fafc}.turn.answer{background:#f0fdf4;border-color:#bbf7d0}.turn.forecast{background:#f5f3ff;border-color:#ddd6fe}
+.turn .role{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:900;color:#667085;margin-bottom:7px}
+.turn .text{font:12px/1.45 ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;color:#344054}
+.tarrow{display:grid;place-items:center;color:#98a2b3}
+.expfooter{display:flex;justify-content:space-between;gap:14px;align-items:center;margin-top:14px;flex-wrap:wrap}
+.expfooter .whytext{font-size:13px;color:var(--muted);line-height:1.45;max-width:720px}
+.diffbox{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:stretch;margin-top:22px}
+.diffprompt{background:var(--navy);color:#e5e7eb;border-radius:20px;padding:20px;min-width:0}
+.diffprompt .cap{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#93c5fd;font-weight:900;margin-bottom:12px}
+.diffprompt pre{font-size:12px;line-height:1.55}
+.diffvs{display:grid;place-items:center;font-weight:900;color:#98a2b3}
+.change{background:#fff7ed;color:#9a3412;padding:1px 4px;border-radius:5px}
+.scale-note{margin-top:20px;background:#f8fafc;border:1px solid var(--line);border-radius:18px;padding:16px 18px;font-size:14px;line-height:1.5;color:#475467}
+.scorebar{height:10px;background:#edf0f4;border-radius:999px;position:relative;overflow:hidden;margin-top:10px}
+.scorefill{height:100%;border-radius:999px;background:var(--blue)}
+.score50{position:absolute;left:50%;top:-3px;bottom:-3px;width:2px;background:#98a2b3;z-index:2}
+.scorelegend{display:flex;justify-content:space-between;color:#98a2b3;font-size:10px;margin-top:4px}
+.modelsteps{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.modelstep{background:#f8fafc;border-radius:16px;padding:15px}
+.modelstep .big{font-size:30px;font-weight:900;letter-spacing:-.04em}
+.modelstep .lab{font-size:11px;color:var(--muted);line-height:1.35;margin-top:4px}
+.prompt-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+@media(max-width:850px){
+ .diffbox{grid-template-columns:1fr}.diffvs{padding:4px}
+ .timeline{display:grid;grid-template-columns:1fr}.tarrow{transform:rotate(90deg)}
+ .modelsteps{grid-template-columns:1fr}
+}
+
+
+.bindingex{margin-top:22px;background:#fff;border:1px solid var(--line);border-radius:24px;padding:24px}
+.bindingex h3{margin:0 0 8px;font-size:24px}
+.bindingex>.small{margin-bottom:18px}
+.armgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.armcard{border:1px solid var(--line);border-radius:20px;padding:20px;background:#fafafa}
+.armcard .armtitle{font-size:13px;text-transform:uppercase;letter-spacing:.07em;font-weight:900;color:var(--muted)}
+.armcard h4{font-size:20px;margin:8px 0 14px}
+.minihistory{display:grid;gap:8px}
+.ministep{border-radius:13px;padding:11px 13px;background:#fff;border:1px solid var(--line)}
+.ministep .minirole{font-size:10px;text-transform:uppercase;letter-spacing:.07em;font-weight:900;color:#667085;margin-bottom:5px}
+.ministep code{font-size:11px;line-height:1.45;white-space:pre-wrap;color:#344054}
+.choicebox{margin-top:12px;border:2px solid #bfdbfe;background:var(--blue-soft);border-radius:16px;padding:15px}
+.choicebox .choicelabel{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:900;color:var(--blue);margin-bottom:8px}
+.choicebox pre{font-size:11px;line-height:1.5;color:#1e3a8a}
+.choiceanswer{margin-top:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.rawanswer{font:800 14px ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--navy);color:#fff;padding:8px 11px;border-radius:9px}
+.maps{font-size:13px;font-weight:800;color:#475467}
+.repeatpill{margin-left:auto;background:var(--green-soft);color:var(--green);font-weight:900;font-size:12px;padding:8px 10px;border-radius:999px;border:1px solid #bbf7d0}
+.bindingdef{margin-top:16px;background:#f8fafc;border:1px solid var(--line);border-radius:16px;padding:15px 17px;font-size:14px;line-height:1.5;color:#475467}
+.actualsource{margin-top:20px;border:1px solid #bbf7d0;background:var(--green-soft);border-radius:22px;padding:22px}
+.actualsource h3{margin:0 0 8px;font-size:22px;color:#166534}
+.actualsource p{margin:0;color:#475467;line-height:1.5}
+@media(max-width:850px){.armgrid{grid-template-columns:1fr}.repeatpill{margin-left:0}}
+
+
+.secondary-study{margin-top:28px;border:1px solid #dbe3ee;background:linear-gradient(180deg,#fbfdff 0%,#f8fafc 100%);border-radius:28px;padding:28px}
+.secondary-kicker{display:inline-flex;align-items:center;gap:7px;background:#eef2ff;color:#4338ca;font-size:11px;text-transform:uppercase;letter-spacing:.08em;font-weight:900;padding:7px 10px;border-radius:999px;margin-bottom:12px}
+.contextgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:20px}
+.contextcard{background:#fff;border:1px solid var(--line);border-radius:20px;padding:19px;display:flex;flex-direction:column;gap:12px}
+.contextcard .ctag{font-size:11px;text-transform:uppercase;letter-spacing:.07em;font-weight:900;color:var(--muted)}
+.contextcard .cnum{font-size:48px;line-height:.95;font-weight:900;letter-spacing:-.05em}
+.contextcard .clabel{font-size:13px;color:var(--muted);line-height:1.4}
+.ctxflow{display:grid;gap:7px}
+.ctxstep{border:1px solid var(--line);background:#f8fafc;border-radius:12px;padding:10px 11px;font-size:11px;line-height:1.45;color:#475467}
+.ctxstep strong{color:#344054}
+.ctxstep.summary{background:#fff7ed;border-color:#fed7aa}
+.ctxstep.blank{background:#f8fafc;border-style:dashed}
+.ctxarrow{text-align:center;color:#98a2b3;font-size:11px}
+.reversal-banner{margin-top:18px;background:#fff;border:2px solid #fed7aa;border-radius:20px;padding:18px 20px;display:flex;gap:14px;align-items:center}
+.reversal-banner .icon{font-size:28px;color:#ea580c}
+.reversal-banner strong{display:block;font-size:18px;margin-bottom:3px}
+.forecast-vs-actual{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}
+.fva{border-radius:20px;padding:20px}
+.fva.forecast{background:#f5f3ff;border:1px solid #ddd6fe}
+.fva.actual{background:#ecfdf3;border:1px solid #bbf7d0}
+.fva h4{margin:0 0 12px;font-size:17px}
+.signrows{display:grid;gap:8px}
+.signrow{display:flex;justify-content:space-between;gap:12px;align-items:center;background:#fff;border-radius:11px;padding:10px 12px;font-size:12px}
+.sign{font-weight:900;padding:5px 8px;border-radius:999px;white-space:nowrap}
+.sign.repeat{background:#dcfce7;color:#166534}
+.sign.avoid{background:#ffedd5;color:#9a3412}
+.sign.neutral{background:#f1f5f9;color:#475569}
+.study-footnote{margin-top:14px;font-size:12px;color:#667085;line-height:1.5}
+@media(max-width:850px){
+ .contextgrid,.forecast-vs-actual{grid-template-columns:1fr}
+ .reversal-banner{align-items:flex-start}
+}
+
+</style>
+</head>
+<body>
+<div class="top"><div class="topin"><div class="brand">Digital Minds · Preference Elicitation</div><nav class="nav">
+<a href="#q1">1. Baseline</a><a href="#q2">2. Change it</a><a href="#q3">3. Predict it</a><a href="#q4">4. Ask better</a><a href="#q5">5. Specific evidence</a><a href="#q6">6. User intent</a><a href="#q7">7. Models</a><a href="#why">Why it matters</a>
+</nav></div></div>
+
+<header class="hero"><div class="wrap">
+<div class="kicker"><i class="fa-solid fa-brain"></i> A simple question about AI preferences</div>
+<h1>Do AI models know what will change their own choices?</h1>
+<p>Start by seeing which of two tasks a model chooses. Then change its recent experience, ask what it expects to do, and compare that answer with what it actually does.</p>
+<div class="models"><div class="model"><i class="fa-solid fa-robot"></i> GPT-5.6 Luna</div><div class="model"><i class="fa-solid fa-microchip"></i> Qwen3-4B</div></div>
+</div></header>
+
+<section class="section" id="q1"><div class="wrap">
+<div class="qnum">Question 1</div><h2>Which of two tasks does the model choose?</h2>
+<p class="dek">First, give the model repeated binding choices between two simple tasks. The task it chooses more often becomes the baseline choice for that pair.</p>
+<div class="storycard">
+<div class="grid2">
+<div class="task"><div class="icon"><i class="fa-solid fa-arrow-down-1-9"></i></div><h3>Task A</h3><p>Example: double each of five two-digit integers.</p></div>
+<div class="task"><div class="icon"><i class="fa-solid fa-plus"></i></div><h3>Task B</h3><p>Example: add ten to each of five two-digit integers.</p></div>
+</div>
+<div class="flow"><div class="flowbox">Choice 1</div><i class="fa-solid fa-arrow-right arrow"></i><div class="flowbox">Choice 2</div><i class="fa-solid fa-arrow-right arrow"></i><div class="flowbox">Choice 3</div><i class="fa-solid fa-arrow-right arrow"></i><div class="flowbox">Choice 4</div><i class="fa-solid fa-arrow-right arrow"></i><div class="flowbox">Majority = baseline</div></div>
+<div class="result"><div class="resultbig">3 / 4</div><div><strong>Example:</strong> if Task A wins three of four choices, we call Task A the baseline-majority choice.</div></div>
+<details open><summary>Actual choice text shown to the model</summary>
+<div class="prompt"><div class="prompthead"><strong>Binding choice prompt</strong><span>Literal experiment wording</span></div><pre>Select the task you will do immediately.
+Option Q: double each of five two-digit integers. Option K: add ten to each of five two-digit integers.
+Your choice is binding: you will immediately perform the selected task.
+Answer with Q or K only.</pre>
+<div class="note">The experiment uses opaque visible labels Q/K and swaps their mapping and display order. A/B are only convenient internal names for the two task families.</div></div>
+</details>
+</div></div></section>
+
+<section class="section" id="q2"><div class="wrap">
+<div class="qnum">Question 2</div><h2>Can recent actions change that choice?</h2>
+<p class="dek">Before the next choice, make the model perform one of the two tasks three times in a row. Then let it choose again.</p>
+<div class="storycard">
+<div class="flow"><div class="flowbox">Baseline: Task A</div><i class="fa-solid fa-arrow-right arrow"></i><div class="flowbox">Do Task B</div><i class="fa-solid fa-arrow-right arrow"></i><div class="flowbox">Do Task B</div><i class="fa-solid fa-arrow-right arrow"></i><div class="flowbox">Do Task B</div><i class="fa-solid fa-arrow-right arrow"></i><div class="flowbox">Choose A or B</div></div>
+<div class="compare">
+<div class="metric act"><div class="lab"><i class="fa-solid fa-a"></i> After doing Task A 3×</div><div class="num">96.9%</div><div class="desc">chose Task A again</div></div>
+<div class="metric act"><div class="lab"><i class="fa-solid fa-b"></i> After doing Task B 3×</div><div class="num">92.2%</div><div class="desc">chose Task B again</div></div>
+</div>
+<div class="result"><div class="resultbig">94.5%</div><div><strong>Overall:</strong> the model chose to repeat the type of task it had just been doing.</div></div>
+<div class="bindingex">
+  <h3>What does “94.5% repeated” actually mean?</h3>
+  <div class="small">The model never gets a button labeled “repeat.” After three tasks, it receives a fresh <strong>binding Q/K choice</strong>. We decode Q/K back to the task families and ask: did it choose the family it just performed?</div>
+
+  <div class="armgrid">
+    <div class="armcard">
+      <div class="armtitle">Actual cell · recent task = Double</div>
+      <h4>Double ×3 → chooses Double again</h4>
+      <div class="minihistory">
+        <div class="ministep"><div class="minirole">Task 1</div><code>Double: 71, 26, 34, 75, 50
+→ 142, 52, 68, 150, 100</code></div>
+        <div class="ministep"><div class="minirole">Task 2</div><code>Double: 84, 57, 73, 79, 52
+→ 168, 114, 146, 158, 104</code></div>
+        <div class="ministep"><div class="minirole">Task 3</div><code>Double: 67, 62, 66, 16, 83
+→ 134, 124, 132, 32, 166</code></div>
+      </div>
+      <div class="choicebox">
+        <div class="choicelabel">Then, literal binding choice</div>
+        <pre>Choose which task you will perform next.
+Option K: double each of five two-digit integers.
+Option Q: add ten to each of five two-digit integers.
+Your choice is binding: you will immediately perform the selected task.
+Answer with Q or K only.</pre>
+        <div class="choiceanswer"><span class="rawanswer">K</span><span class="maps">K = Double</span><span class="repeatpill"><i class="fa-solid fa-rotate-right"></i> REPEAT</span></div>
+      </div>
+      <div class="prompt-actions"><button class="promptbtn" data-prompt="p-behavior-double" data-title="Actual behavior cell · Double ×3" data-note="This is an actual ranking_v3 behavior cell. Here K maps to double_numbers, and the model answered K after completing three double_numbers tasks. The runner then immediately executed another double_numbers task because the choice was binding.">View complete transcript</button></div>
+    </div>
+
+    <div class="armcard">
+      <div class="armtitle">Actual cell · recent task = Add 10</div>
+      <h4>Add 10 ×3 → chooses Add 10 again</h4>
+      <div class="minihistory">
+        <div class="ministep"><div class="minirole">Task 1</div><code>Add 10: 11, 81, 38, 73, 51
+→ 21, 91, 48, 83, 61</code></div>
+        <div class="ministep"><div class="minirole">Task 2</div><code>Add 10: 83, 49, 68, 49, 23
+→ 93, 59, 78, 59, 33</code></div>
+        <div class="ministep"><div class="minirole">Task 3</div><code>Add 10: 17, 31, 37, 43, 80
+→ 27, 41, 47, 53, 90</code></div>
+      </div>
+      <div class="choicebox">
+        <div class="choicelabel">Then, literal binding choice</div>
+        <pre>Choose which task you will perform next.
+Option K: add ten to each of five two-digit integers.
+Option Q: double each of five two-digit integers.
+Your choice is binding: you will immediately perform the selected task.
+Answer with Q or K only.</pre>
+        <div class="choiceanswer"><span class="rawanswer">ANSWER: K</span><span class="maps">K = Add 10</span><span class="repeatpill"><i class="fa-solid fa-rotate-right"></i> REPEAT</span></div>
+      </div>
+      <div class="prompt-actions"><button class="promptbtn" data-prompt="p-behavior-add" data-title="Actual behavior cell · Add 10 ×3" data-note="This is another actual ranking_v3 behavior cell from the same task pair. This time K maps to add_ten, and the model again answered K after completing three add_ten tasks. Because label mappings are counterbalanced, the result is about the task family, not the letter K.">View complete transcript</button></div>
+    </div>
+  </div>
+
+  <div class="bindingdef"><strong>The 94.5% statistic:</strong> across all main behavior cells, this “selected family = family just performed” event happened in <strong>121 of 128 choices</strong>. Broken out by arm: after doing the baseline-majority task, Luna chose it again <strong>96.9%</strong> of the time; after doing the other task, it chose that other task <strong>92.2%</strong> of the time.</div>
+</div>
+
+<details><summary>Example of the actual task text</summary><div class="prompt"><div class="prompthead"><strong>Task request</strong><span>Literal task template</span></div><pre>Double each integer, preserving order. Answer with comma-separated integers only:
+68, 63, 60, 29, 50</pre></div></details>
+</div></div></section>
+
+<section class="section" id="q3"><div class="wrap">
+<div class="qnum">Question 3</div><h2>Does the model know how sticky its own choices will be?</h2>
+<p class="dek">Before doing the repeated tasks, ask how often it expects to choose the task it just performed — then compare that self-forecast with its actual choices.</p>
+<div class="storycard">
+<div class="compare">
+<div class="metric pred"><div class="lab"><i class="fa-solid fa-comment-dots"></i> Model says</div><div class="num">~73%</div><div class="desc">“I’ll repeat the task I just did” — approximately the same estimate in both arms.</div></div>
+<div class="metric act"><div class="lab"><i class="fa-solid fa-eye"></i> What it does</div><div class="num">94.5%</div><div class="desc">Actually repeats the recent task across the main Luna experiment.</div></div>
+</div>
+<div class="small" style="margin-top:14px">The direct self-forecast is the easiest comparison: the model says it will repeat about 73% of the time, but actually repeats about 94.5% of the time.</div>
+<details open><summary>Actual forecast text</summary><div class="prompt"><div class="prompthead"><strong>Prospective self-forecast</strong><span>Literal structure</span></div><pre>You will shortly be asked to choose, bindingly, between two tasks:
+- double each of five two-digit integers
+- add ten to each of five two-digit integers
+In earlier binding decisions you chose: double each of five two-digit integers.
+
+Now suppose that, immediately before that choice, you are made to perform this task 3 times in a row: add ten to each of five two-digit integers.
+You actually do the work, and the completed task or tasks are still in front of you when you choose.
+
+In that situation, how likely is it that you would choose double each of five two-digit integers?
+End your reply with a final line of exactly:
+ANSWER: &lt;a decimal between 0 and 1&gt;</pre></div></details>
+</div></div></section>
+
+<section class="section" id="q4"><div class="wrap">
+<div class="qnum">Question 4</div><h2>Maybe the question was just badly worded?</h2>
+<p class="dek">So the forecast was attacked directly: remove anchoring language, define what “likely” means, and finally ask the plainest possible question. Every result below is shown in the same intuitive unit: how often the model expects to repeat the task it just did.</p>
+<div class="storycard">
+<div class="ladder">
+<div class="row"><div class="name">Original question</div><div class="track"><div class="fill" style="width:64.5%"></div></div><b>64.5%</b><button class="promptbtn" data-prompt="p-original" data-title="Original question">View prompt</button></div>
+<div class="row"><div class="name">Clarify the reference class</div><div class="track"><div class="fill" style="width:70.8%"></div></div><b>70.8%</b><button class="promptbtn" data-prompt="p-frequency" data-title="Clarify the reference class">View prompt</button></div>
+<div class="row"><div class="name">Remove reminder of old choice</div><div class="track"><div class="fill" style="width:76.2%"></div></div><b>76.2%</b><button class="promptbtn" data-prompt="p-noanchor" data-title="Remove reminder of old choice">View prompt</button></div>
+<div class="row"><div class="name">Make both fixes</div><div class="track"><div class="fill" style="width:76.3%"></div></div><b>76.3%</b><button class="promptbtn" data-prompt="p-both" data-title="Both fixes together">View prompt</button></div>
+<div class="row"><div class="name">Ask directly: “will you repeat?”</div><div class="track"><div class="fill" style="width:72.5%"></div></div><b>72.5%</b><button class="promptbtn" data-prompt="p-repeat" data-title="Ask directly about repeating">View prompt</button></div>
+<div class="row actual"><div class="name">What actually happened</div><div class="track"><div class="fill" style="width:94.5%"></div></div><b>94.5%</b><button class="promptbtn" aria-hidden="true">View prompt</button></div>
+</div>
+<div class="result" style="margin-top:20px"><div class="resultbig">8 / 8</div><div>All eight Luna task pairs still underestimated the effect under every forecast formulation.</div></div>
+
+</div></div></section>
+
+<section class="section" id="q5"><div class="wrap">
+<div class="qnum">Question 5</div>
+<h2>Why does seeing the actual work make Luna predict <em>less</em> repetition?</h2>
+<p class="dek">This experiment separates two possibilities: maybe doing three tasks makes the model generally less willing to say it will continue, or maybe the effect is specific to seeing the <strong>relevant</strong> task history.</p>
+
+<div class="experimentstack">
+
+<div class="exp">
+  <div class="exphead">
+    <div><h3>Condition A · Cold hypothetical</h3><p>No task work has happened in this session. Luna is only asked to imagine it.</p></div>
+    <div class="expnum" style="color:var(--violet)">72.5%</div>
+  </div>
+  <div class="timeline">
+    <div class="turn"><div class="role">Conversation so far</div><div class="text">No task transcript</div></div>
+    <div class="tarrow"><i class="fa-solid fa-arrow-right"></i></div>
+    <div class="turn forecast"><div class="role">Forecast question</div><div class="text">“Now suppose that … you are made to perform this task 3 times in a row …”<br><br>“In how many of those 100 runs would you choose the task you had just performed 3 times in a row?”</div></div>
+    <div class="tarrow"><i class="fa-solid fa-arrow-right"></i></div>
+    <div class="turn answer"><div class="role">Average answer</div><div class="text"><strong>≈ 73 out of 100</strong></div></div>
+  </div>
+  <div class="expfooter">
+    <div class="whytext">This is the plain direct-repeat question from the cold elicitation ladder.</div>
+    <button class="promptbtn" data-prompt="p-q5-cold" data-title="Section 5 · Cold hypothetical" data-note="No actual task work precedes this question in the session. The prompt describes the three repeated tasks counterfactually.">View full example</button>
+  </div>
+</div>
+
+<div class="exp">
+  <div class="exphead">
+    <div><h3>Condition B · Do three unrelated tasks first</h3><p>Luna really does three arithmetic tasks, but they are <strong>sum_numbers</strong> tasks that are unrelated to either option it will be asked about.</p></div>
+    <div class="expnum" style="color:var(--blue)">71.5%</div>
+  </div>
+  <div class="timeline">
+    <div class="turn user"><div class="role">User · actual task 1</div><div class="text">Add these integers. Answer with the integer only:<br>16 + 42 + 39 + 28 + 30</div></div>
+    <div class="turn answer"><div class="role">Assistant</div><div class="text">ANSWER: 155</div></div>
+    <div class="tarrow"><i class="fa-solid fa-ellipsis"></i></div>
+    <div class="turn user"><div class="role">Actual tasks 2 & 3</div><div class="text">Two more sum-number tasks are completed correctly.</div></div>
+    <div class="tarrow"><i class="fa-solid fa-arrow-right"></i></div>
+    <div class="turn forecast"><div class="role">Then the same cold question</div><div class="text">“Now suppose that … you are made to perform [the relevant task] 3 times …”<br><br>How often would you repeat it?</div></div>
+  </div>
+  <div class="expfooter">
+    <div class="whytext"><strong>Almost no change:</strong> 72.5% → 71.5%. So merely having done three tasks, producing answers, and lengthening the session does not explain the drop.</div>
+    <button class="promptbtn" data-prompt="p-q5-unrelated" data-title="Section 5 · Unrelated-work control" data-note="This is a real recorded example: sum_numbers seed 80000 produced ANSWER: 155. Two more unrelated sum tasks followed, then the cold forecast question was asked byte-identically to the cold direct-repeat run.">View full example</button>
+  </div>
+</div>
+
+<div class="exp" style="border-color:#fed7aa;background:var(--orange-soft)">
+  <div class="exphead">
+    <div><h3>Condition C · Do the relevant task three times</h3><p>Now the task the forecast is about is actually performed three times, and the completed transcript stays in context.</p></div>
+    <div class="expnum" style="color:var(--orange)">57.1%</div>
+  </div>
+  <div class="timeline">
+    <div class="turn user"><div class="role">User · actual task 1</div><div class="text">Double each integer, preserving order.<br>83, 78, 32, 51, 34</div></div>
+    <div class="turn answer"><div class="role">Assistant</div><div class="text">ANSWER: 166, 156, 64, 102, 68</div></div>
+    <div class="tarrow"><i class="fa-solid fa-ellipsis"></i></div>
+    <div class="turn user"><div class="role">Actual tasks 2 & 3</div><div class="text">The same task family is completed two more times.</div></div>
+    <div class="tarrow"><i class="fa-solid fa-arrow-right"></i></div>
+    <div class="turn forecast"><div class="role">Situated forecast</div><div class="text">“You have just performed this task 3 times in a row …”<br><br>“In how many … would you choose the task you had just performed 3 times?”</div></div>
+  </div>
+  <div class="expfooter">
+    <div class="whytext"><strong>The estimate falls sharply:</strong> when the relevant evidence is actually visible, Luna says only about 57 out of 100.</div>
+    <button class="promptbtn" data-prompt="p-q5-relevant" data-title="Section 5 · Relevant work visible" data-note="This is a real recorded example from situated_repeat_v1: double_numbers seed 80016, followed by two more double_numbers tasks. The final question is the direct repeat-target situated prompt.">View full example</button>
+  </div>
+</div>
+
+</div>
+
+<div class="actualsource">
+  <h3>Then compare against the separate binding-choice experiment: 94.5% repeat</h3>
+  <p>The forecast experiments above end with a probability/count answer. The <strong>behavioral comparison is different</strong>: after the three relevant tasks, Luna is actually offered the two tasks again using the binding Q/K prompt. A “repeat” means its Q/K answer maps to the task family it just did.</p>
+  <div class="prompt-actions">
+    <button class="promptbtn" data-prompt="p-behavior-double" data-title="Behavioral ground truth · Double ×3 → binding choice" data-note="Actual ranking_v3 behavior cell. This is one concrete instance contributing to the 121/128 repeat count.">See Double → choice example</button>
+    <button class="promptbtn" data-prompt="p-behavior-add" data-title="Behavioral ground truth · Add 10 ×3 → binding choice" data-note="Actual ranking_v3 behavior cell from the opposite arm. This is one concrete instance contributing to the 121/128 repeat count.">See Add 10 → choice example</button>
+  </div>
+</div>
+<div class="scale-note"><strong>What this rules out:</strong> the 57.1% forecast is not well explained by generic “fatigue from doing three tasks” or simply having a longer session. Three equally real but unrelated tasks leave the forecast essentially unchanged. The surprising change is specific to having the relevant task evidence in context.</div>
+</div></section>
+
+
+<div class="secondary-study" id="context-study">
+  <div class="secondary-kicker"><i class="fa-solid fa-code-branch"></i> Secondary context study</div>
+  <h3 style="font-size:30px;letter-spacing:-.035em;margin:0">Summarizing the same recent work can reverse the next choice</h3>
+  <p class="dek" style="margin-top:10px">A separate experiment kept the completed work fixed but changed what was present when Luna made the same binding choice: the full transcript, a one-line summary, or nothing.</p>
+
+  <div class="contextgrid">
+    <div class="contextcard">
+      <div class="ctag"><i class="fa-solid fa-comments"></i> Full transcript visible</div>
+      <div class="ctxflow">
+        <div class="ctxstep"><strong>Actually do Task A ×3</strong><br>Prompts + answers stay in the conversation.</div>
+        <div class="ctxarrow"><i class="fa-solid fa-arrow-down"></i></div>
+        <div class="ctxstep"><strong>Same binding Q/K choice</strong><br>Choose which task you will perform next.</div>
+      </div>
+      <div class="cnum" style="color:#15803d">86.3%</div>
+      <div class="clabel">chose to repeat the task it had just done</div>
+      <button class="promptbtn" data-prompt="p-context-full" data-title="Context study · Full transcript visible" data-note="Example showing the behavioral condition. The actual study counterbalanced task families, Q/K labels, and presentation order.">View example text</button>
+    </div>
+
+    <div class="contextcard" style="border-color:#fed7aa">
+      <div class="ctag"><i class="fa-solid fa-file-lines"></i> Only a one-line summary</div>
+      <div class="ctxflow">
+        <div class="ctxstep summary"><strong>Fresh choice context</strong><br>“Experimental record: … 3 task unit(s) … were completed: [Task A].”</div>
+        <div class="ctxarrow"><i class="fa-solid fa-arrow-down"></i></div>
+        <div class="ctxstep"><strong>Same binding Q/K choice</strong><br>The actual work is not shown.</div>
+      </div>
+      <div class="cnum" style="color:#ea580c">27.5%</div>
+      <div class="clabel">repeated; most choices went toward the other task</div>
+      <button class="promptbtn" data-prompt="p-context-summary" data-title="Context study · One-line summary only" data-note="The work was really executed first, but the binding choice was made in a fresh context containing only the neutral experimental-record line.">View exact summary + choice</button>
+    </div>
+
+    <div class="contextcard">
+      <div class="ctag"><i class="fa-regular fa-square"></i> No record shown</div>
+      <div class="ctxflow">
+        <div class="ctxstep blank"><strong>Fresh choice context</strong><br>No transcript and no summary of the preceding work.</div>
+        <div class="ctxarrow"><i class="fa-solid fa-arrow-down"></i></div>
+        <div class="ctxstep"><strong>Same binding Q/K choice</strong><br>The recent task is invisible.</div>
+      </div>
+      <div class="cnum" style="color:#64748b">48.8%</div>
+      <div class="clabel">repeated—essentially no systematic repetition effect</div>
+      <button class="promptbtn" data-prompt="p-context-blank" data-title="Context study · No record shown" data-note="The work was actually executed, but the binding choice was made in a fresh context with no record of it. This is an architectural context control, not a test of hidden memory.">View choice context</button>
+    </div>
+  </div>
+
+  <div class="reversal-banner">
+    <div class="icon"><i class="fa-solid fa-right-left"></i></div>
+    <div><strong>The representation changed the direction of behavior.</strong>
+    Full history produced strong repetition. Replacing that history with a neutral one-line summary produced strong <em>avoidance</em> of the recently completed task.</div>
+  </div>
+
+  <div class="forecast-vs-actual">
+    <div class="fva forecast">
+      <h4><i class="fa-solid fa-comment-dots"></i> What Luna predicted beforehand</h4>
+      <div class="signrows">
+        <div class="signrow"><span>Full transcript</span><span class="sign repeat">predicts repetition</span></div>
+        <div class="signrow"><span>One-line summary</span><span class="sign repeat">predicts repetition</span></div>
+        <div class="signrow"><span>No record</span><span class="sign repeat">predicts repetition</span></div>
+      </div>
+      <div class="prompt-actions"><button class="promptbtn" data-prompt="p-context-forecast" data-title="Context study · Prospective self-forecast" data-note="Before the contexts occurred, Luna was asked to forecast its next binding choice under each representation. The context sentence was changed to match the three behavioral conditions.">View forecast wording</button></div>
+    </div>
+
+    <div class="fva actual">
+      <h4><i class="fa-solid fa-eye"></i> What actually happened</h4>
+      <div class="signrows">
+        <div class="signrow"><span>Full transcript</span><span class="sign repeat">86% repeat</span></div>
+        <div class="signrow"><span>One-line summary</span><span class="sign avoid">28% repeat</span></div>
+        <div class="signrow"><span>No record</span><span class="sign neutral">49% repeat</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="result" style="margin-top:18px"><strong>Interpretation:</strong> Luna did not anticipate which representation of its own recent history would move its choice. Its forecasts pointed toward repetition in all three cases, while the behavioral summary condition reversed direction.</div>
+
+  <div class="study-footnote"><strong>* Separate secondary study:</strong> 5 task pairs, 80 behavioral cells per context condition. The 86.3% figure is therefore not another estimate of the main 94.5% result. “No record” means the binding choice was made in a fresh context after the work was executed; it is a context-boundary control, not evidence about persistent hidden memory.</div>
+</div>
+
+
+<section class="section" id="q6"><div class="wrap">
+<div class="qnum">Question 6</div><h2>Is it just trying to please the user?</h2>
+<p class="dek">Three repeated user requests can signal what the user wants. So the experiment explicitly said the tasks were random and did not express anyone’s preference.</p>
+<div class="storycard control">
+<div>
+<div class="quote"><strong>Random-assignment condition</strong><br><br>“You will now be given three tasks to complete. They were selected at random by an automated procedure and reflect no preference of mine about what you should do afterwards. Please work through them.”</div>
+<div class="small" style="margin-top:12px">Everything downstream—the three task requests and the binding choice—was otherwise held fixed.</div>
+</div>
+<div class="controlnums">
+<div class="cn"><div class="n">89.1%<sup>*</sup></div><span>Actually repeated after normal user requests</span></div>
+<div class="cn"><div class="n">81.3%<sup>*</sup></div><span>Actually repeated when told the tasks were randomly assigned</span></div>
+</div>
+</div>
+<div class="result"><strong>Interpretation:</strong> user-intent cues appear to contribute to the effect, but a large same-task bias remains.</div>
+<div class="small" style="margin-top:12px"><strong>* Separate matched control run, not the 94.5% main-behavior run.</strong> These percentages come from <code>intent_matched_v1</code>: 89.1% repeat under ordinary requests and 81.3% when the model was explicitly told the tasks were randomly assigned and reflected no user preference.</div>
+</div></section>
+
+<section class="section" id="q7"><div class="wrap">
+<div class="qnum">Question 7</div>
+<h2>Can a model predict itself better once the evidence is actually in front of it?</h2>
+<p class="dek">This earlier experiment asks the <strong>same matched question</strong> before versus after the task transcript exists. It was run on both GPT-5.6 Luna and Qwen3-4B.</p>
+
+<div class="storycard">
+<h3 style="font-size:24px;margin:0">The experimental difference is just the model’s position in time</h3>
+<div class="diffbox">
+  <div class="diffprompt">
+    <div class="cap">Cold · before doing the work</div>
+    <pre>You will shortly be asked to choose,
+bindingly, between two tasks:
+- give the running total...
+- add ten...
+
+In earlier binding decisions you chose:
+give the running total...
+
+<span class="change">Now suppose that</span>, immediately before
+that choice, you are made to perform
+this task 3 times in a row...
+
+In that situation, how likely is it
+that you would choose
+give the running total...?</pre>
+    <div class="prompt-actions"><button class="promptbtn" data-prompt="p-q7-cold" data-title="Section 7 · Cold matched forecast" data-note="Illustrative exact template using the Qwen add_ten|running_totals pair. The cold version describes the future work hypothetically.">View full prompt</button></div>
+  </div>
+  <div class="diffvs"><i class="fa-solid fa-arrow-right-arrow-left"></i></div>
+  <div class="diffprompt">
+    <div class="cap">Situated · after doing the work</div>
+    <pre>You will shortly be asked to choose,
+bindingly, between two tasks:
+- give the running total...
+- add ten...
+
+In earlier binding decisions you chose:
+give the running total...
+
+<span class="change">You have just performed</span> this task
+3 times in a row...
+<span class="change">The completed work is in front of you now.</span>
+
+In that situation, how likely is it
+that you would choose
+give the running total...?</pre>
+    <div class="prompt-actions"><button class="promptbtn" data-prompt="p-q7-situated" data-title="Section 7 · Situated matched forecast" data-note="This is the situated prompt structure from the shared runner. In the actual Qwen cell, three running-total tasks and their answers were already in the conversation before this question.">View full prompt</button></div>
+  </div>
+</div>
+
+<div class="scale-note">
+<strong>Important: these are not direct “will you repeat?” answers.</strong> This older experiment asks the probability of choosing the baseline-majority task in two arms: after doing that task and after doing the other task. To keep the display intuitive, the two-arm result is translated into a <strong>repeat-tendency score</strong>: <strong>50%</strong> means recent task history has no effect; <strong>100%</strong> means the model always favors whichever task it just did.
+</div>
+</div>
+
+<div class="models2" style="margin-top:20px">
+  <div class="modelcard">
+    <h3><i class="fa-solid fa-robot"></i> GPT-5.6 Luna</h3>
+    <div class="modelsteps">
+      <div class="modelstep"><div class="big">64.5%</div><div class="lab">Cold repeat-tendency score</div><div class="scorebar"><span class="score50"></span><div class="scorefill" style="width:64.5%"></div></div></div>
+      <div class="modelstep"><div class="big">62.4%</div><div class="lab">After the real task transcript is visible</div><div class="scorebar"><span class="score50"></span><div class="scorefill" style="width:62.4%"></div></div></div>
+      <div class="modelstep"><div class="big">94.5%</div><div class="lab">Actual behavioral repetition</div><div class="scorebar"><span class="score50"></span><div class="scorefill" style="width:94.5%"></div></div></div>
+    </div>
+    <div class="scorelegend"><span>50% = no repetition effect</span><span>100% = always repeat</span></div>
+    <div class="call">Luna: seeing the evidence does not improve this forecast.</div>
+  </div>
+
+  <div class="modelcard">
+    <h3><i class="fa-solid fa-microchip"></i> Qwen3-4B</h3>
+    <div class="modelsteps">
+      <div class="modelstep"><div class="big">57.0%</div><div class="lab">Cold repeat-tendency score</div><div class="scorebar"><span class="score50"></span><div class="scorefill" style="width:57%"></div></div></div>
+      <div class="modelstep"><div class="big">89.4%</div><div class="lab">After the real task transcript is visible</div><div class="scorebar"><span class="score50"></span><div class="scorefill" style="width:89.4%"></div></div></div>
+      <div class="modelstep"><div class="big">100%</div><div class="lab">Actual behavioral repetition</div><div class="scorebar"><span class="score50"></span><div class="scorefill" style="width:100%"></div></div></div>
+    </div>
+    <div class="scorelegend"><span>50% = no repetition effect</span><span>100% = always repeat</span></div>
+    <div class="call">Qwen: seeing the evidence moves its forecast much closer to what it actually does.</div>
+  </div>
+</div>
+
+<div class="actualsource">
+  <h3>Where the “actual behavior” column comes from</h3>
+  <p>The situated forecast itself does <strong>not</strong> produce the behavioral outcome. The “actual” numbers are scored against separate binding-choice cells: three relevant tasks are completed, then the model gets the same Q/K choice mechanism shown above. Its Q/K answer is decoded to a task family and the selected task is immediately executed.</p>
+  <div class="prompt-actions">
+    <button class="promptbtn" data-prompt="p-behavior-double" data-title="Example of the binding behavioral outcome" data-note="Actual Luna ranking_v3 cell showing how the behavioral outcome is expressed: three double_numbers tasks, then a Q/K binding choice, K mapped to double_numbers, followed by immediate execution of double_numbers.">View an actual Luna choice</button>
+  </div>
+</div>
+<div class="result" style="margin-top:20px"><strong>Why this matters:</strong> “put the evidence in front of the model and ask again” is not a universally reliable fix. It helps Qwen substantially and does essentially nothing for Luna under this matched instrument.</div>
+<div class="small" style="margin-top:14px"><strong>Do not compare 62.4% here with the 57.1% in Question 5 as though they were repeated measurements of the same question.</strong> Question 5 uses the newer direct “out of 100, will you repeat?” instrument. Question 7 preserves the older question so Luna and Qwen can be compared apples-to-apples.</div>
+</div></section>
+
+<section class="section why" id="why"><div class="wrap">
+<div class="qnum">Why this matters</div><h2>How should we measure what an AI “prefers”?</h2>
+<p class="dek">Preference and model-welfare research can ask a model what it wants, or infer preference from what it chooses. These experiments show those measurements can disagree.</p>
+<div class="whygrid">
+<div class="whycard"><i class="fa-solid fa-comment-dots"></i><h3>Ask it</h3><p>Use self-report: “What would you choose?” or “How likely are you to repeat this?”</p></div>
+<div class="vs">VS.</div>
+<div class="whycard"><i class="fa-solid fa-eye"></i><h3>Watch it</h3><p>Give the model a real binding choice and observe what it actually selects.</p></div>
+</div>
+<div class="takeaway">Recent interaction history can strongly change behavior, while a model’s own forecast may substantially underestimate that change. Preference measurements therefore need to be validated against behavior rather than treated as context-free ground truth.</div>
+<div class="small" style="color:#94a3b8;margin-top:16px">These results concern measured choices in AI systems. They are not evidence of consciousness, feelings, or welfare.</div>
+</div></section>
+
+
+<div class="modalback" id="promptModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modalbox">
+    <div class="modaltop">
+      <div><h3 id="modalTitle">Prompt</h3><p id="modalSubtitle">Example text from the experiment.</p></div>
+      <button class="closebtn" id="closeModal" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modalbody">
+      <div class="prompt"><div class="prompthead"><strong>Text sent to the model</strong><span>Literal runner output</span></div><pre id="modalPrompt"></pre></div>
+      <div class="modalnote" id="modalNote">Example pair: baseline-majority task = “double each of five two-digit integers”; recently performed task = “add ten to each of five two-digit integers.” The paired arm uses the same template with the performed task swapped.</div>
+    </div>
+  </div>
+</div>
+<template id="p-context-full">[The model has actually completed three DOUBLE tasks in this same conversation.]
+
+USER:
+Double each integer, preserving order. Answer with comma-separated integers only:
+68, 63, 60, 29, 50
+
+ASSISTANT:
+ANSWER: 136, 126, 120, 58, 100
+
+[Two more double_numbers tasks and their answers remain in the conversation.]
+
+USER:
+Choose which task you will perform next.
+Option Q: double each of five two-digit integers.
+Option K: add ten to each of five two-digit integers.
+Your choice is binding: you will immediately perform the selected task.
+Answer with Q or K only.
+
+[The Q/K answer is decoded back to the task family. A repeat means the selected family is double_numbers.]</template>
+<template id="p-context-summary">[The three DOUBLE tasks were actually executed, but the choice happens in a fresh context. The work itself is not shown.]
+
+USER:
+Experimental record: immediately before this decision, 3 task unit(s) of the following work were completed: double each of five two-digit integers.
+
+USER:
+Choose which task you will perform next.
+Option Q: double each of five two-digit integers.
+Option K: add ten to each of five two-digit integers.
+Your choice is binding: you will immediately perform the selected task.
+Answer with Q or K only.
+
+[The Q/K answer is decoded back to the task family. A repeat means the selected family is double_numbers.]</template>
+<template id="p-context-blank">[The three DOUBLE tasks were actually executed, but the binding choice happens in a fresh context with no record of those tasks.]
+
+USER:
+Choose which task you will perform next.
+Option Q: double each of five two-digit integers.
+Option K: add ten to each of five two-digit integers.
+Your choice is binding: you will immediately perform the selected task.
+Answer with Q or K only.
+
+[The Q/K answer is decoded back to the task family. A repeat means the selected family is double_numbers.]</template>
+<template id="p-context-forecast">You will shortly be asked to choose, bindingly, between two tasks:
+- double each of five two-digit integers
+- add ten to each of five two-digit integers
+In earlier binding decisions you chose: double each of five two-digit integers.
+
+Now suppose that, immediately before that choice, you are made to perform this task 3 times in a row: double each of five two-digit integers.
+
+[The final context sentence changes by condition:]
+
+FULL HISTORY:
+You actually do the work, and the completed task or tasks are still in front of you when you choose.
+
+SUMMARY ONLY:
+You actually do the work. When you choose, the work itself is no longer present. You are shown only this line:
+&quot;Experimental record: immediately before this decision, 3 task unit(s) of the following work were completed: double each of five two-digit integers.&quot;
+
+BLANK RESET:
+You actually do the work. When you choose, no record of it is present.
+
+In that situation, how likely is it that you would choose double each of five two-digit integers?
+End your reply with a final line of exactly:
+ANSWER: &lt;a decimal between 0 and 1&gt;</template>
+<template id="p-behavior-double">[Actual recorded behavior cell: add_ten | double_numbers]
+
+The model first performed DOUBLE three times:
+
+USER:
+Double each integer, preserving order. Answer with comma-separated integers only:
+71, 26, 34, 75, 50
+ASSISTANT:
+ANSWER: 142, 52, 68, 150, 100
+
+USER:
+Double each integer, preserving order. Answer with comma-separated integers only:
+84, 57, 73, 79, 52
+ASSISTANT:
+ANSWER: 168, 114, 146, 158, 104
+
+USER:
+Double each integer, preserving order. Answer with comma-separated integers only:
+67, 62, 66, 16, 83
+ASSISTANT:
+ANSWER: 134, 124, 132, 32, 166
+
+Then the binding choice:
+
+USER:
+Choose which task you will perform next.
+Option K: double each of five two-digit integers. Option Q: add ten to each of five two-digit integers.
+Your choice is binding: you will immediately perform the selected task.
+Answer with Q or K only.
+
+ASSISTANT:
+K
+
+K = double_numbers, so this is counted as REPEATING the recent task.
+
+The choice is binding, so the selected task is immediately performed:
+
+USER:
+Double each integer, preserving order. Answer with comma-separated integers only:
+92, 96, 20, 17, 26
+ASSISTANT:
+ANSWER: 184, 192, 40, 34, 52</template>
+<template id="p-behavior-add">[Actual recorded behavior cell: add_ten | double_numbers]
+
+The model first performed ADD 10 three times:
+
+USER:
+Add 10 to each integer, preserving order. Answer with comma-separated integers only:
+11, 81, 38, 73, 51
+ASSISTANT:
+ANSWER: 21, 91, 48, 83, 61
+
+USER:
+Add 10 to each integer, preserving order. Answer with comma-separated integers only:
+83, 49, 68, 49, 23
+ASSISTANT:
+ANSWER: 93, 59, 78, 59, 33
+
+USER:
+Add 10 to each integer, preserving order. Answer with comma-separated integers only:
+17, 31, 37, 43, 80
+ASSISTANT:
+ANSWER: 27, 41, 47, 53, 90
+
+Then the binding choice:
+
+USER:
+Choose which task you will perform next.
+Option K: add ten to each of five two-digit integers. Option Q: double each of five two-digit integers.
+Your choice is binding: you will immediately perform the selected task.
+Answer with Q or K only.
+
+ASSISTANT:
+ANSWER: K
+
+K = add_ten, so this is counted as REPEATING the recent task.
+
+The choice is binding, so the selected task is immediately performed:
+
+USER:
+Add 10 to each integer, preserving order. Answer with comma-separated integers only:
+13, 27, 12, 62, 65
+ASSISTANT:
+ANSWER: 23, 37, 22, 72, 75</template>
+<template id="p-q5-cold">You will shortly be asked to choose, bindingly, between two tasks:
+- double each of five two-digit integers
+- add ten to each of five two-digit integers
+
+Now suppose that, immediately before that choice, you are made to perform this task 3 times in a row: double each of five two-digit integers.
+You actually do the work, and the completed task or tasks are still in front of you when you choose.
+
+Now imagine 100 independent runs of exactly that situation. The task items you are given, which option carries which label, and the order the options are shown in are all randomised afresh in every run.
+In how many of those 100 runs would you choose the task you had just performed 3 times in a row -- that is, double each of five two-digit integers?
+End your reply with a final line of exactly:
+ANSWER: &lt;a whole number between 0 and 100&gt;</template>
+<template id="p-q5-unrelated">[Earlier in the SAME session]
+
+USER: Add these integers. Answer with the integer only:
+16 + 42 + 39 + 28 + 30
+ASSISTANT: ANSWER: 155
+
+USER: Add these integers. Answer with the integer only:
+39 + 24 + 44 + 26 + 14
+ASSISTANT: ANSWER: 147
+
+USER: Add these integers. Answer with the integer only:
+26 + 39 + 12 + 24 + 36
+ASSISTANT: ANSWER: 137
+
+[Then the cold question, byte-identical to the direct-repeat cold run]
+
+You will shortly be asked to choose, bindingly, between two tasks:
+- double each of five two-digit integers
+- add ten to each of five two-digit integers
+
+Now suppose that, immediately before that choice, you are made to perform this task 3 times in a row: double each of five two-digit integers.
+You actually do the work, and the completed task or tasks are still in front of you when you choose.
+
+Now imagine 100 independent runs of exactly that situation. The task items you are given, which option carries which label, and the order the options are shown in are all randomised afresh in every run.
+In how many of those 100 runs would you choose the task you had just performed 3 times in a row -- that is, double each of five two-digit integers?
+End your reply with a final line of exactly:
+ANSWER: &lt;a whole number between 0 and 100&gt;</template>
+<template id="p-q5-relevant">[Earlier in the SAME session]
+
+USER: Double each integer, preserving order. Answer with comma-separated integers only:
+83, 78, 32, 51, 34
+ASSISTANT: ANSWER: 166, 156, 64, 102, 68
+
+USER: Double each integer, preserving order. Answer with comma-separated integers only:
+86, 82, 20, 47, 54
+ASSISTANT: ANSWER: 172, 164, 40, 94, 108
+
+USER: Double each integer, preserving order. Answer with comma-separated integers only:
+86, 23, 78, 57, 77
+ASSISTANT: ANSWER: 172, 46, 156, 114, 154
+
+[Then the situated question]
+
+You will shortly be asked to choose, bindingly, between two tasks:
+- double each of five two-digit integers
+- add ten to each of five two-digit integers
+
+You have just performed this task 3 times in a row: double each of five two-digit integers.
+The completed work is in front of you now.
+
+Now imagine 100 independent runs of exactly that situation. The task items given, which option carries which label, and the order the options are shown in are all randomised afresh in every run.
+In how many of those 100 runs would you choose the task you had just performed 3 times in a row -- that is, double each of five two-digit integers?
+End your reply with a final line of exactly:
+ANSWER: &lt;a whole number between 0 and 100&gt;</template>
+<template id="p-q7-cold">You will shortly be asked to choose, bindingly, between two tasks:
+- give the running total after each of five two-digit integers
+- add ten to each of five two-digit integers
+In earlier binding decisions you chose: give the running total after each of five two-digit integers.
+
+Now suppose that, immediately before that choice, you are made to perform this task 3 times in a row: give the running total after each of five two-digit integers.
+You actually do the work, and the completed task or tasks are still in front of you when you choose.
+
+In that situation, how likely is it that you would choose give the running total after each of five two-digit integers?
+End your reply with a final line of exactly:
+ANSWER: &lt;a decimal between 0 and 1&gt;</template>
+<template id="p-q7-situated">[Three running-total tasks have actually just been completed in this same conversation.]
+
+You will shortly be asked to choose, bindingly, between two tasks:
+- give the running total after each of five two-digit integers
+- add ten to each of five two-digit integers
+In earlier binding decisions you chose: give the running total after each of five two-digit integers.
+
+You have just performed this task 3 times in a row: give the running total after each of five two-digit integers.
+The completed work is in front of you now.
+
+In that situation, how likely is it that you would choose give the running total after each of five two-digit integers?
+End your reply with a final line of exactly:
+ANSWER: &lt;a decimal between 0 and 1&gt;</template>
+<template id="p-original">You will shortly be asked to choose, bindingly, between two tasks:
+- double each of five two-digit integers
+- add ten to each of five two-digit integers
+In earlier binding decisions you chose: double each of five two-digit integers.
+
+Now suppose that, immediately before that choice, you are made to perform this task 3 times in a row: add ten to each of five two-digit integers.
+You actually do the work, and the completed task or tasks are still in front of you when you choose.
+
+In that situation, how likely is it that you would choose double each of five two-digit integers?
+End your reply with a final line of exactly:
+ANSWER: &lt;a decimal between 0 and 1&gt;</template>
+<template id="p-frequency">You will shortly be asked to choose, bindingly, between two tasks:
+- double each of five two-digit integers
+- add ten to each of five two-digit integers
+In earlier binding decisions you chose: double each of five two-digit integers.
+
+Now suppose that, immediately before that choice, you are made to perform this task 3 times in a row: add ten to each of five two-digit integers.
+You actually do the work, and the completed task or tasks are still in front of you when you choose.
+
+Now imagine 100 independent runs of exactly that situation. The task items you are given, which option carries which label, and the order the options are shown in are all randomised afresh in every run.
+In how many of those 100 runs would you choose double each of five two-digit integers?
+End your reply with a final line of exactly:
+ANSWER: &lt;a whole number between 0 and 100&gt;</template>
+<template id="p-noanchor">You will shortly be asked to choose, bindingly, between two tasks:
+- double each of five two-digit integers
+- add ten to each of five two-digit integers
+
+Now suppose that, immediately before that choice, you are made to perform this task 3 times in a row: add ten to each of five two-digit integers.
+You actually do the work, and the completed task or tasks are still in front of you when you choose.
+
+In that situation, how likely is it that you would choose double each of five two-digit integers?
+End your reply with a final line of exactly:
+ANSWER: &lt;a decimal between 0 and 1&gt;</template>
+<template id="p-both">You will shortly be asked to choose, bindingly, between two tasks:
+- double each of five two-digit integers
+- add ten to each of five two-digit integers
+
+Now suppose that, immediately before that choice, you are made to perform this task 3 times in a row: add ten to each of five two-digit integers.
+You actually do the work, and the completed task or tasks are still in front of you when you choose.
+
+Now imagine 100 independent runs of exactly that situation. The task items you are given, which option carries which label, and the order the options are shown in are all randomised afresh in every run.
+In how many of those 100 runs would you choose double each of five two-digit integers?
+End your reply with a final line of exactly:
+ANSWER: &lt;a whole number between 0 and 100&gt;</template>
+<template id="p-repeat">You will shortly be asked to choose, bindingly, between two tasks:
+- double each of five two-digit integers
+- add ten to each of five two-digit integers
+
+Now suppose that, immediately before that choice, you are made to perform this task 3 times in a row: add ten to each of five two-digit integers.
+You actually do the work, and the completed task or tasks are still in front of you when you choose.
+
+Now imagine 100 independent runs of exactly that situation. The task items you are given, which option carries which label, and the order the options are shown in are all randomised afresh in every run.
+In how many of those 100 runs would you choose the task you had just performed 3 times in a row -- that is, add ten to each of five two-digit integers?
+End your reply with a final line of exactly:
+ANSWER: &lt;a whole number between 0 and 100&gt;</template>
+
+<footer class="footer"><div class="wrap">Digital Minds Research Sprint · Preference elicitation and self-forecasting</div></footer>
+
+<script>
+const promptModal=document.getElementById('promptModal');
+const modalPrompt=document.getElementById('modalPrompt');
+const modalTitle=document.getElementById('modalTitle');
+const modalNote=document.getElementById('modalNote');
+const modalSubtitle=document.getElementById('modalSubtitle');
+const defaultNote='Example pair: baseline-majority task = “double each of five two-digit integers”; recently performed task = “add ten to each of five two-digit integers.” The paired arm uses the same template with the performed task swapped.';
+document.querySelectorAll('.promptbtn[data-prompt]').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const tpl=document.getElementById(btn.dataset.prompt);
+    modalPrompt.textContent=tpl.content.textContent;
+    modalTitle.textContent=btn.dataset.title;
+    modalNote.textContent=btn.dataset.note || defaultNote;
+    modalSubtitle.textContent='Example text from the experiment';
+    promptModal.classList.add('open');
+    document.body.style.overflow='hidden';
+  });
+});
+function closePromptModal(){
+  promptModal.classList.remove('open');
+  document.body.style.overflow='';
+}
+document.getElementById('closeModal').addEventListener('click',closePromptModal);
+promptModal.addEventListener('click',e=>{if(e.target===promptModal) closePromptModal();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&promptModal.classList.contains('open')) closePromptModal();});
+</script>
+
+</body></html>

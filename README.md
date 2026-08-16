@@ -1,5 +1,7 @@
 # AI systems underestimate how strongly recent work shapes their next choice
 
+**[Read the walkthrough of the result →](https://skyenygaard.github.io/digital-minds/)**
+
 **Digital Minds Research Sprint, 14–16 August 2026. Anchor track: 4, Preference
 Elicitation Methods.** The project measures the same context-dependent choice
 tendency two ways — by asking and by watching — and spends most of its effort on
